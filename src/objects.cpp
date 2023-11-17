@@ -159,14 +159,6 @@ Geometry::init(int type_, QRgb rgb, Qt::PenStyle lineType, QGraphicsItem* parent
         break;
     }
 
-/*
-    init_line(line); //TODO: getCurrentLineType
-    init_point(vector); //TODO: getCurrentLineType
-    init_path(p); //TODO: getCurrentLineType
-    init_rect(rect); //TODO: getCurrentLineType
-    init_text_single(str, v); //TODO: getCurrentLineType
-*/
-
     setPen(objPen);
 
     update();
@@ -184,106 +176,74 @@ void
 Geometry::update(void)
 {
     switch (Type) {
-    case OBJ_TYPE_ARC:
-        calculateArcData(arc);
+    case OBJ_TYPE_ARC: {
+        EmbVector center = embArc_center(arc);
+
+        arcStartPoint = to_QPointF(embVector_subtract(arc.start, center));
+        arcMidPoint = to_QPointF(embVector_subtract(arc.mid, center));
+        arcEndPoint = to_QPointF(embVector_subtract(arc.end, center));
+
+        setPos(center.x, center.y);
+
+        EmbReal radius = embVector_distance(center, arc.mid);
+        QRectF elRect;
+        elRect.setWidth(radius*2.0);
+        elRect.setHeight(radius*2.0);
+        elRect.moveCenter(QPointF(0,0));
+        setRect(elRect.x(), elRect.y(), elRect.width(), elRect.height());
+        updatePath();
+        setRotation(0);
+        setScale(1);
         break;
-    case OBJ_TYPE_CIRCLE:
+    }
+    case OBJ_TYPE_CIRCLE: {
         setObjectRadius(circle.radius);
         setObjectCenter(circle.center);
         break;
-    case OBJ_TYPE_ELLIPSE:
+    }
+    case OBJ_TYPE_ELLIPSE: {
         setObjectSize(ellipse.radius.x, ellipse.radius.y);
         setObjectCenter(ellipse.center);
         break;
-    case OBJ_TYPE_DIMLEADER:
+    }
+    case OBJ_TYPE_DIMLEADER: {
         setData(OBJ_NAME, "Dimension Leader");
         break;
-    case OBJ_TYPE_LINE:
+    }
+    case OBJ_TYPE_LINE: {
         setData(OBJ_NAME, "Line");
         break;
-    case OBJ_TYPE_POINT:
+    }
+    case OBJ_TYPE_POINT: {
         setData(OBJ_NAME, "Point");
         break;
-    case OBJ_TYPE_POLYGON:
+    }
+    case OBJ_TYPE_POLYGON: {
         setData(OBJ_NAME, "Polygon");
         break;
-    case OBJ_TYPE_POLYLINE:
+    }
+    case OBJ_TYPE_POLYLINE: {
         setData(OBJ_NAME, "Polyline");
         break;
-    case OBJ_TYPE_RECTANGLE:
+    }
+    case OBJ_TYPE_RECTANGLE: {
         setData(OBJ_NAME, "Rectangle");
         break;
-    case OBJ_TYPE_TEXTSINGLE:
+    }
+    case OBJ_TYPE_TEXTSINGLE: {
         setData(OBJ_NAME, "Single Line Text");
         break;
-    case OBJ_TYPE_TEXTMULTI:
+    }
+    case OBJ_TYPE_TEXTMULTI: {
         setData(OBJ_NAME, "Multi Line Text");
         break;
-    default:
+    }
+    default: {
         setData(OBJ_NAME, "Unknown");
         break;
     }
-    updatePath();
-}
-
-/* Geometry::init_line
- */
-void
-Geometry::init_line(EmbLine line)
-{
-    if (Type==OBJ_TYPE_DIMLEADER) {
-        flags |= ((!PROP_CURVED) & PROP_FILLED);
     }
-
-    setObjectEndPoint1(line.start);
-    setObjectEndPoint2(line.end);
-}
-
-/* Geometry::init_point
- */
-void
-Geometry::init_point(EmbVector position)
-{
-    setRect(-0.00000001, -0.00000001, 0.00000002, 0.00000002);
-    setPos(position.x, position.y);
-}
-
-
-/* Geometry::init_path
- */
-void
-Geometry::init_path(QPainterPath p)
-{
-    gripIndex = -1;
-    normalPath = p;
     updatePath();
-    if (Type==OBJ_TYPE_POLYLINE) {
-        updatePath(p);
-    }
-
-    QPainterPath::Element position = p.elementAt(0);
-    setPos(position.x, position.y);
-}
-
-/* Geometry::init_rect
- */
-void Geometry::init_rect(EmbRect rect)
-{
-    setObjectRect(rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top);
-}
-
-/* Init_text_single.
- *
- * TODO: set the justification properly.
- * TODO: pass in proper lineweight
- */
-void
-Geometry::init_text_single(QString str, EmbVector v)
-{
-    objTextJustify = "Left";
-
-    setObjectText(str);
-    setPos(v.x, v.y);
 }
 
 /* Geometry::Geometry *obj *parent. */
@@ -313,14 +273,6 @@ Geometry::Geometry(Geometry* obj, QGraphicsItem* parent) : QGraphicsPathItem(par
         break;
     }
 
-    case OBJ_TYPE_DIMLEADER: {
-        EmbLine line;
-        line.start = to_EmbVector(obj->objectEndPoint1());
-        line.end = to_EmbVector(obj->objectEndPoint2());
-        init_line(line);
-        break;
-    }
-
     case OBJ_TYPE_ELLIPSE: {
         ellipse.center = to_EmbVector(obj->scenePos());
         ellipse.radius.x = obj->objectWidth();
@@ -328,22 +280,41 @@ Geometry::Geometry(Geometry* obj, QGraphicsItem* parent) : QGraphicsPathItem(par
         break;
     }
 
+    case OBJ_TYPE_DIMLEADER:
     case OBJ_TYPE_LINE: {
         EmbLine line;
         line.start = to_EmbVector(obj->objectEndPoint1());
         line.end = to_EmbVector(obj->objectEndPoint2());
-        init_line(line);
+
+        if (Type==OBJ_TYPE_DIMLEADER) {
+            flags |= ((!PROP_CURVED) & PROP_FILLED);
+        }
+
+        setObjectEndPoint1(line.start);
+        setObjectEndPoint2(line.end);
         break;
     }
 
     case OBJ_TYPE_POINT: {
-        init_point(to_EmbVector(obj->scenePos()));
+        EmbVector position = to_EmbVector(obj->scenePos());
+
+        setRect(-0.00000001, -0.00000001, 0.00000002, 0.00000002);
+        setPos(position.x, position.y);
         break;
     }
 
     case OBJ_TYPE_POLYGON:
     case OBJ_TYPE_POLYLINE: {
-        init_path(obj->objectCopyPath());
+        QPainterPath p = obj->objectCopyPath();
+        gripIndex = -1;
+        normalPath = p;
+        updatePath();
+        if (Type==OBJ_TYPE_POLYLINE) {
+            updatePath(p);
+        }
+
+        QPainterPath::Element position = p.elementAt(0);
+        setPos(position.x, position.y);
         break;
     }
 
@@ -354,15 +325,21 @@ Geometry::Geometry(Geometry* obj, QGraphicsItem* parent) : QGraphicsPathItem(par
         rect.top = ptl.y();
         rect.right = rect.left + obj->objectWidth();
         rect.bottom = rect.top + obj->objectHeight();
-        init_rect(rect);
+        setObjectRect(rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top);
         break;
     }
 
+    /*
+     * TODO: set the justification properly.
+     * TODO: pass in proper lineweight
+     */
     case OBJ_TYPE_TEXTSINGLE: {
         setObjectTextFont(obj->objTextFont);
-        setObjectTextSize(obj->text_size);
+        setObjectTextSize(obj->gdata->text_size);
         EmbVector v = to_EmbVector(obj->scenePos());
-        init_text_single(obj->objText, v);
+        objTextJustify = "Left";
+        setPos(v.x, v.y);
+
         setObjectText(obj->objText);
         break;
     }
@@ -478,10 +455,8 @@ Geometry::setObjectLineWeight(String lineWeight)
     */
 }
 
-/* Geometry::objectRubberPoint
- * key */
 QPointF
-Geometry::objectRubberPoint(QString  key)
+Geometry::objectRubberPoint(QString key)
 {
     if (objRubberPoints.contains(key)) {
         return objRubberPoints.value(key);
@@ -494,11 +469,8 @@ Geometry::objectRubberPoint(QString  key)
     return QPointF();
 }
 
-/* Geometry::objectRubberText
- * key
- */
 QString
-Geometry::objectRubberText(QString  key)
+Geometry::objectRubberText(QString key)
 {
     if (objRubberTexts.contains(key)) {
         return objRubberTexts.value(key);
@@ -596,9 +568,6 @@ Geometry::mouseSnapPoint(const QPointF& mousePoint)
     return closest_point(mousePoint, allGripPoints());
 }
 
-/* Geometry::setObjectEndPoint1
- * x1, y1
- */
 void
 Geometry::setObjectEndPoint1(EmbVector endPt1)
 {
@@ -613,10 +582,6 @@ Geometry::setObjectEndPoint1(EmbVector endPt1)
     }
 }
 
-/* Geometry::setObjectEndPoint2
- * x2
- * y2
- */
 void
 Geometry::setObjectEndPoint2(EmbVector endPt2)
 {
@@ -631,14 +596,12 @@ Geometry::setObjectEndPoint2(EmbVector endPt2)
     }
 }
 
-/* Geometry::objectEndPoint1 */
 QPointF
 Geometry::objectEndPoint1()
 {
     return scenePos();
 }
 
-/* Geometry::objectEndPoint2 */
 QPointF
 Geometry::objectEndPoint2()
 {
@@ -656,10 +619,6 @@ void
 Geometry::updateLeader()
 {
     int arrowStyle = ARROW_STYLE_CLOSED; //TODO: Make this customizable
-    EmbReal arrowStyleAngle = 15.0; //TODO: Make this customizable
-    EmbReal arrowStyleLength = 1.0; //TODO: Make this customizable
-    EmbReal lineStyleAngle = 45.0; //TODO: Make this customizable
-    EmbReal lineStyleLength = 1.0; //TODO: Make this customizable
 
     QLineF lyne = objLine;
     EmbReal angle = lyne.angle();
@@ -667,12 +626,12 @@ Geometry::updateLeader()
     QPointF lp0 = lyne.p2();
 
     //Arrow
-    QLineF lynePerp(lyne.pointAt(arrowStyleLength/lyne.length()) ,lp0);
+    QLineF lynePerp(lyne.pointAt(gdata->arrowStyleLength/lyne.length()) ,lp0);
     lynePerp.setAngle(angle + 90);
     QLineF lyne1(ap0, lp0);
     QLineF lyne2(ap0, lp0);
-    lyne1.setAngle(angle + arrowStyleAngle);
-    lyne2.setAngle(angle - arrowStyleAngle);
+    lyne1.setAngle(angle + gdata->arrowStyleAngle);
+    lyne2.setAngle(angle - gdata->arrowStyleAngle);
     QPointF ap1;
     QPointF ap2;
     lynePerp.intersects(lyne1, &ap1);
@@ -722,7 +681,8 @@ Geometry::updateLeader()
     }
     case ARROW_STYLE_DOT: {
         arrowStylePath = QPainterPath();
-        arrowStylePath.addEllipse(ap0, arrowStyleLength, arrowStyleLength);
+        arrowStylePath.addEllipse(ap0, gdata->arrowStyleLength,
+            gdata->arrowStyleLength);
         break;
     }
     case ARROW_STYLE_BOX: {
@@ -1249,7 +1209,6 @@ Geometry::objectCircumference()
     return CONSTANT_PI * objectDiameter();
 }
 
-/* QPointF. */
 QPointF
 Geometry::objectQuadrant0()
 {
@@ -1262,7 +1221,6 @@ Geometry::objectQuadrant0()
     return scenePos() + QPointF(objectRadius(), 0);
 }
 
-/* QPointF. */
 QPointF
 Geometry::objectQuadrant90()
 {
@@ -1275,30 +1233,26 @@ Geometry::objectQuadrant90()
     return scenePos() + QPointF(0,-objectRadius());
 }
 
-/* QPointF. */
 QPointF
 Geometry::objectQuadrant180()
 {
     if (Type == OBJ_TYPE_ELLIPSE) {
         EmbReal halfW = objectWidth()/2.0;
         EmbReal rot = radians(rotation()+180.0);
-        EmbReal x = halfW*std::cos(rot);
-        EmbReal y = halfW*std::sin(rot);
-        return scenePos() + QPointF(x,y);
+        EmbVector v = embVector_scale(embVector_unit(rot), halfW);
+        return scenePos() + to_QPointF(v);
     }
     return scenePos() + QPointF(-objectRadius(),0);
 }
 
-/* QPointF. */
 QPointF
 Geometry::objectQuadrant270()
 {
     if (Type == OBJ_TYPE_ELLIPSE) {
         EmbReal halfH = objectHeight()/2.0;
         EmbReal rot = radians(rotation()+270.0);
-        EmbReal x = halfH*std::cos(rot);
-        EmbReal y = halfH*std::sin(rot);
-        return scenePos() + QPointF(x,y);
+        EmbVector v = embVector_scale(embVector_unit(rot), halfH);
+        return scenePos() + to_QPointF(v);
     }
     return scenePos() + QPointF(0, objectRadius());
 }
@@ -1317,49 +1271,18 @@ Geometry::objectHeight()
     return rect().height()*scale();
 }
 
-/* EmbReal. */
-EmbReal
-Geometry::objectRadiusMajor()
-{
-    return std::max(rect().width(), rect().height())/2.0*scale();
-}
-
-/* EmbReal. */
-EmbReal
-Geometry::objectRadiusMinor()
-{
-    return std::min(rect().width(), rect().height())/2.0*scale();
-}
-
-/* EmbReal. */
-EmbReal
-Geometry::objectDiameterMajor()
-{
-    return std::max(rect().width(), rect().height())*scale();
-}
-
-/* EmbReal. */
-EmbReal
-Geometry::objectDiameterMinor()
-{
-    return std::min(rect().width(), rect().height())*scale();
-}
-
-/* . */
 void
 Geometry::setObjectCenter(EmbVector center)
 {
     setPos(center.x, center.y);
 }
 
-/* . */
 QRectF
 Geometry::rect()
 {
     return path().boundingRect();
 }
 
-/* . */
 void
 Geometry::setRect(EmbReal x, EmbReal y, EmbReal w, EmbReal h)
 {
@@ -1368,7 +1291,6 @@ Geometry::setRect(EmbReal x, EmbReal y, EmbReal w, EmbReal h)
     setPath(p);
 }
 
-/* . */
 void
 Geometry::setLine(const QLineF& li)
 {
@@ -1379,7 +1301,6 @@ Geometry::setLine(const QLineF& li)
     objLine = li;
 }
 
-/* . */
 void
 Geometry::setLine(EmbReal x1, EmbReal y1, EmbReal x2, EmbReal y2)
 {
@@ -1432,10 +1353,10 @@ Geometry::gripEdit(const QPointF& before, const QPointF& after)
     case OBJ_TYPE_LINE:
     case OBJ_TYPE_DIMLEADER:
         if (before == objectEndPoint1()) {
-            setObjectEndPoint1(to_EmbVector(after));
+            setObjectPoint(to_EmbVector(after), VECTOR_ARC_START_POINT);
         }
         else if (before == objectEndPoint2()) {
-            setObjectEndPoint2(to_EmbVector(after));
+            setObjectPoint(to_EmbVector(after), VECTOR_ARC_END_POINT);
         }
         else if (before == objectMidPoint()) {
             moveBy(delta.x(), delta.y());
@@ -1579,39 +1500,6 @@ Geometry::objectSavePath()
     return path;
 }
 
-/* Geometry::calculateArcData
- * arc
- *
- * TODO: convert this to update and make it Type sensitive.
- */
-void Geometry::calculateArcData(EmbArc arc)
-{
-    EmbVector center = embArc_center(arc);
-
-    arcStartPoint = to_QPointF(embVector_subtract(arc.start, center));
-    arcMidPoint = to_QPointF(embVector_subtract(arc.mid, center));
-    arcEndPoint = to_QPointF(embVector_subtract(arc.end, center));
-
-    setPos(center.x, center.y);
-
-    EmbReal radius = embVector_distance(center, arc.mid);
-    updateArcRect(radius);
-    updatePath();
-    setRotation(0);
-    setScale(1);
-}
-
-/* Update arc rect radius. */
-void
-Geometry::updateArcRect(EmbReal radius)
-{
-    QRectF elRect;
-    elRect.setWidth(radius*2.0);
-    elRect.setHeight(radius*2.0);
-    elRect.moveCenter(QPointF(0,0));
-    setRect(elRect.x(), elRect.y(), elRect.width(), elRect.height());
-}
-
 /* Set object radius to radius. */
 void
 Geometry::setObjectRadius(EmbReal radius)
@@ -1634,8 +1522,6 @@ Geometry::setObjectRadius(EmbReal radius)
         arc.start = to_EmbVector(arcStartPoint);
         arc.mid = to_EmbVector(arcMidPoint);
         arc.end = to_EmbVector(arcEndPoint);
-
-        calculateArcData(arc);
         break;
     }
 
@@ -1647,6 +1533,7 @@ Geometry::setObjectRadius(EmbReal radius)
     default:
         break;
     }
+    update();
 }
 
 /* Set object start angle to angle. */
@@ -1663,7 +1550,6 @@ Geometry::setObjectStartAngle(EmbReal angle)
     }
 }
 
-/* SetObjectEndAngle to angle. */
 void
 Geometry::setObjectEndAngle(EmbReal angle)
 {
@@ -1677,51 +1563,43 @@ Geometry::setObjectEndAngle(EmbReal angle)
     }
 }
 
-/* Geometry::setObjectPoint
- * point
- */
 void
 Geometry::setObjectPoint(EmbVector point, int64_t point_type)
 {
     switch (point_type) {
-    case ARC_START_POINT: {
+    case VECTOR_ARC_START_POINT: {
         EmbArc arc;
         arc.start = point;
         arc.mid = to_EmbVector(objectMidPoint());
-        arc.mid = to_EmbVector(objectEndPoint());
-        calculateArcData(arc);
+        arc.end = to_EmbVector(objectEndPoint());
         break;
     }
-    case ARC_MID_POINT: {
+    case VECTOR_ARC_MID_POINT: {
         EmbArc arc;
         arc.start = to_EmbVector(objectStartPoint());
         arc.mid = point;
         arc.end = to_EmbVector(objectEndPoint());
-        calculateArcData(arc);
         break;
     }
-    case ARC_END_POINT: {
+    case VECTOR_ARC_END_POINT: {
         EmbArc arc;
         arc.start = to_EmbVector(objectStartPoint());
         arc.mid = to_EmbVector(objectMidPoint());
         arc.end = point;
-        calculateArcData(arc);
         break;
     }
     default:
         break;
     }
+    update();
 }
 
-/* Geometry::setObjectStartPoint
- * point
- */
 void
 Geometry::setObjectStartPoint(EmbVector point)
 {
     switch (Type) {
     case OBJ_TYPE_ARC: {
-        setObjectPoint(point, ARC_START_POINT);
+        setObjectPoint(point, VECTOR_ARC_START_POINT);
         break;
     }
     default:
@@ -1729,15 +1607,12 @@ Geometry::setObjectStartPoint(EmbVector point)
     }
 }
 
-/* Geometry::setObjectMidPoint
- * point
- */
 void
 Geometry::setObjectMidPoint(EmbVector point)
 {
     switch (Type) {
     case OBJ_TYPE_ARC: {
-        setObjectPoint(point, ARC_MID_POINT);
+        setObjectPoint(point, VECTOR_ARC_MID_POINT);
         break;
     }
     default:
@@ -1745,13 +1620,12 @@ Geometry::setObjectMidPoint(EmbVector point)
     }
 }
 
-/* Set object endPoint to point. */
 void
 Geometry::setObjectEndPoint(EmbVector point)
 {
     switch (Type) {
     case OBJ_TYPE_ARC: {
-        setObjectPoint(point, ARC_END_POINT);
+        setObjectPoint(point, VECTOR_ARC_END_POINT);
         break;
     }
     default:
@@ -1759,7 +1633,6 @@ Geometry::setObjectEndPoint(EmbVector point)
     }
 }
 
-/* ObjectStartAngle */
 EmbReal
 Geometry::objectStartAngle(void)
 {
@@ -1774,7 +1647,6 @@ Geometry::objectStartAngle(void)
     return 0.0f;
 }
 
-/* objectEndAngle */
 EmbReal
 Geometry::objectEndAngle(void)
 {
@@ -1800,48 +1672,34 @@ rotate_vector(EmbVector v, EmbReal alpha)
     return rotv;
 }
 
-/* ObjectStartPoint */
 QPointF
 Geometry::objectStartPoint()
 {
-    EmbReal rot = radians(rotation());
     QPointF start_point = objLine.pointAt(0.0);
     if (Type == OBJ_TYPE_ARC) {
         start_point = arcMidPoint;
     }
-    EmbVector start = embVector_scale(to_EmbVector(start_point), scale());
-    QPointF rotv = to_QPointF(rotate_vector(start, rot));
-
-    return scenePos() + rotv;
+    return scale_and_rotate(start_point);
 }
 
-/* ObjectMidPoint */
 QPointF
 Geometry::objectMidPoint()
 {
-    EmbReal rot = radians(rotation());
     QPointF mid_point = objLine.pointAt(0.5);
     if (Type == OBJ_TYPE_ARC) {
         mid_point = arcMidPoint;
     }
-    EmbVector mid = embVector_scale(to_EmbVector(mid_point), scale());
-    QPointF rotv = to_QPointF(rotate_vector(mid, rot));
-
-    return scenePos() + rotv;
+    return scale_and_rotate(mid_point);
 }
 
-/* ObjectEndPoint */
-QPointF Geometry::objectEndPoint()
+QPointF
+Geometry::objectEndPoint()
 {
-    EmbReal rot = radians(rotation());
     QPointF end_point = objLine.pointAt(1.0);
     if (Type == OBJ_TYPE_ARC) {
         end_point = arcEndPoint;
     }
-    EmbVector end = embVector_scale(to_EmbVector(end_point), scale());
-    QPointF rotv = to_QPointF(rotate_vector(end, rot));
-
-    return scenePos() + rotv;
+    return scale_and_rotate(end_point);
 }
 
 /* objectArea */
@@ -1863,41 +1721,80 @@ Geometry::objectArea()
     return std::fabs(objectWidth()*objectHeight());
 }
 
+/*
+ */
+EmbVector
+Geometry::objectVector(int64_t vector_type)
+{
+    EmbVector v;
+    v = {0.0f, 0.0f};
+    return v;
+}
+
 EmbReal
 Geometry::objectReal(int64_t real_type)
 {
-
-    return 0.0f;
-}
-
-/* ObjectArcLength. */
-EmbReal
-Geometry::objectArcLength(void)
-{
-    switch (Type) {
-    case OBJ_TYPE_ARC: {
-        return radians(objectIncludedAngle())*objectRadius();
+    switch (real_type) {
+    case REAL_ARC_LENGTH: {
+        if (Type == OBJ_TYPE_ARC) {
+            return radians(objectIncludedAngle())*objectRadius();
+        }
+        /* report error */
+        break;
     }
+
+    case REAL_CHORD: {
+        if (Type == OBJ_TYPE_ARC) {
+            return embArc_chord(arc);
+        }
+        /* report error */
+        break;
+    }
+
+    case REAL_RADIUS_MAJOR: {
+        return EMB_MAX(rect().width(), rect().height())/2.0*scale();
+    }
+
+    case REAL_RADIUS_MINOR: {
+        return EMB_MIN(rect().width(), rect().height())/2.0*scale();
+    }
+
+    case REAL_DIAMETER_MAJOR: {
+        return EMB_MAX(rect().width(), rect().height())*scale();
+    }
+
+    case REAL_DIAMETER_MINOR:
+        return EMB_MIN(rect().width(), rect().height())*scale();
+
     default:
         break;
     }
+    /* Report error. */
     return 0.0f;
 }
 
-/* objectChord */
-EmbReal
-Geometry::objectChord(void)
+int
+Geometry::objectInt(int int_type)
 {
-    switch (Type) {
-    case OBJ_TYPE_ARC: {
-        return embVector_distance(
-            to_EmbVector(objectStartPoint()),
-            to_EmbVector(objectEndPoint()));
-    }
+    switch (int_type) {
+
     default:
         break;
     }
+    /* Report error. */
     return 0.0f;
+}
+
+char *
+Geometry::objectCharArray(int char_array_type)
+{
+    switch (char_array_type) {
+
+    default:
+        break;
+    }
+    /* Report error. */
+    return "";
 }
 
 /* objectIncludedAngle */
@@ -1906,7 +1803,7 @@ Geometry::objectIncludedAngle(void)
 {
     switch (Type) {
     case OBJ_TYPE_ARC: {
-        EmbReal chord = objectChord();
+        EmbReal chord = objectReal(REAL_CHORD);
         EmbReal rad = objectRadius();
         if (chord <= 0 || rad <= 0) return 0; //Prevents division by zero and non-existant circles
 
@@ -2189,52 +2086,38 @@ Geometry::setObjectRect(EmbReal x, EmbReal y, EmbReal w, EmbReal h)
     updatePath();
 }
 
-/* The top left corner location as a QPointF. */
+QPointF
+Geometry::scale_and_rotate(QPointF v_in)
+{
+    EmbReal rot = radians(rotation());
+    EmbReal s = scale();
+    EmbVector v = embVector_scale(to_EmbVector(v_in), s);
+    EmbVector vRot = rotate_vector(v, rot);
+    return scenePos() + to_QPointF(vRot);
+}
+
 QPointF
 Geometry::objectTopLeft()
 {
-    EmbReal rot = radians(rotation());
-    QPointF tl = rect().topLeft();
-    EmbVector ptl = embVector_scale(to_EmbVector(tl), scale());
-    EmbVector ptlRot = rotate_vector(ptl, rot);
-
-    return scenePos() + to_QPointF(ptlRot);
+    return scale_and_rotate(rect().topLeft());
 }
 
-/* QPointF. */
 QPointF
 Geometry::objectTopRight()
 {
-    EmbReal rot = radians(rotation());
-    QPointF tr = rect().topRight();
-    EmbVector ptr = embVector_scale(to_EmbVector(tr), scale());
-    EmbVector ptrRot = rotate_vector(ptr, rot);
-
-    return (scenePos() + QPointF(ptrRot.x, ptrRot.y));
+    return scale_and_rotate(rect().topRight());
 }
 
-/* QPointF. */
 QPointF
 Geometry::objectBottomLeft()
 {
-    EmbReal rot = radians(rotation());
-    QPointF bl = rect().bottomLeft();
-    EmbVector pbl = embVector_scale(to_EmbVector(bl), scale());
-    EmbVector pblRot = rotate_vector(pbl, rot);
-
-    return scenePos() + to_QPointF(pblRot);
+    return scale_and_rotate(rect().bottomLeft());
 }
 
-/* QPointF */
 QPointF
 Geometry::objectBottomRight()
 {
-    EmbReal rot = radians(rotation());
-    QPointF br = rect().bottomRight();
-    EmbVector pbr = embVector_scale(to_EmbVector(br), scale());
-    EmbVector pbrRot = rotate_vector(pbr, rot);
-
-    return scenePos() + to_QPointF(pbrRot);
+    return scale_and_rotate(rect().bottomRight());
 }
 
 /*
@@ -2858,7 +2741,7 @@ void Geometry::setObjectText(QString str)
     QPainterPath textPath;
     QFont font;
     font.setFamily(objTextFont);
-    font.setPointSizeF(text_size);
+    font.setPointSizeF(gdata->text_size);
     font.setBold(flags & PROP_BOLD);
     font.setItalic(flags & PROP_ITALIC);
     font.setUnderline(flags & PROP_UNDERLINE);
@@ -2993,7 +2876,7 @@ Geometry::setObjectTextJustify(QString justify)
 void
 Geometry::setObjectTextSize(EmbReal size)
 {
-    text_size = size;
+    gdata->text_size = size;
     setObjectText(objText);
 }
 

@@ -122,37 +122,27 @@ public:
     std::string objRubberMode = "OBJ_RUBBER_OFF";
     QHash<QString, QPointF> objRubberPoints;
     QHash<QString, QString> objRubberTexts;
-    int64_t objID;
-    int64_t mode;
 
     EmbArc arc;
     EmbCircle circle;
     EmbEllipse ellipse;
-    EmbLine line;
 
     QPointF arcStartPoint;
     QPointF arcMidPoint;
     QPointF arcEndPoint;
 
+    int64_t objID;
+    int64_t mode;
     uint64_t flags = 0;
-
-    EmbReal text_size = 20.0;
 
     QPainterPath lineStylePath;
     QPainterPath arrowStylePath;
-    EmbReal arrowStyleAngle;
-    EmbReal arrowStyleLength;
-    EmbReal lineStyleAngle;
-    EmbReal lineStyleLength;
-
     QPainterPath normalPath;
 
     QString objText;
     QString objTextFont;
     QString objTextJustify;
     QPainterPath objTextPath;
-
-    EmbVector positions[MAX_POSITIONS];
 
     int gripIndex;
 
@@ -174,11 +164,10 @@ public:
     void unsetFlag_(uint64_t new_flag) { flags ^= new_flag; }
 
     /* Getters */
-    Qt::PenStyle objectLineType() { return objPen.style(); }
-    EmbReal objectLineWeight() { return lwtPen.widthF(); }
     QPointF objectRubberPoint(QString key);
     QString objectRubberText(QString key);
 
+    QPointF scale_and_rotate(QPointF v_in);
     QPointF objectTopLeft();
     QPointF objectTopRight();
     QPointF objectBottomLeft();
@@ -189,23 +178,21 @@ public:
     QPointF objectEndPoint();
 
     QRectF rect();
+
+    EmbVector objectVector(int64_t vector_type);
+    EmbReal objectReal(int64_t real_type);
+    int objectInt(int int_type);
+    char *objectCharArray(int char_array_type);
+
     EmbReal objectWidth();
     EmbReal objectHeight();
-    EmbReal objectRadiusMajor();
-    EmbReal objectRadiusMinor();
-    EmbReal objectDiameterMajor();
-    EmbReal objectDiameterMinor();
     QPointF objectEndPoint1();
     QPointF objectEndPoint2();
     EmbReal objectStartAngle();
     EmbReal objectEndAngle();
-    EmbReal objectArcLength();
-    EmbReal objectChord();
     EmbReal objectIncludedAngle();
     bool objectClockwise();
     EmbReal objectAngle();
-    QPointF objectDelta() { return objectEndPoint2() - objectEndPoint1(); }
-    EmbReal objectLength() { return objLine.length()*scale(); }
     EmbReal objectRadius();
     EmbReal objectDiameter();
     EmbReal objectCircumference();
@@ -221,7 +208,6 @@ public:
 
     int findIndex(const QPointF& point);
 
-    EmbReal objectReal(int64_t real_type);
     void setObjectPoint(EmbVector pt, int64_t point_type);
 
     void setObjectEndPoint1(EmbVector endPt1);
@@ -245,16 +231,12 @@ public:
     void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*);
 
     /* Updaters, todo: combine */
-    void calculateArcData(EmbArc arc);
     void updateArcRect(EmbReal radius);
     void update(void);
 
     /* Setters */
-    void init_line(EmbLine line);
     void init_rect(EmbRect rect);
     void init_text_single(QString str, EmbVector position);
-    void init_path(QPainterPath p);
-    void init_point(EmbVector pos);
 
     void setObjectPos(const QPointF& point) { setPos(point.x(), point.y()); }
     void setObjectCenter(EmbVector center);

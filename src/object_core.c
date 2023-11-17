@@ -27,6 +27,11 @@ GeometryData*
 geometry_init(int type)
 {
     GeometryData *g = malloc(sizeof(GeometryData));
+    g->arrowStyleAngle = 15.0; //TODO: Make this customizable
+    g->arrowStyleLength = 1.0; //TODO: Make this customizable
+    g->lineStyleAngle = 45.0; //TODO: Make this customizable
+    g->lineStyleLength = 1.0; //TODO: Make this customizable
+    g->text_size = 20.0;
 
     /*
     std::vector<std::string> script = {"end"};

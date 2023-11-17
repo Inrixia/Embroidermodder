@@ -2602,8 +2602,10 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             continue;
         }
         if (objType == OBJ_TYPE_ARC) {
-            updateLineEditNumIfVaries(lineEdits["arc-center-x"], obj->scenePos().x(), false);
-            updateLineEditNumIfVaries(lineEdits["arc-center-y"], -obj->scenePos().y(), false);
+            updateLineEditNumIfVaries(lineEdits["arc-center-x"],
+                obj->scenePos().x(), false);
+            updateLineEditNumIfVaries(lineEdits["arc-center-y"],
+                -obj->scenePos().y(), false);
             updateLineEditNumIfVaries(lineEdits["arc_radius"], obj->objectRadius(), false);
             updateLineEditNumIfVaries(lineEdits["arc_start_angle"], obj->objectStartAngle(), true);
             updateLineEditNumIfVaries(lineEdits["arc_end_angle"], obj->objectEndAngle(), true);
@@ -2612,8 +2614,9 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             updateLineEditNumIfVaries(lineEdits["arc_end_x"], obj->objectEndPoint().x(), false);
             updateLineEditNumIfVaries(lineEdits["arc_end_y"], -obj->objectEndPoint().y(), false);
             updateLineEditNumIfVaries(lineEdits["arc_area"], obj->objectArea(), false);
-            updateLineEditNumIfVaries(lineEdits["arc_length"], obj->objectArcLength(), false);
-            updateLineEditNumIfVaries(lineEdits["arc_chord"], obj->objectChord(), false);
+            updateLineEditNumIfVaries(lineEdits["arc_length"],
+                obj->objectReal(REAL_ARC_LENGTH), false);
+            updateLineEditNumIfVaries(lineEdits["arc_chord"], obj->objectReal(REAL_CHORD), false);
             updateLineEditNumIfVaries(lineEdits["arc_inc_angle"], obj->objectIncludedAngle(), true);
             updateComboBoxBoolIfVaries(comboBoxes["arc-clockwise"], obj->objectClockwise(), true);
         }
@@ -2653,12 +2656,18 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             // \todo load radius dimension data
         }
         else if (objType == OBJ_TYPE_ELLIPSE) {
-            updateLineEditNumIfVaries(lineEdits["ellipse-center-x"], obj->scenePos().x(), false);
-            updateLineEditNumIfVaries(lineEdits["ellipse-center-y"], -obj->scenePos().y(), false);
-            updateLineEditNumIfVaries(lineEdits["ellipse-radius-major"], obj->objectRadiusMajor(), false);
-            updateLineEditNumIfVaries(lineEdits["ellipse-radius-minor"], obj->objectRadiusMinor(), false);
-            updateLineEditNumIfVaries(lineEdits["ellipse-diameter-major"], obj->objectDiameterMajor(), false);
-            updateLineEditNumIfVaries(lineEdits["ellipse-diameter-minor"], obj->objectDiameterMinor(), false);
+            updateLineEditNumIfVaries(lineEdits["ellipse-center-x"],
+                obj->scenePos().x(), false);
+            updateLineEditNumIfVaries(lineEdits["ellipse-center-y"],
+                -obj->scenePos().y(), false);
+            updateLineEditNumIfVaries(lineEdits["ellipse-radius-major"],
+                obj->objectReal(REAL_RADIUS_MAJOR), false);
+            updateLineEditNumIfVaries(lineEdits["ellipse-radius-minor"],
+                obj->objectReal(REAL_RADIUS_MINOR), false);
+            updateLineEditNumIfVaries(lineEdits["ellipse-diameter-major"],
+                obj->objectReal(REAL_DIAMETER_MAJOR), false);
+            updateLineEditNumIfVaries(lineEdits["ellipse-diameter-minor"],
+                obj->objectReal(REAL_DIAMETER_MINOR), false);
         }
         else if (objType == OBJ_TYPE_IMAGE) {
             // \todo load image data
@@ -2667,14 +2676,15 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             // \todo load infinite line data
         }
         else if (objType == OBJ_TYPE_LINE) {
+            QPointF delta = obj->objectEndPoint() - obj->objectStartPoint();
             updateLineEditNumIfVaries(lineEdits["line-start-x"], obj->objectEndPoint1().x(), false);
             updateLineEditNumIfVaries(lineEdits["line-start-y"], -obj->objectEndPoint1().y(), false);
             updateLineEditNumIfVaries(lineEdits["line-end-x"], obj->objectEndPoint2().x(), false);
             updateLineEditNumIfVaries(lineEdits["line-end-y"], -obj->objectEndPoint2().y(), false);
-            updateLineEditNumIfVaries(lineEdits["line-delta-x"], obj->objectDelta().x(), false);
-            updateLineEditNumIfVaries(lineEdits["line-delta-y"], -obj->objectDelta().y(), false);
+            updateLineEditNumIfVaries(lineEdits["line-delta-x"], delta.x(), false);
+            updateLineEditNumIfVaries(lineEdits["line-delta-y"], -delta.y(), false);
             updateLineEditNumIfVaries(lineEdits["line-angle"], obj->objectAngle(), true);
-            updateLineEditNumIfVaries(lineEdits["line-length"], obj->objectLength(), false);
+            updateLineEditNumIfVaries(lineEdits["line-length"], obj->objLine.length()*obj->scale(), false);
         }
         else if (objType == OBJ_TYPE_PATH) {
             // \todo load path data
@@ -2717,7 +2727,7 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             updateLineEditStrIfVaries(lineEdits["text-single-contents"], obj->objText);
             updateFontComboBoxStrIfVaries(comboBoxTextSingleFont, obj->objTextFont);
             updateComboBoxStrIfVaries(comboBoxes["text-single-justify"], obj->objTextJustify, {});
-            updateLineEditNumIfVaries(lineEdits["text-single-height"], obj->text_size, false);
+            updateLineEditNumIfVaries(lineEdits["text-single-height"], obj->gdata->text_size, false);
             updateLineEditNumIfVaries(lineEdits["text-single-rotation"], -obj->rotation(), true);
             updateLineEditNumIfVaries(lineEdits["text-single-x"], obj->scenePos().x(), false);
             updateLineEditNumIfVaries(lineEdits["text-single-y"], -obj->scenePos().y(), false);

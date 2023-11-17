@@ -386,42 +386,43 @@
 #define POLYGON_MODE_SIDE_LEN                    6
 
 /* Point identifiers. */
-#define ARC_START_POINT                          0
-#define ARC_MID_POINT                            1
-#define ARC_END_POINT                            2
+#define VECTOR_ARC_START_POINT                   0
+#define VECTOR_ARC_MID_POINT                     1
+#define VECTOR_ARC_END_POINT                     2
+#define VECTOR_ARC_POSITION                      3
 
 /* Real Identifiers */
-#define ARC_RADIUS                               3
-#define ARC_START_ANGLE                          4
-#define ARC_END_ANGLE                            5
-#define ARC_DIAMETER                             6
-#define ARC_AREA                                 7
-#define ARC_CIRCUMFERENCE                        9
-#define ARC_POSITION                            10
-#define OBJECT_TEXT                             12
-#define OBJECT_TEXT_FONT                        13
-#define OBJECT_TEXT_JUSTIFY                     14
-#define OBJECT_TEXT_SIZE                        15
-#define OBJECT_TEXT_BOLD                        16
-#define OBJECT_TEXT_ITALIC                      17
-#define OBJECT_TEXT_UNDERLINE                   18
-#define OBJECT_TEXT_STRIKEOUT                   19
-#define OBJECT_TEXT_OVERLINE                    20
-#define OBJECT_TEXT_BACKWARD                    21
-#define OBJECT_TEXT_UPSIDEDOWN                  22
-#define OBJECT_RADIUS_MAJOR                     23
-#define OBJECT_RADIUS_MINOR                     24
-#define OBJECT_DIAMETER_MAJOR                   25
-#define OBJECT_DIAMETER_MINOR                   26
+#define REAL_ARC_RADIUS                          0
+#define REAL_ARC_START_ANGLE                     1
+#define REAL_ARC_END_ANGLE                       2
+#define REAL_ARC_DIAMETER                        3
+#define REAL_ARC_AREA                            4
+#define REAL_ARC_CIRCUMFERENCE                   5
+#define REAL_ARC_LENGTH                          6
+#define REAL_CHORD                               7
+#define REAL_TEXT                                8
+#define REAL_TEXT_FONT                           9
+#define REAL_TEXT_JUSTIFY                       10
+#define REAL_TEXT_SIZE                          11
+#define REAL_RADIUS_MAJOR                       12
+#define REAL_RADIUS_MINOR                       13
+#define REAL_DIAMETER_MAJOR                     14
+#define REAL_DIAMETER_MINOR                     15
+#define REAL_LENGTH                             16
+#define REAL_AREA                               17
+#define REAL_ANGLE                              18
 
+/* Integer identifiers. */
+#define INT_TEXT_BOLD                            0
+#define INT_TEXT_ITALIC                          1
+#define INT_TEXT_UNDERLINE                       2
+#define INT_TEXT_STRIKEOUT                       3
+#define INT_TEXT_OVERLINE                        4
+#define INT_TEXT_BACKWARD                        5
+#define INT_TEXT_UPSIDEDOWN                      6
 
+/* Rubber modes */
 #define N_RUBBER_MODES                          40
-
-/* Per object constants. */
-#define POINTS_PER_BASE_OBJECT                 100
-#define REALS_PER_BASE_OBJECT                  100
-#define BOOLS_PER_BASE_OBJECT                  100
-#define STRINGS_PER_BASE_OBJECT                 10
 
 /* User Interface Mode */
 #define MODE_ARC                                 0
@@ -825,6 +826,13 @@ typedef struct GeometryData_ {
     EmbEllipse ellipse;
     EmbLine line;
     EmbVector vector;
+
+    EmbReal arrowStyleAngle;
+    EmbReal arrowStyleLength;
+    EmbReal lineStyleAngle;
+    EmbReal lineStyleLength;
+
+    EmbReal text_size;
 } GeometryData;
 
 /* To allow us to resize general C arrays when necessary.
