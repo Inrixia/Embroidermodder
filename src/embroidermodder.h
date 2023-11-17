@@ -76,7 +76,6 @@ void add_polyline(QPainterPath p, std::string rubberMode);
 View *activeView(void);
 QGraphicsScene* activeScene();
 
-void debug_message(std::string msg);
 void set_enabled(QObject *parent, const char *key, bool enabled);
 void set_visibility(QObject *parent, const char *name, bool visibility);
 QPainterPath add_to_path(QPainterPath path, EmbVector scale, std::string s);
@@ -115,11 +114,12 @@ typedef struct RubberPoint_ {
 class Geometry : public QGraphicsPathItem
 {
 public:
+    GeometryData *gdata;
+
     QPen objPen;
     QPen lwtPen;
     QLineF objLine;
     std::string objRubberMode = "OBJ_RUBBER_OFF";
-    std::vector<RubberPoint> rubber_points;
     QHash<QString, QPointF> objRubberPoints;
     QHash<QString, QString> objRubberTexts;
     int64_t objID;
@@ -289,12 +289,6 @@ public:
     void setObjectRadiusMinor(EmbReal radius);
     void setObjectDiameterMajor(EmbReal diameter);
     void setObjectDiameterMinor(EmbReal diameter);
-
-    /* Scripted commands, uses the script string in */
-    void script_main(void);
-    void script_click(EmbVector v);
-    void script_context(std::string str);
-    void script_prompt(std::string str);
 };
 
 /* The Command Prompt object. */

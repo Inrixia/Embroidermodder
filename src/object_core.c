@@ -17,12 +17,116 @@
  *
  */
 
+#include <stdlib.h>
+
 #include "core.h"
 
+/* Run initialisation script for this object, based on the object Type.
+ */
 GeometryData*
 geometry_init(int type)
 {
     GeometryData *g = malloc(sizeof(GeometryData));
+
+    /*
+    std::vector<std::string> script = {"end"};
+    switch (g->mode) {
+
+    case OBJ_TYPE_CIRCLE: {
+        init();
+        clear_selection;
+        # FIX SELECTING CURRENT OBJECT;
+        select this;
+        set mode CIRCLE_MODE_1P_RAD;
+        set-prompt-prefix-tr Specify center point for circle or [3P/2P/TTR (tan tan radius)]: "
+        break;
+    }
+
+    case OBJ_TYPE_ELLIPSE: {
+        script = scripts["ellipse_init"];
+        break;
+    }
+
+    case DISTANCE: {
+        script = {
+            init();
+            clear_selection();
+            set-prompt-prefix-tr Specify first point: "
+        };
+        break;
+    }
+
+    case DOLPHIN: {
+        init();
+        clear_selection();
+        set mode DOLPHIN_MODE_NUM_POINTS;
+        # FIX SELECTING CURRENT OBJECT;
+        select this;
+        numPoints 512;
+        minPoints 64;
+        maxPoints 8192;
+        center_x 0.0f;
+        center_y 0.0f;
+        scale_x 0.04f;
+        scale_y 0.04f;
+        add-rubber-selected POLYGON;
+        set-rubber-mode POLYGON;
+        update-dolphin numPoints scale_x scale_y;
+        spare-rubber POLYGON;
+        end"
+        break;
+    }
+
+    ellipse_init_script = [
+        init();
+        clear_selection();
+        # FIX SELECTING CURRENT OBJECT
+        set mode ELLIPSE_MODE_MAJORDIAMETER_MINORRADIUS;
+        height = 1.0;
+        width = 2.0;
+        rotation = 0.0;
+        "set-prompt-prefix-tr Specify first axis start point or [Center]: "
+    ]
+
+    polyline_init_script = [
+        init();
+        clear_selection();
+        # FIX SELECTING CURRENT OBJECT
+        firstRun = true;
+        first_x = 0.0f;
+        first.y = 0.0f;
+        prev_x = 0.0f;
+        prev_y = 0.0f;
+        num 0;
+        set-prompt-prefix(tr("Specify first point: "));
+        break;
+    }
+
+    snowflake_init_script = [
+        init();
+        clear_selection();
+        numPoints = 2048;
+        minPoitns = 64;
+        "maxPoints = 8192;
+        "center.x = 0.0f;
+        "center.y = 0.0f;
+        "scale.x = 0.04f;
+        "scale.y = 0.04f;
+        "mode = SNOWFLAKE_MODE_NUM_POINTS;
+        "add-rubber POLYGON;
+        "set-rubber-mode POLYGON;
+        "update-snowflake;
+        "spare-rubber POLYGON;
+        "end"
+    ]
+
+    default: {
+        break;
+    }
+
+    }
+    */
+
     return g;
 }
 
@@ -32,28 +136,434 @@ geometry_free(GeometryData *g)
     free(g);
 }
 
+/* Script to run on each click for this geometry object.
+ *
+ * The modes are documented in detail in the reference manual.
+ */
 void
 geometry_left_click(GeometryData *geometry, EmbVector v)
 {
+    switch (geometry->mode) {
 
+/*
+    case MODE_CIRCLE_1P_RAD: {
+        auto iter = properties.find("point1");
+        if (iter == properties.end()) {
+            point1 = v;
+            center = v;
+            addRubber("CIRCLE");
+            setRubberMode("CIRCLE_1P_RAD");
+            setRubberPoint("CIRCLE_CENTER", center.x, center.y);
+            actuator("append-prompt");
+            set_prompt_prefix(tr("Specify radius of circle or [Diameter]: ");
+        }
+        else {
+            point2 = v;
+            setRubberPoint("CIRCLE_RADIUS", v);
+            vulcanize();
+            actuator("append-prompt");
+            end();
+        }
+        break;
+    }
+
+    case MODE_CIRCLE_1P_DIA: {
+        auto iter = properties.find("point1");
+        if (iter == properties.end()) {
+            error("CIRCLE", tr("This should never happen."));
+        }
+        else {
+            point2.x = v.x;
+            point2.y = v.y;
+            setRubberPoint("CIRCLE_DIAMETER", point2.x, point2.y);
+            vulcanize();
+            append_prompt_history();
+            end();
+        }
+        break;
+    }
+
+    case MODE_CIRCLE_2P: {
+        auto iter1 = properties.find("point1");
+        auto iter2 = properties.find("point2");
+        if (iter1 == properties.end()) {
+            point1 = node_vector(v);
+            addRubber("CIRCLE");
+            setRubberMode("CIRCLE_2P");
+            setRubberPoint("CIRCLE_TAN1", v);
+            append_prompt_history();
+            set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
+        }
+        else if (iter2 == properties.end()) {
+            point2 = node_vector(v);
+            setRubberPoint("CIRCLE_TAN2", v);
+            vulcanize();
+            append_prompt_history();
+            end();
+        }
+        else {
+            error("CIRCLE", tr("This should never happen."));
+        }
+        break;
+    }
+
+    case CIRCLE_MODE_3P: {
+        if (std::isnan(point1.x)) {
+            point1.x = x;
+            point1.y = y;
+            append_prompt_history();
+            set_prompt_prefix(tr("Specify second point on circle: ");
+        }
+        else if (std::isnan(point2.x)) {
+            point2.x = x;
+            point2.y = y;
+            addRubber("CIRCLE");
+            setRubberMode("CIRCLE_3P");
+            setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
+            setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
+            run_script({
+                append-prompt-history;
+                set-prompt-prefix-tr Specify third point on circle: "
+            });
+        }
+        else if (std::isnan(point3.x)) {
+            point3.x = x;
+            point3.y = y;
+            setRubberPoint("CIRCLE_TAN3", point3.x, point3.y);
+            run_script({
+                vulcanize;
+                append-prompt-history;
+                end"
+            });
+        }
+    }
+
+    case CIRCLE_MODE_TTR: {
+        point1.x = x;
+        point1.y = y;
+        append_prompt_history();
+        set_prompt_prefix(tr("Specify point on object for second tangent of circle: ");
+        mode = MODE_TTR_SET_POINT_2;
+        break;
+    }
+
+    case CIRCLE_MODE_TTR_SET_POINT_2: {
+        point2.x = x;
+        point2.y = y;
+        append_prompt_history();
+        set_prompt_prefix(tr("Specify radius of circle: ");
+        mode = MODE_TTR_SET_POINT_3;
+        break;
+    }
+
+    case CIRCLE_MODE_TTR_SET_POINT_3: {
+        point3.x = x;
+        point3.y = y;
+        append_prompt_history();
+        set_prompt_prefix(tr("Specify second point: ");
+        mode = MODE_CIRCLE_DEFAULT;
+        break;
+    }
+
+    default: {
+        error("CIRCLE", tr("This should never happen."));
+        break;
+    }
+*/
+
+    }
 }
 
+/* Script to control the behavior of the prompt when processing
+ * events for this object.
+ */
 void
 geometry_prompt(
     GeometryData *geometry,
     char input[MAX_STRING_LENGTH],
     char output[MAX_STRING_LENGTH])
 {
+    switch (geometry->mode) {
 
+/*
+    case MODE_CIRCLE_1P_RAD: {
+        if (std::isnan(point1.x)) {
+            if (str == "2P") {
+                mode = MODE_CIRCLE_2P;
+                set_prompt_prefix(tr("Specify first end point of circle's diameter: ");
+            }
+            else if (str == "3P") {
+                mode = MODE_CIRCLE_3P;
+                set_prompt_prefix(tr("Specify first point of circle: ");
+            }
+            else if (str == "T" || str == "TTR") {
+                mode = MODE_CIRCLE_TTR;
+                set_prompt_prefix(tr("Specify point on object for first tangent of circle: ");
+            }
+            else {
+                EmbReal strList = str.split(",");
+                if (std::isnan(strList[0]) || std::isnan(strList[1])) {
+                    alert(tr("Point or option keyword required."));
+                    set_prompt_prefix(tr("Specify center point for circle or [3P/2P/Ttr (tan tan radius)]: ");
+                }
+                else {
+                    x1 = std::stof(strList[0]);
+                    point1.y = atof(strList[1]);
+                    center.x = point1.x;
+                    center.y = point1.y;
+                    addRubber("CIRCLE");
+                    setRubberMode("CIRCLE_1P_RAD");
+                    setRubberPoint("CIRCLE_CENTER", center.x, center.y);
+                    set_prompt_prefix(tr("Specify radius of circle or [Diameter]: ");
+                }
+            }
+        }
+        else {
+            if (str == "D" || str == "DIAMETER") {
+                mode = MODE_CIRCLE_1P_DIA;
+                setRubberMode("CIRCLE_1P_DIA");
+                set_prompt_prefix(tr("Specify diameter of circle: ");
+            }
+            else {
+                EmbReal num = atof(str);
+                if (std::isnan(num)) {
+                    alert(tr("Requires numeric radius, point on circumference, or \"D\"."));
+                    set_prompt_prefix(tr("Specify radius of circle or [Diameter]: "));
+                }
+                else {
+                    radius = num;
+                    point2.x = point1.x + radius;
+                    point2.y = point1.y;
+                    setRubberPoint("CIRCLE_RADIUS", point2.x, point2.y);
+                    vulcanize();
+                    end();
+                }
+            }
+        }
+    }
+
+    case MODE_CIRCLE_1P_DIA: {
+        if (std::isnan(point1.x)) {
+            error("CIRCLE", tr("This should never happen."));
+        }
+        if (std::isnan(point2.x)) {
+            EmbReal num = atof(str);
+            if (std::isnan(num)) {
+                alert(tr("Requires numeric distance or second point."));
+                set_prompt_prefix(tr("Specify diameter of circle: "));
+            }
+            else {
+                diameter = num;
+                point2.x = point1.x + diameter.r;
+                point2.y = point1.y;
+                setRubberPoint("CIRCLE_DIAMETER", point2.x, point2.y);
+                vulcanize();
+                end();
+            }
+        }
+        else {
+            error("CIRCLE", tr("This should never happen."));
+        }
+    }
+
+    case MODE_CIRCLE_2P: {
+        if (std::isnan(point1.x)) {
+            EmbReal strList = str.split(",");
+            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
+                alert(tr("Invalid point."));
+                set_prompt_prefix(tr("Specify first end point of circle's diameter: ");
+            }
+            else {
+                x1 = atof(strList[0]);
+                y1 = atof(strList[1]);
+                addRubber("CIRCLE");
+                setRubberMode("CIRCLE_2P");
+                setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
+                set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
+            }
+        }
+        else if (std::isnan(point2.x)) {
+            EmbReal strList = str.split(",");
+            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
+                alert(tr("Invalid point."));
+                set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
+            }
+            else {
+                x2 = atof(strList[0]);
+                y2 = atof(strList[1]);
+                setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
+                vulcanize();
+                end();
+            }
+        }
+        else {
+            error("CIRCLE", tr("This should never happen."));
+        }
+    }
+
+    case MODE_CIRCLE_3P: {
+        if (std::isnan(point1.x)) {
+            EmbReal strList = str.split(",");
+            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
+                alert(tr("Invalid point."));
+                set_prompt_prefix(tr("Specify first point of circle: ");
+            }
+            else {
+                point1.x = atof(strList[0]);
+                point1.y = atof(strList[1]);
+                set_prompt_prefix(tr("Specify second point of circle: ");
+            }
+        }
+        else if (std::isnan(point2.x)) {
+            EmbReal strList = str.split(",");
+            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
+                alert(tr("Invalid point."));
+                set_prompt_prefix(tr("Specify second point of circle: ");
+            }
+            else {
+                point2.x = atof(strList[0]);
+                point2.y = atof(strList[1]);
+                addRubber("CIRCLE");
+                setRubberMode("CIRCLE_3P");
+                setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
+                setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
+                set_prompt_prefix(tr("Specify third point of circle: ");
+            }
+        }
+        else if (std::isnan(point3.x)) {
+            EmbReal strList = str.split(",");
+            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
+                alert(tr("Invalid point."));
+                set_prompt_prefix(tr("Specify third point of circle: ");
+            }
+            else {
+                point3.x = atof(strList[0]);
+                point3.y = atof(strList[1]);
+                setRubberPoint("CIRCLE_TAN3", point3.x, point3.y);
+                vulcanize();
+                end();
+            }
+        }
+        else {
+            error("CIRCLE", tr("This should never happen."));
+        }
+    }
+
+    case MODE_CIRCLE_TTR: {
+        debug_message("todo CIRCLE prompt() for TTR");
+        break;
+    }
+
+    default: {
+        break;
+    }
+*/
+    }
 }
 
+/* Script to change the entries in the context menu when acting
+ * on this object. Also, if one is activated carry out that
+ * script.
+ */
 void
 geometry_context(
     void *m,
     GeometryData *geometry,
     char output[MAX_STRING_LENGTH])
 {
+    switch (geometry->mode) {
 
+    case MODE_CIRCLE_1P_RAD: {
+        debug_message("todo CIRCLE context()");
+        break;
+    }
+
+    case MODE_DISTANCE: {
+        debug_message("todo DISTANCE context()");
+        break;
+    } 
+
+    case MODE_ELLIPSE_MAJORDIAMETER_MINORRADIUS: {
+		debug_message("TODO ELLIPSE context()");
+        break;
+    } 
+
+    case MODE_MOVE: {
+        debug_message("todo MOVE context()");
+        break;
+    } 
+
+    case MODE_QUICKLEADER: {
+        debug_message("todo QUICKLEADER context()");
+        break;
+    } 
+
+    case MODE_PATH: {
+        debug_message("todo PATH context()");
+        break;
+    } 
+
+    case MODE_POINT: {
+        debug_message("todo POINT context()");
+        break;
+    }
+
+    case MODE_POLYLINE: {
+        debug_message("todo POLYLINE context()");
+        break;
+    } 
+
+    case MODE_RECTANGLE: {
+        debug_message("todo RECTANGLE context()");
+        break;
+    } 
+
+    case MODE_RGB: {
+        debug_message("todo RGB context()");
+        break;
+    } 
+
+    case MODE_ROTATE: {
+        debug_message("todo ROTATE context()");
+        break;
+    } 
+
+    case MODE_SCALE: {
+        debug_message("todo SCALE context()");
+        break;
+    }
+
+    case MODE_STAR_CENTER_PT: {
+        debug_message("todo STAR context()");
+        break;
+    } 
+
+    case MODE_TEXT_SINGLE_SETGEOM: {
+        debug_message("todo SINGLELINETEXT context()");
+        break;
+    } 
+
+    case MODE_POLYGON_CENTER_PT: {
+        debug_message("todo POLYGON context()");
+        break;
+    }
+
+    case MODE_LOCATE_POINT: {
+        debug_message("todo LOCATEPOINT context()");
+        break;
+    }
+
+    case MODE_LINE: {
+        debug_message("todo LINE context()");
+        break;
+    } 
+
+    /* . */
+    default: {
+        break;
+    }
+
+    }
 }
 
 #if 0
@@ -78,12 +588,6 @@ Geometry::distance_click(EmbVector v)
     }
 }
 
-/* . */
-void
-Geometry::distance_context(String args)
-{
-    actuator("todo DISTANCE context()");
-}
 
 /* . */
 void
@@ -139,9 +643,9 @@ Geometry::reportDistance()
     EmbReal dist = calculateDistance(point1.x, point1.y, point2.x, point2.y);
     EmbReal angle = calculateAngle(point1.x, point1.y, point2.x, point2.y);
 
-    actuator("set-prompt-prefix " + tr("Distance") + " = " + dist.toString() + ", " + tr("Angle") + " = " + angle.toString());
+    prompt_output("" + tr("Distance") + " = " + dist.toString() + ", " + tr("Angle") + " = " + angle.toString());
     append_prompt_history();
-    actuator("set-prompt-prefix " + tr("Delta X") + " = " + dx.toString() + ", " + tr("Delta Y") + " = " + dy.toString());
+    prompt_output("" + tr("Delta X") + " = " + dx.toString() + ", " + tr("Delta Y") + " = " + dy.toString());
     append_prompt_history();
 }
 
@@ -255,13 +759,6 @@ Geometry::ellipse_click(EmbVector v)
             end();
         }
     }
-}
-
-/* . */
-void
-Geometry::ellipse_context(String args)
-{
-    debug_message("TODO ELLIPSE context()");
 }
 
 /* . */
@@ -525,14 +1022,6 @@ Geometry::line_click(EmbReal x, EmbReal y)
     }
 }
 
-/**
- * .
- */
-void
-Geometry::line_context(String str)
-{
-    actuator("todo LINE context()");
-}
 
 /**
  * .
@@ -560,7 +1049,7 @@ Geometry::line_prompt(String args)
     }
     else {
         if (str == "U" || str == "UNDO") {
-            actuator("todo LINE prompt() for UNDO");
+            debug_message("todo LINE prompt() for UNDO");
         }
         else {
             EmbReal strList = str.split(",");
@@ -600,17 +1089,11 @@ void
 Geometry::locate_point_click(EmbVector v)
 {
     append_prompt_history();
-    actuator("set-prompt-prefix v.x = " + v.x + ", Y = " + v.y);
+    prompt_output("v.x = " + v.x + ", Y = " + v.y);
     append_prompt_history();
     end();
 }
 
-/* . */
-void
-Geometry::locate_point_context(String str)
-{
-    actuator("todo LOCATEPOINT context()");
-}
 
 /* . */
 void
@@ -619,12 +1102,10 @@ Geometry::locate_point_prompt(String args)
     std::vector<std::string> strList = tokenize(args, ',');
     if (std::isnan(strList[0]) || std::isnan(strList[1])) {
         alert(tr("Invalid point."));
-        set_prompt_prefix(tr("Specify point: ");
+        prompt_output(tr("Specify point: ");
     }
     else {
-        actuator("append-prompt");
-        actuator("set-prompt-prefix .x = " + strList[0] + ", Y = " + strList[1]);
-        actuator("append-prompt");
+        prompt_output("X = " + strList[0] + ", Y = " + strList[1]);
         end();
     }
 }
@@ -655,35 +1136,24 @@ Geometry::move_main(void)
 
 /* . */
 void
-Geometry::move_click(EmbReal x, EmbReal y)
+Geometry::move_click(EmbVector v)
 {
     if (firstRun) {
         firstRun = false;
-        base.x = x;
-        base.y = y;
+        base = v;
         addRubber("LINE");
         setRubberMode("LINE");
-        setRubberPoint("LINE_START", baseX, baseY);
-        previewOn("SELECTED", "MOVE", baseX, baseY, 0);
-        append_prompt_history();
-        set_prompt_prefix(tr("Specify destination point: ");
+        setRubberPoint("LINE_START", base);
+        previewOn("SELECTED", "MOVE", base, 0);
+        prompt_output(tr("Specify destination point: ");
     }
     else {
-        dest.x = x;
-        dest.y = y;
-        delta.x = dest.x - baseX;
-        delta.y = dest.y - baseY;
+        dest = v;
+        delta = embVector_subtract(dest, base);
         moveSelected(delta.x, delta.y);
         previewOff();
         end();
     }
-}
-
-/* . */
-void
-Geometry::move_context(String str)
-{
-    actuator("todo MOVE context()");
 }
 
 /* . */
@@ -760,22 +1230,16 @@ Geometry::path_click(EmbReal x, EmbReal y)
     }
 }
 
-/* . */
-void
-Geometry::path_context(String str)
-{
-    actuator("todo PATH context()");
-}
 
 /* . */
 void
 Geometry::path_prompt(String args)
 {
     if (str == "A" || str == "ARC") {
-        actuator("todo PATH prompt() for ARC");
+        debug_message("todo PATH prompt() for ARC");
     }
     else if (str == "U" || str == "UNDO") {
-        actuator("todo PATH prompt() for UNDO");
+        debug_message("todo PATH prompt() for UNDO");
     }
     else {
         EmbReal strList = str.split(",");
@@ -831,21 +1295,14 @@ Geometry::point_click(EmbVector v)
 
 /* . */
 void
-Geometry::point_context(String str)
-{
-    actuator("todo POINT context()");
-}
-
-/* . */
-void
 Geometry::point_prompt(String str)
 {
     if (firstRun) {
         if (str == "M" || str == "MODE") {
-            actuator("todo POINT prompt() for PDMODE");
+            debug_message("todo POINT prompt() for PDMODE");
         }
         else if (str == "S" || str == "SIZE") {
-            actuator("todo POINT prompt() for PDSIZE");
+            debug_message("todo POINT prompt() for PDSIZE");
         }
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
@@ -926,17 +1383,11 @@ Geometry::polygon_click(EmbVector v)
         break;
     }
     case MODE_POLYGON_SIDE_LEN: {
-        actuator("todo POLYGON Sidelength mode");
+        debug_message("todo POLYGON Sidelength mode");
         break;
     }
 }
 
-/* Polygon */
-void
-Geometry::polygon_context(String str)
-{
-    actuator("todo POLYGON context()");
-}
 
 /* Polygon */
 void
@@ -1091,7 +1542,7 @@ Geometry::polygon_prompt(String str)
         }
     }
     case MODE_SIDE_LEN: {
-        actuator("todo POLYGON Sidelength mode");
+        debug_message("todo POLYGON Sidelength mode");
         break;
     }
 }
@@ -1126,16 +1577,6 @@ Geometry::polyline_click(EmbVector v)
         prev = v;
     }
 }
-
-/**
- * .
- */
-void
-Geometry::polyline_context(String str)
-{
-    actuator("todo POLYLINE context()");
-}
-
 /**
  * .
  */
@@ -1162,7 +1603,7 @@ Geometry::polyline_prompt(String str)
     }
     else {
         if (str == "U" || str == "UNDO") {
-            actuator("todo POLYLINE prompt() for UNDO");
+            debug_message("todo POLYLINE prompt() for UNDO");
         }
         else {
             EmbReal strList = str.split(",");
@@ -1217,13 +1658,6 @@ Geometry::quickleader_click(EmbVector v)
         append_prompt_history();
         end();
     }
-}
-
-/* . */
-void
-Geometry::quickleader_context(String str)
-{
-    actuator("todo QUICKLEADER context()");
 }
 
 /* . */
@@ -1283,23 +1717,16 @@ const char rectangle_click_script[][MAX_STRING_LENGTH] = {
 
 /* . */
 void
-Geometry::rectangle_context(String str)
-{
-    actuator("todo RECTANGLE context()");
-}
-
-/* . */
-void
 Geometry::rectangle_prompt(String str)
 {
     if (str == "C" || str == "CHAMFER") {
-        actuator("todo RECTANGLE prompt() for CHAMFER");
+        debug_message("todo RECTANGLE prompt() for CHAMFER");
     }
     else if (str == "D" || str == "DIMENSIONS") {
-        actuator("todo RECTANGLE prompt() for DIMENSIONS");
+        debug_message("todo RECTANGLE prompt() for DIMENSIONS");
     }
     else if (str == "F" || str == "FILLET") {
-        actuator("todo RECTANGLE prompt() for FILLET");
+        debug_message("todo RECTANGLE prompt() for FILLET");
     }
     else {
         EmbReal strList = str.split(",");
@@ -1346,13 +1773,6 @@ void
 Geometry::rgb_click(EmbVector v)
 {
     //Do Nothing, prompt only command.
-}
-
-/* . */
-void
-Geometry::rgb_context(String str)
-{
-    actuator("todo RGB context()");
 }
 
 /**
@@ -1491,13 +1911,6 @@ Geometry::rotate_click(EmbVector v)
             end();
         }
     }
-}
-
-/* . */
-void
-Geometry::rotate_context(String str)
-{
-    actuator("todo ROTATE context()");
 }
 
 /* . */
@@ -1753,7 +2166,7 @@ Geometry::scale_click(EmbVector v)
         }
         break;
     }
-    case "MODE_REFERENCE") {
+    case MODE_REFERENCE") {
         if (std::isnan(properties["baseRX"])) {
             properties["baseR"] = v;
             append_prompt_history();
@@ -1794,13 +2207,6 @@ Geometry::scale_click(EmbVector v)
             }
         }
     }
-}
-
-/* . */
-void
-Geometry::scale_context(String str)
-{
-    actuator("todo SCALE context()");
 }
 
 /* . */
@@ -1846,7 +2252,7 @@ Geometry::scale_prompt(String str)
             }
         }
     }
-    case "MODE_REFERENCE") {
+    case MODE_REFERENCE") {
         if (std::isnan(properties["baseRX"].r)) {
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
@@ -2045,16 +2451,9 @@ Geometry::text_single_click(EmbVector v)
 
 /* . */
 void
-Geometry::text_single_context(String str)
-{
-    actuator("todo SINGLELINETEXT context()");
-}
-
-/* . */
-void
 Geometry::text_single_prompt(String str)
 {
-    if (mode == "MODE_JUSTIFY") {
+    case MODE_JUSTIFY: {
         if (str == "C" || str == "CENTER") {
             mode = MODE_SETGEOM;
             textJustify = node("Center");
@@ -2144,14 +2543,14 @@ Geometry::text_single_prompt(String str)
             set_prompt_prefix(tr("Text Justification Options [Center/Right/Align/Middle/Fit/TL/TC/TR/ML/MC/MR/BL/BC/BR]: ");
         }
     }
-    case "MODE_SETFONT") {
-        mode = "MODE_SETGEOM";
-        properties["textFont"] = str;
-        setRubberText("TEXT_FONT", properties["textFont"].s);
+    case MODE_SETFONT: {
+        mode = MODE_SETGEOM;
+        textFont = str;
+        setRubberText("TEXT_FONT", textFont);
         setTextFont(properties["textFont"].s);
         set_prompt_prefix(tr("Specify start point of text or [Justify/Setfont]: ");
     }
-    case "MODE_SETGEOM") {
+    case MODE_SETGEOM: {
         if (std::isnan(textX)) {
             if (str == "J" || str == "JUSTIFY") {
                 mode = "MODE_JUSTIFY";
@@ -2231,7 +2630,7 @@ Geometry::text_single_prompt(String str)
             //Do nothing, as we are in rapidFire mode now.
         }
     }
-    case "MODE_RAPID") {
+    case MODE_RAPID: {
         if (str == "RAPID_ENTER") {
             if (properties["text"] == "") {
                 end();
@@ -2362,12 +2761,6 @@ const char star_move[][] = {
     }
 };
 
-/* . */
-void
-Geometry::star_context(String str)
-{
-    actuator("todo STAR context()");
-}
 
 /* . */
 void

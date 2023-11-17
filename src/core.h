@@ -445,6 +445,19 @@
 #define MODE_POLYGON_INSCRIBE                   18
 #define MODE_POLYGON_CIRCUMSCRIBE               19
 #define MODE_POLYGON_SIDE_LEN                   20
+#define MODE_POINT                              21
+#define MODE_RGB                                22
+#define MODE_LINE                               23
+#define MODE_ROTATE                             24
+#define MODE_SCALE                              25
+#define MODE_TEXT_SINGLE_SETGEOM                26
+#define MODE_PATH                               27
+#define MODE_POLYLINE                           28
+#define MODE_MOVE                               29
+#define MODE_DISTANCE                           30
+#define MODE_QUICKLEADER                        31
+#define MODE_LOCATE_POINT                       32
+#define MODE_ELLIPSE_MAJORDIAMETER_MINORRADIUS  33
 
 /* Object Properties: packed into the uint64_t flags variable. */
 #define PROP_BOLD                           0x0001
@@ -804,6 +817,13 @@ typedef struct Setting_ {
 /*
  */
 typedef struct GeometryData_ {
+    uint32_t mode;
+    uint32_t type;
+    int32_t objID;
+    EmbArc arc;
+    EmbCircle circle;
+    EmbEllipse ellipse;
+    EmbLine line;
     EmbVector vector;
 } GeometryData;
 
@@ -876,6 +896,7 @@ bool willUnderflowInt32(int64_t a, int64_t b);
 bool willOverflowInt32(int64_t a, int64_t b);
 int roundToMultiple(bool roundUp, int numToRound, int multiple);
 int tokenize(char **argv, char *str, const char delim);
+void debug_message(const char *msg);
 
 /* Global memory. */
 extern Node *root;

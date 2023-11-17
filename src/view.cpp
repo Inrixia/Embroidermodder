@@ -1659,7 +1659,9 @@ View::allowZoomIn()
 
     EmbReal zoomInLimit = 0.0000000001;
     if (std::min(maxWidth, maxHeight) < zoomInLimit) {
-        debug_message("ZoomIn limit reached. (limit=" + std::to_string(zoomInLimit) + ")");
+        std::string err = "ZoomIn limit reached. (limit=" +
+            std::to_string(zoomInLimit) + ")";
+        debug_message(err.c_str());
         return false;
     }
 
@@ -1679,7 +1681,9 @@ View::allowZoomOut()
 
     EmbReal zoomOutLimit = 10000000000000.0;
     if (std::max(maxWidth, maxHeight) > zoomOutLimit) {
-        debug_message("ZoomOut limit reached. (limit" + std::to_string(zoomOutLimit) + ")");
+        std::string err = "ZoomOut limit reached. (limit" +
+            std::to_string(zoomOutLimit) + ")";
+        debug_message(err.c_str());
         return false;
     }
 

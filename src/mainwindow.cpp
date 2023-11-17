@@ -510,7 +510,8 @@ MainWindow::tipOfTheDay(void)
 void
 MainWindow::buttonTipOfTheDayClicked(int button)
 {
-    debug_message("buttonTipOfTheDayClicked(%d)" + std::to_string(button));
+    std::string log = "buttonTipOfTheDayClicked(%d)" + std::to_string(button);
+    debug_message(log.c_str());
     int n_tips = string_array_length(tips);
     if (button == QWizard::CustomButton1) {
         if (settings[ST_CURRENT_TIP].i > 0) {
@@ -827,14 +828,16 @@ zoom_action(std::string mode)
 void
 MainWindow::layerSelectorIndexChanged(int index)
 {
-    debug_message("layerSelectorIndexChanged(%d)" + std::to_string(index));
+    std::string log = "layerSelectorIndexChanged(%d)" + std::to_string(index);
+    debug_message(log.c_str());
 }
 
 /* colorSelectorIndexChanged index */
 void
 MainWindow::colorSelectorIndexChanged(int index)
 {
-    debug_message("colorSelectorIndexChanged(%d)" + std::to_string(index));
+    std::string log = "colorSelectorIndexChanged(%d)" + std::to_string(index);
+    debug_message(log.c_str());
 
     QComboBox* comboBox = qobject_cast<QComboBox*>(sender());
     QRgb newColor;
@@ -864,14 +867,16 @@ MainWindow::colorSelectorIndexChanged(int index)
 void
 MainWindow::linetypeSelectorIndexChanged(int index)
 {
-    debug_message("linetypeSelectorIndexChanged(%d)" + std::to_string(index));
+    std::string log = ("linetypeSelectorIndexChanged(%d)" + std::to_string(index));
+    debug_message(log.c_str());
 }
 
 /* lineweightSelectorIndexChanged index */
 void
 MainWindow::lineweightSelectorIndexChanged(int index)
 {
-    debug_message("lineweightSelectorIndexChanged(%d)" + std::to_string(index));
+    std::string log = ("lineweightSelectorIndexChanged(%d)" + std::to_string(index));
+    debug_message(log.c_str());
 }
 
 /* textFontSelectorCurrentFontChanged font */
@@ -886,7 +891,8 @@ MainWindow::textFontSelectorCurrentFontChanged(const QFont& font)
 void
 MainWindow::textSizeSelectorIndexChanged(int index)
 {
-    debug_message("textSizeSelectorIndexChanged(%d)" + std::to_string(index));
+    std::string log = "textSizeSelectorIndexChanged(%d)" + std::to_string(index);
+    debug_message(log.c_str());
     settings[ST_TEXT_SIZE].r = (EmbReal)fabs(textSizeSelector->itemData(index).toReal()); //TODO: check that the toReal() conversion is ok
 }
 
@@ -1255,7 +1261,7 @@ MainWindow::MainWindow() : QMainWindow(0)
     }
 
     QString lang(settings[ST_LANGUAGE].s);
-    debug_message("language: " + lang.toStdString());
+    debug_message(("language: " + lang.toStdString()).c_str());
     if (lang == "system") {
         lang = QLocale::system().languageToString(QLocale::system().language()).toLower();
     }
@@ -1527,7 +1533,7 @@ run_script(std::vector<std::string> script)
 {
     std::string output = "";
     for (int i=0; i<(int)script.size(); i++) {
-        debug_message(script[i]);
+        debug_message(script[i].c_str());
         output += actuator(script[i]);
     }
     return output;
@@ -1643,7 +1649,8 @@ actuator_core(int32_t action_id, std::string args_)
     char args[MAX_STRING_LENGTH];
     char *argv[MAX_STRING_LENGTH];
     View* gview = activeView();
-    debug_message("actuator_core " + std::to_string(action_id));
+    std::string log = "actuator_core " + std::to_string(action_id);
+    debug_message(log.c_str());
     strcpy(args, args_.c_str());
     int argc = tokenize(argv, args, ' ');
 
@@ -3626,7 +3633,8 @@ MainWindow::saveasfile()
 QMdiSubWindow *
 MainWindow::findMdiWindow(std::string fileName)
 {
-    debug_message("MainWindow::findMdiWindow(" + fileName + ")");
+    std::string s = "MainWindow::findMdiWindow(" + fileName + ")";
+    debug_message(s.c_str());
     QString canonicalFilePath = QFileInfo(QString::fromStdString(fileName)).canonicalFilePath();
 
     foreach(QMdiSubWindow* subWindow, mdiArea->subWindowList()) {
@@ -3878,7 +3886,8 @@ MainWindow::closeToolBar(QAction* action)
     if (action->objectName() == "toolbarclose") {
         QToolBar* tb = qobject_cast<QToolBar*>(sender());
         if (tb) {
-            debug_message(tb->objectName().toStdString() + "%s closed.");
+            std::string err = tb->objectName().toStdString() + " closed.";
+            debug_message(err.c_str());
             tb->hide();
         }
     }

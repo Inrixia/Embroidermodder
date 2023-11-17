@@ -543,7 +543,7 @@ void
 Geometry::realRender(QPainter* painter, const QPainterPath& renderPath)
 {
     QColor color1 = objPen.color();       //lighter color
-    QColor color2  = color1.darker(150); //darker color
+    QColor color2 = color1.darker(150); //darker color
 
     //If we have a dark color, lighten it
     int darkness = color1.lightness();
@@ -780,8 +780,8 @@ Geometry::updateRubber(QPainter* painter)
         if (objRubberMode == "OBJ_RUBBER_ELLIPSE_LINE") {
             QPointF sceneLinePoint1 = objectRubberPoint("ELLIPSE_LINE_POINT1");
             QPointF sceneLinePoint2 = objectRubberPoint("ELLIPSE_LINE_POINT2");
-            QPointF itemLinePoint1  = mapFromScene(sceneLinePoint1);
-            QPointF itemLinePoint2  = mapFromScene(sceneLinePoint2);
+            QPointF itemLinePoint1 = mapFromScene(sceneLinePoint1);
+            QPointF itemLinePoint2 = mapFromScene(sceneLinePoint2);
             QLineF itemLine(itemLinePoint1, itemLinePoint2);
             if (painter) drawRubberLine(itemLine, painter, "VIEW_COLOR_CROSSHAIR");
             updatePath();
@@ -949,7 +949,7 @@ Geometry::updateRubber(QPainter* painter)
             arc.start = to_EmbVector(sceneTan1Point);
             arc.mid = to_EmbVector(sceneTan2Point);
             arc.end = to_EmbVector(sceneTan3Point);
-            getArcCenter(arc, &sceneCenter);
+            sceneCenter = embArc_center(arc);
             QPointF sceneCenterPoint(sceneCenter.x, sceneCenter.y);
             QLineF sceneLine(sceneCenterPoint, sceneTan3Point);
             setObjectCenter(to_EmbVector(sceneCenterPoint));
@@ -1256,8 +1256,7 @@ Geometry::objectQuadrant0()
     if (Type == OBJ_TYPE_ELLIPSE) {
         EmbReal halfW = objectWidth()/2.0;
         EmbReal rot = radians(rotation());
-        EmbVector v;
-        embVector_multiply(embVector_unit(rot), halfW, &v);
+        EmbVector v = embVector_scale(embVector_unit(rot), halfW);
         return scenePos() + to_QPointF(v);
     }
     return scenePos() + QPointF(objectRadius(), 0);
@@ -1270,8 +1269,7 @@ Geometry::objectQuadrant90()
     if (Type == OBJ_TYPE_ELLIPSE) {
         EmbReal halfH = objectHeight()/2.0;
         EmbReal rot = radians(rotation()+90.0);
-        EmbVector v;
-        embVector_multiply(embVector_unit(rot), halfH, &v);
+        EmbVector v = embVector_scale(embVector_unit(rot), halfH);
         return scenePos() + to_QPointF(v);
     }
     return scenePos() + QPointF(0,-objectRadius());
@@ -1588,8 +1586,7 @@ Geometry::objectSavePath()
  */
 void Geometry::calculateArcData(EmbArc arc)
 {
-    EmbVector center;
-    getArcCenter(arc, &center);
+    EmbVector center = embArc_center(arc);
 
     arcStartPoint = to_QPointF(embVector_subtract(arc.start, center));
     arcMidPoint = to_QPointF(embVector_subtract(arc.mid, center));
@@ -1625,8 +1622,8 @@ Geometry::setObjectRadius(EmbReal radius)
 
         QPointF center = scenePos();
         QLineF startLine = QLineF(center, objectStartPoint());
-        QLineF midLine   = QLineF(center, objectMidPoint());
-        QLineF endLine   = QLineF(center, objectEndPoint());
+        QLineF midLine = QLineF(center, objectMidPoint());
+        QLineF endLine = QLineF(center, objectEndPoint());
         startLine.setLength(rad);
         midLine.setLength(rad);
         endLine.setLength(rad);
@@ -1812,8 +1809,7 @@ Geometry::objectStartPoint()
     if (Type == OBJ_TYPE_ARC) {
         start_point = arcMidPoint;
     }
-    EmbVector start;
-    embVector_multiply(to_EmbVector(start_point), scale(), &start);
+    EmbVector start = embVector_scale(to_EmbVector(start_point), scale());
     QPointF rotv = to_QPointF(rotate_vector(start, rot));
 
     return scenePos() + rotv;
@@ -1828,8 +1824,7 @@ Geometry::objectMidPoint()
     if (Type == OBJ_TYPE_ARC) {
         mid_point = arcMidPoint;
     }
-    EmbVector mid;
-    embVector_multiply(to_EmbVector(mid_point), scale(), &mid);
+    EmbVector mid = embVector_scale(to_EmbVector(mid_point), scale());
     QPointF rotv = to_QPointF(rotate_vector(mid, rot));
 
     return scenePos() + rotv;
@@ -1843,8 +1838,7 @@ QPointF Geometry::objectEndPoint()
     if (Type == OBJ_TYPE_ARC) {
         end_point = arcEndPoint;
     }
-    EmbVector end;
-    embVector_multiply(to_EmbVector(end_point), scale(), &end);
+    EmbVector end = embVector_scale(to_EmbVector(end_point), scale());
     QPointF rotv = to_QPointF(rotate_vector(end, rot));
 
     return scenePos() + rotv;
@@ -2201,8 +2195,7 @@ Geometry::objectTopLeft()
 {
     EmbReal rot = radians(rotation());
     QPointF tl = rect().topLeft();
-    EmbVector ptl;
-    embVector_multiply(to_EmbVector(tl), scale(), &ptl);
+    EmbVector ptl = embVector_scale(to_EmbVector(tl), scale());
     EmbVector ptlRot = rotate_vector(ptl, rot);
 
     return scenePos() + to_QPointF(ptlRot);
@@ -2214,8 +2207,7 @@ Geometry::objectTopRight()
 {
     EmbReal rot = radians(rotation());
     QPointF tr = rect().topRight();
-    EmbVector ptr;
-    embVector_multiply(to_EmbVector(tr), scale(), &ptr);
+    EmbVector ptr = embVector_scale(to_EmbVector(tr), scale());
     EmbVector ptrRot = rotate_vector(ptr, rot);
 
     return (scenePos() + QPointF(ptrRot.x, ptrRot.y));
@@ -2227,8 +2219,7 @@ Geometry::objectBottomLeft()
 {
     EmbReal rot = radians(rotation());
     QPointF bl = rect().bottomLeft();
-    EmbVector pbl;
-    embVector_multiply(to_EmbVector(bl), scale(), &pbl);
+    EmbVector pbl = embVector_scale(to_EmbVector(bl), scale());
     EmbVector pblRot = rotate_vector(pbl, rot);
 
     return scenePos() + to_QPointF(pblRot);
@@ -2240,8 +2231,7 @@ Geometry::objectBottomRight()
 {
     EmbReal rot = radians(rotation());
     QPointF br = rect().bottomRight();
-    EmbVector pbr;
-    embVector_multiply(to_EmbVector(br), scale(), &pbr);
+    EmbVector pbr = embVector_scale(to_EmbVector(br), scale());
     EmbVector pbrRot = rotate_vector(pbr, rot);
 
     return scenePos() + to_QPointF(pbrRot);
@@ -3125,453 +3115,3 @@ Geometry::subPathList()
     return pathList;
 }
 
-/* Run initialisation script for this object, based on the
- * object Type.
- */
-void
-Geometry::script_main(void)
-{
-    /*
-    std::vector<std::string> script = {"end"};
-    switch (mode) {
-
-    case OBJ_TYPE_CIRCLE: {
-        init();
-        clear_selection;
-        # FIX SELECTING CURRENT OBJECT;
-        select this;
-        set mode CIRCLE_MODE_1P_RAD;
-        set-prompt-prefix-tr Specify center point for circle or [3P/2P/TTR (tan tan radius)]: "
-        break;
-    }
-
-    case OBJ_TYPE_ELLIPSE: {
-        script = scripts["ellipse_init"];
-        break;
-    }
-
-    case DISTANCE: {
-        script = {
-            init();
-            clear_selection();
-            set-prompt-prefix-tr Specify first point: "
-        };
-        break;
-    }
-
-    case DOLPHIN: {
-        init();
-        clear_selection();
-        set mode DOLPHIN_MODE_NUM_POINTS;
-        # FIX SELECTING CURRENT OBJECT;
-        select this;
-        numPoints 512;
-        minPoints 64;
-        maxPoints 8192;
-        center_x 0.0f;
-        center_y 0.0f;
-        scale_x 0.04f;
-        scale_y 0.04f;
-        add-rubber-selected POLYGON;
-        set-rubber-mode POLYGON;
-        update-dolphin numPoints scale_x scale_y;
-        spare-rubber POLYGON;
-        end"
-        break;
-    }
-
-    ellipse_init_script = [
-        init();
-        clear_selection();
-        # FIX SELECTING CURRENT OBJECT
-        set mode ELLIPSE_MODE_MAJORDIAMETER_MINORRADIUS;
-        height = 1.0;
-        width = 2.0;
-        rotation = 0.0;
-        "set-prompt-prefix-tr Specify first axis start point or [Center]: "
-    ]
-
-    polyline_init_script = [
-        init();
-        clear_selection();
-        # FIX SELECTING CURRENT OBJECT
-        firstRun = true;
-        first_x = 0.0f;
-        first.y = 0.0f;
-        prev_x = 0.0f;
-        prev_y = 0.0f;
-        num 0;
-        set-prompt-prefix(tr("Specify first point: "));
-        break;
-    }
-
-    snowflake_init_script = [
-        init();
-        clear_selection();
-        numPoints = 2048;
-        minPoitns = 64;
-        "maxPoints = 8192;
-        "center.x = 0.0f;
-        "center.y = 0.0f;
-        "scale.x = 0.04f;
-        "scale.y = 0.04f;
-        "mode = SNOWFLAKE_MODE_NUM_POINTS;
-        "add-rubber POLYGON;
-        "set-rubber-mode POLYGON;
-        "update-snowflake;
-        "spare-rubber POLYGON;
-        "end"
-    ]
-
-    default: {
-        break;
-    }
-
-    }
-    */
-}
-
-/* Script to change the entries in the context menu when acting
- * on this object. Also, if one is activated carry out that
- * script.
- */
-void
-Geometry::script_context(String str)
-{
-    switch (mode) {
-
-    /* . */
-    case MODE_CIRCLE_1P_RAD: {
-        actuator("todo CIRCLE context()");
-        break;
-    }
-
-    /* . */
-    default: {
-        break;
-    }
-
-    }
-}
-
-/* Script to run on each click for this geometry object.
- *
- * The modes are documented in detail in the reference manual.
- */
-void
-Geometry::script_click(EmbVector v)
-{
-    switch (mode) {
-
-/*
-    case MODE_CIRCLE_1P_RAD: {
-        auto iter = properties.find("point1");
-        if (iter == properties.end()) {
-            point1 = v;
-            center = v;
-            addRubber("CIRCLE");
-            setRubberMode("CIRCLE_1P_RAD");
-            setRubberPoint("CIRCLE_CENTER", center.x, center.y);
-            actuator("append-prompt");
-            set_prompt_prefix(tr("Specify radius of circle or [Diameter]: ");
-        }
-        else {
-            point2 = v;
-            setRubberPoint("CIRCLE_RADIUS", v);
-            vulcanize();
-            actuator("append-prompt");
-            end();
-        }
-        break;
-    }
-
-    case MODE_CIRCLE_1P_DIA: {
-        auto iter = properties.find("point1");
-        if (iter == properties.end()) {
-            error("CIRCLE", tr("This should never happen."));
-        }
-        else {
-            point2.x = v.x;
-            point2.y = v.y;
-            setRubberPoint("CIRCLE_DIAMETER", point2.x, point2.y);
-            vulcanize();
-            append_prompt_history();
-            end();
-        }
-        break;
-    }
-
-    case MODE_CIRCLE_2P: {
-        auto iter1 = properties.find("point1");
-        auto iter2 = properties.find("point2");
-        if (iter1 == properties.end()) {
-            point1 = node_vector(v);
-            addRubber("CIRCLE");
-            setRubberMode("CIRCLE_2P");
-            setRubberPoint("CIRCLE_TAN1", v);
-            append_prompt_history();
-            set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
-        }
-        else if (iter2 == properties.end()) {
-            point2 = node_vector(v);
-            setRubberPoint("CIRCLE_TAN2", v);
-            vulcanize();
-            append_prompt_history();
-            end();
-        }
-        else {
-            error("CIRCLE", tr("This should never happen."));
-        }
-        break;
-    }
-
-    case CIRCLE_MODE_3P: {
-        if (std::isnan(point1.x)) {
-            point1.x = x;
-            point1.y = y;
-            append_prompt_history();
-            set_prompt_prefix(tr("Specify second point on circle: ");
-        }
-        else if (std::isnan(point2.x)) {
-            point2.x = x;
-            point2.y = y;
-            addRubber("CIRCLE");
-            setRubberMode("CIRCLE_3P");
-            setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
-            setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
-            run_script({
-                append-prompt-history;
-                set-prompt-prefix-tr Specify third point on circle: "
-            });
-        }
-        else if (std::isnan(point3.x)) {
-            point3.x = x;
-            point3.y = y;
-            setRubberPoint("CIRCLE_TAN3", point3.x, point3.y);
-            run_script({
-                vulcanize;
-                append-prompt-history;
-                end"
-            });
-        }
-    }
-
-    case CIRCLE_MODE_TTR: {
-        point1.x = x;
-        point1.y = y;
-        append_prompt_history();
-        set_prompt_prefix(tr("Specify point on object for second tangent of circle: ");
-        mode = MODE_TTR_SET_POINT_2;
-        break;
-    }
-
-    case CIRCLE_MODE_TTR_SET_POINT_2: {
-        point2.x = x;
-        point2.y = y;
-        append_prompt_history();
-        set_prompt_prefix(tr("Specify radius of circle: ");
-        mode = MODE_TTR_SET_POINT_3;
-        break;
-    }
-
-    case CIRCLE_MODE_TTR_SET_POINT_3: {
-        point3.x = x;
-        point3.y = y;
-        append_prompt_history();
-        set_prompt_prefix(tr("Specify second point: ");
-        mode = MODE_CIRCLE_DEFAULT;
-        break;
-    }
-
-    default: {
-        error("CIRCLE", tr("This should never happen."));
-        break;
-    }
-*/
-
-    }
-}
-
-/* Script to control the behavior of the prompt when processing
- * events for this object.
- */
-void
-Geometry::script_prompt(String str)
-{
-    switch (mode) {
-
-/*
-    case MODE_CIRCLE_1P_RAD: {
-        if (std::isnan(point1.x)) {
-            if (str == "2P") {
-                mode = MODE_CIRCLE_2P;
-                set_prompt_prefix(tr("Specify first end point of circle's diameter: ");
-            }
-            else if (str == "3P") {
-                mode = MODE_CIRCLE_3P;
-                set_prompt_prefix(tr("Specify first point of circle: ");
-            }
-            else if (str == "T" || str == "TTR") {
-                mode = MODE_CIRCLE_TTR;
-                set_prompt_prefix(tr("Specify point on object for first tangent of circle: ");
-            }
-            else {
-                EmbReal strList = str.split(",");
-                if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Point or option keyword required."));
-                    set_prompt_prefix(tr("Specify center point for circle or [3P/2P/Ttr (tan tan radius)]: ");
-                }
-                else {
-                    x1 = std::stof(strList[0]);
-                    point1.y = atof(strList[1]);
-                    center.x = point1.x;
-                    center.y = point1.y;
-                    addRubber("CIRCLE");
-                    setRubberMode("CIRCLE_1P_RAD");
-                    setRubberPoint("CIRCLE_CENTER", center.x, center.y);
-                    set_prompt_prefix(tr("Specify radius of circle or [Diameter]: ");
-                }
-            }
-        }
-        else {
-            if (str == "D" || str == "DIAMETER") {
-                mode = MODE_CIRCLE_1P_DIA;
-                setRubberMode("CIRCLE_1P_DIA");
-                set_prompt_prefix(tr("Specify diameter of circle: ");
-            }
-            else {
-                EmbReal num = atof(str);
-                if (std::isnan(num)) {
-                    alert(tr("Requires numeric radius, point on circumference, or \"D\"."));
-                    set_prompt_prefix(tr("Specify radius of circle or [Diameter]: "));
-                }
-                else {
-                    radius = num;
-                    point2.x = point1.x + radius;
-                    point2.y = point1.y;
-                    setRubberPoint("CIRCLE_RADIUS", point2.x, point2.y);
-                    vulcanize();
-                    end();
-                }
-            }
-        }
-    }
-
-    case MODE_CIRCLE_1P_DIA: {
-        if (std::isnan(point1.x)) {
-            error("CIRCLE", tr("This should never happen."));
-        }
-        if (std::isnan(point2.x)) {
-            EmbReal num = atof(str);
-            if (std::isnan(num)) {
-                alert(tr("Requires numeric distance or second point."));
-                set_prompt_prefix(tr("Specify diameter of circle: "));
-            }
-            else {
-                diameter = num;
-                point2.x = point1.x + diameter.r;
-                point2.y = point1.y;
-                setRubberPoint("CIRCLE_DIAMETER", point2.x, point2.y);
-                vulcanize();
-                end();
-            }
-        }
-        else {
-            error("CIRCLE", tr("This should never happen."));
-        }
-    }
-
-    case MODE_CIRCLE_2P: {
-        if (std::isnan(point1.x)) {
-            EmbReal strList = str.split(",");
-            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify first end point of circle's diameter: ");
-            }
-            else {
-                x1 = atof(strList[0]);
-                y1 = atof(strList[1]);
-                addRubber("CIRCLE");
-                setRubberMode("CIRCLE_2P");
-                setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
-                set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
-            }
-        }
-        else if (std::isnan(point2.x)) {
-            EmbReal strList = str.split(",");
-            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
-            }
-            else {
-                x2 = atof(strList[0]);
-                y2 = atof(strList[1]);
-                setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
-                vulcanize();
-                end();
-            }
-        }
-        else {
-            error("CIRCLE", tr("This should never happen."));
-        }
-    }
-
-    case MODE_CIRCLE_3P: {
-        if (std::isnan(point1.x)) {
-            EmbReal strList = str.split(",");
-            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify first point of circle: ");
-            }
-            else {
-                point1.x = atof(strList[0]);
-                point1.y = atof(strList[1]);
-                set_prompt_prefix(tr("Specify second point of circle: ");
-            }
-        }
-        else if (std::isnan(point2.x)) {
-            EmbReal strList = str.split(",");
-            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify second point of circle: ");
-            }
-            else {
-                point2.x = atof(strList[0]);
-                point2.y = atof(strList[1]);
-                addRubber("CIRCLE");
-                setRubberMode("CIRCLE_3P");
-                setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
-                setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
-                set_prompt_prefix(tr("Specify third point of circle: ");
-            }
-        }
-        else if (std::isnan(point3.x)) {
-            EmbReal strList = str.split(",");
-            if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify third point of circle: ");
-            }
-            else {
-                point3.x = atof(strList[0]);
-                point3.y = atof(strList[1]);
-                setRubberPoint("CIRCLE_TAN3", point3.x, point3.y);
-                vulcanize();
-                end();
-            }
-        }
-        else {
-            error("CIRCLE", tr("This should never happen."));
-        }
-    }
-
-    case MODE_CIRCLE_TTR: {
-        actuator("todo CIRCLE prompt() for TTR");
-        break;
-    }
-
-    default: {
-        break;
-    }
-*/
-    }
-}

@@ -88,14 +88,15 @@ to_EmbVector(QPointF a)
  * happen.
  */
 void
-debug_message(std::string msg)
+debug_message(const char *msg)
 {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    qDebug(msg.c_str());
+    qDebug(msg);
     FILE *f = fopen("debug.txt", "a");
     fprintf(f, "%.2ld:%.2ld:%.2ld.%.3ld> %s\n",
-        (ts.tv_sec/3600)%24, (ts.tv_sec%3600)/60, ts.tv_sec%60, ts.tv_nsec%1000, msg.c_str());
+        (ts.tv_sec/3600)%24, (ts.tv_sec%3600)/60,
+        ts.tv_sec%60, ts.tv_nsec%1000, msg);
     fclose(f);
 }
 
@@ -492,7 +493,7 @@ SelectBox::setDirection(int dir)
 void
 SelectBox::setColors(const QColor& colorL, const QColor& fillL, const QColor& colorR, const QColor& fillR, int newAlpha)
 {
-    qDebug("SelectBox setColors()");
+    debug_message("SelectBox setColors()");
     alpha = newAlpha;
 
     leftPenColor = colorL; //TODO: allow customization
@@ -536,7 +537,7 @@ void SelectBox::forceRepaint()
 PreviewDialog::PreviewDialog(QWidget* parent, QString caption, QString dir,
                              QString filter) : QFileDialog(parent, caption, dir, filter)
 {
-    qDebug("PreviewDialog Constructor");
+    debug_message("PreviewDialog Constructor");
 
     //TODO: get actual thumbnail image from file, lets also use a size of 128x128 for now...
     //TODO: make thumbnail size adjustable thru settings dialog
@@ -2001,13 +2002,13 @@ MdiWindow::loadFile(std::string fileName)
     if (reader < 0) {
         readSuccessful = 0;
         readError = "Unsupported read file type: " + fileName;
-        debug_message("Unsupported read file type: " + fileName);
+        debug_message(readError.c_str());
     }
     else {
         readSuccessful = embPattern_readAuto(p, fileName.c_str());
         if (!readSuccessful) {
             readError = "Reading file was unsuccessful: " + fileName;
-            debug_message("Reading file was unsuccessful: " + fileName);
+            debug_message(readError.c_str());
         }
     }
 
