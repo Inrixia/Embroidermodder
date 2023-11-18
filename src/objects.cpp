@@ -2163,7 +2163,6 @@ Geometry::init(EmbVector position, const QPainterPath& p, QRgb rgb, Qt::PenStyle
 }
 */
 
-/* objectCopyPath */
 QPainterPath
 Geometry::objectCopyPath()
 {
@@ -2286,7 +2285,7 @@ Geometry::updatePath(const QPainterPath& p)
 
 /* Returns whether the save to file process was successful.
  *
- * \todo Before saving to a stitch only format, Embroidermodder needs
+ * TODO: Before saving to a stitch only format, Embroidermodder needs
  * to calculate the optimal path to minimize jump stitches. Also
  * based upon which layer needs to be stitched first,
  * the path to the next object needs to be hidden beneath fills

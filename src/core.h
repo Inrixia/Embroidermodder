@@ -723,6 +723,15 @@
 #define TOOLBAR_PROMPT                          13
 #define TOTAL_TOOLBARS                          14
 
+/* Command Prompt Style. */
+#define CONSOLE_STYLE_COLOR                 0
+#define CONSOLE_STYLE_BG_COLOR              1
+#define CONSOLE_STYLE_SELECTION_COLOR       2
+#define CONSOLE_STYLE_SELECTION_BG_COLOR    3
+#define CONSOLE_STYLE_FONT_FAMILY           4
+#define CONSOLE_STYLE_FONT_STYLE            5
+#define CONSOLE_STYLE_FONT_SIZE             6
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -835,6 +844,22 @@ typedef struct GeometryData_ {
     EmbReal text_size;
 } GeometryData;
 
+/*
+ */
+typedef struct ViewData_ {
+    bool grippingActive;
+    bool rapidMoveActive;
+    bool previewActive;
+    bool pastingActive;
+    bool movingActive;
+    bool selectingActive;
+    bool zoomWindowActive;
+    bool panningRealTimeActive;
+    bool panningPointActive;
+    bool panningActive;
+    bool qSnapActive;
+} ViewData;
+
 /* To allow us to resize general C arrays when necessary.
  * Note that for char arrays, the buffer is a normal c-style string.
  */
@@ -862,6 +887,12 @@ typedef struct MenuData_ {
     int32_t entries[MAX_TOOLBAR_LENGTH];
 } MenuData;
 
+
+typedef struct RubberPoint_ {
+    char key[MAX_STRING_LENGTH];
+    char text[MAX_STRING_LENGTH];
+    EmbVector position;
+} RubberPoint;
 /*
  *
  */
@@ -905,6 +936,9 @@ bool willOverflowInt32(int64_t a, int64_t b);
 int roundToMultiple(bool roundUp, int numToRound, int multiple);
 int tokenize(char **argv, char *str, const char delim);
 void debug_message(const char *msg);
+int read_settings(void);
+void write_settings(void);
+EmbVector rotate_vector(EmbVector v, EmbReal alpha);
 
 /* Global memory. */
 extern Node *root;
@@ -921,6 +955,7 @@ void geometry_context(
     void *m,
     GeometryData *geometry,
     char output[MAX_STRING_LENGTH]);
+void geometry_update(GeometryData *g);
 
 /* The Settings System
  *

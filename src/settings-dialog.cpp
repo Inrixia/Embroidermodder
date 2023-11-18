@@ -708,17 +708,6 @@ Settings_Dialog::createTabPrompt()
     return scrollArea;
 }
 
-/* . */
-QCheckBox*
-Settings_Dialog::create_checkbox(QGroupBox *groupbox, std::string label)
-{
-    QCheckBox* checkbox = new QCheckBox(label.c_str(), groupbox);
-    std::string filter = "*." + label;
-    checkbox->setChecked(QString(dialog[ST_OPENSAVE_FILTER].s).contains(filter.c_str(), Qt::CaseInsensitive));
-    connect(checkbox, SIGNAL(stateChanged(int)), this, SLOT(checkBoxCustomFilterStateChanged(int)));
-    return checkbox;
-}
-
 /* TODO: finish open/save options. */
 QWidget*
 Settings_Dialog::createTabOpenSave()
@@ -735,7 +724,15 @@ Settings_Dialog::createTabOpenSave()
     int n_extensions = string_array_length(extensions);
 
     for (int i=0; i<n_extensions; i++) {
-        checkBoxCustomFilter[extensions[i]] = create_checkbox(groupBoxCustomFilter, extensions[i]);
+        char filter[MAX_STRING_LENGTH];
+		QCheckBox* checkbox = new QCheckBox(extensions[i], groupBoxCustomFilter);
+        sprintf(filter, "*.%s", extensions[i]);
+		checkbox->setChecked(
+            QString(dialog[ST_OPENSAVE_FILTER].s).contains(filter,
+            Qt::CaseInsensitive));
+		connect(checkbox, SIGNAL(stateChanged(int)), this,
+            SLOT(checkBoxCustomFilterStateChanged(int)));
+		checkBoxCustomFilter[extensions[i]] = checkbox;
     }
 
     QPushButton* buttonCustomFilterSelectAll = new QPushButton(translate_str("Select All"), groupBoxCustomFilter);
@@ -931,9 +928,8 @@ QWidget* Settings_Dialog::createTabSnap()
     return scrollArea;
 }
 
-
 void
-Settings_Dialog::create_float_spinbox(
+create_float_spinbox(
     QGroupBox *gb,
     QGridLayout* gridLayout,
     const char *label_in,
@@ -947,7 +943,7 @@ Settings_Dialog::create_float_spinbox(
     QString spinbox_object_name(label_in);
     label_object_name = "label" + label_object_name.simplified().remove(' ');
     spinbox_object_name = "spinBox" + spinbox_object_name.simplified().remove(' ');
-    QLabel* label = new QLabel(tr(label_in), gb);
+    QLabel* label = new QLabel(translate_str(label_in), gb);
     label->setObjectName(label_object_name);
     QDoubleSpinBox* spinBox = make_spinbox(gb, "dialog", spinbox_object_name, single_step,
         lower, upper, key);

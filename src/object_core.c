@@ -22,15 +22,18 @@
 #include "core.h"
 
 /* Run initialisation script for this object, based on the object Type.
+ *
+ * Make arrowStyleAngle, arrowStyleLength. lineStyleAngle, lineStyleLength,
+ * text_size defaults customizable.
  */
 GeometryData*
 geometry_init(int type)
 {
     GeometryData *g = malloc(sizeof(GeometryData));
-    g->arrowStyleAngle = 15.0; //TODO: Make this customizable
-    g->arrowStyleLength = 1.0; //TODO: Make this customizable
-    g->lineStyleAngle = 45.0; //TODO: Make this customizable
-    g->lineStyleLength = 1.0; //TODO: Make this customizable
+    g->arrowStyleAngle = 15.0;
+    g->arrowStyleLength = 1.0;
+    g->lineStyleAngle = 45.0;
+    g->lineStyleLength = 1.0;
     g->text_size = 20.0;
 
     /*
@@ -39,25 +42,30 @@ geometry_init(int type)
 
     case OBJ_TYPE_CIRCLE: {
         init();
-        clear_selection;
+        clear_selection();
         # FIX SELECTING CURRENT OBJECT;
         select this;
-        set mode CIRCLE_MODE_1P_RAD;
-        set-prompt-prefix-tr Specify center point for circle or [3P/2P/TTR (tan tan radius)]: "
+        g->mode = CIRCLE_MODE_1P_RAD;
+        prompt_output("Specify center point for circle or [3P/2P/TTR (tan tan radius)]: ");
         break;
     }
 
     case OBJ_TYPE_ELLIPSE: {
-        script = scripts["ellipse_init"];
+        init();
+        clear_selection();
+        # FIX SELECTING CURRENT OBJECT
+        set mode = ELLIPSE_MODE_MAJORDIAMETER_MINORRADIUS;
+        height = 1.0;
+        width = 2.0;
+        rotation = 0.0;
+        prompt_output("Specify first axis start point or [Center]: ");
         break;
     }
 
     case DISTANCE: {
-        script = {
-            init();
-            clear_selection();
-            set-prompt-prefix-tr Specify first point: "
-        };
+		init();
+		clear_selection();
+		prompt_output("Specify first point: ");
         break;
     }
 
@@ -67,31 +75,20 @@ geometry_init(int type)
         set mode DOLPHIN_MODE_NUM_POINTS;
         # FIX SELECTING CURRENT OBJECT;
         select this;
-        numPoints 512;
-        minPoints 64;
-        maxPoints 8192;
-        center_x 0.0f;
-        center_y 0.0f;
-        scale_x 0.04f;
-        scale_y 0.04f;
+        numPoints = 512;
+        minPoints = 64;
+        maxPoints = 8192;
+        center_x = 0.0f;
+        center_y = 0.0f;
+        scale_x = 0.04f;
+        scale_y = 0.04f;
         add-rubber-selected POLYGON;
         set-rubber-mode POLYGON;
         update-dolphin numPoints scale_x scale_y;
         spare-rubber POLYGON;
-        end"
+        end();
         break;
     }
-
-    ellipse_init_script = [
-        init();
-        clear_selection();
-        # FIX SELECTING CURRENT OBJECT
-        set mode ELLIPSE_MODE_MAJORDIAMETER_MINORRADIUS;
-        height = 1.0;
-        width = 2.0;
-        rotation = 0.0;
-        "set-prompt-prefix-tr Specify first axis start point or [Center]: "
-    ]
 
     polyline_init_script = [
         init();
@@ -103,7 +100,7 @@ geometry_init(int type)
         prev_x = 0.0f;
         prev_y = 0.0f;
         num 0;
-        set-prompt-prefix(tr("Specify first point: "));
+        prompt_output(tr("Specify first point: "));
         break;
     }
 
@@ -112,17 +109,17 @@ geometry_init(int type)
         clear_selection();
         numPoints = 2048;
         minPoitns = 64;
-        "maxPoints = 8192;
-        "center.x = 0.0f;
-        "center.y = 0.0f;
-        "scale.x = 0.04f;
-        "scale.y = 0.04f;
-        "mode = SNOWFLAKE_MODE_NUM_POINTS;
-        "add-rubber POLYGON;
-        "set-rubber-mode POLYGON;
-        "update-snowflake;
-        "spare-rubber POLYGON;
-        "end"
+        maxPoints = 8192;
+        center.x = 0.0f;
+        center.y = 0.0f;
+        scale.x = 0.04f;
+        scale.y = 0.04f;
+        g->mode = SNOWFLAKE_MODE_NUM_POINTS;
+        add-rubber POLYGON;
+        set-rubber-mode POLYGON;
+        update-snowflake;
+        spare-rubber POLYGON;
+        end();
     ]
 
     default: {
@@ -569,6 +566,15 @@ geometry_context(
     }
 
     }
+}
+
+/* Ensure that generated data is correct by running this before operations that
+ * rely on it.
+ */
+void
+geometry_update(GeometryData *g)
+{
+
 }
 
 #if 0

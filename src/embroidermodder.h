@@ -56,9 +56,10 @@ extern QAction* actionHash[MAX_ACTIONS];
 /* Functions in the global namespace
  * ---------------------------------
  */
-int read_settings(void);
-void write_settings(void);
-EmbVector rotate_vector(EmbVector v, EmbReal alpha);
+void prompt_output(char *txt);
+void prompt_output(const char *txt);
+void prompt_output(QString txt);
+void prompt_output(std::string txt);
 
 QString translate_str(const char *str);
 bool contains(std::vector<std::string>, std::string);
@@ -98,12 +99,9 @@ QDoubleSpinBox *make_spinbox(QGroupBox *gb, std::string d,
     QString object_name, EmbReal single_step, EmbReal lower, EmbReal upper, int key);
 QCheckBox *make_checkbox(QGroupBox *gb, std::string d,
     const char *label, const char *icon, int key);
-
-typedef struct RubberPoint_ {
-    char key[MAX_STRING_LENGTH];
-    char text[MAX_STRING_LENGTH];
-    EmbVector position;
-} RubberPoint;
+void create_float_spinbox(QGroupBox *gb, QGridLayout* gridLayout,
+	const char *label_in, EmbReal single_step, EmbReal lower, EmbReal upper,
+	int key, int row);
 
 /* The Geometry class
  *
@@ -344,56 +342,6 @@ signals:
 };
 
 /* . */
-class CmdPromptSplitter : public QSplitter
-{
-    Q_OBJECT
-
-public:
-    CmdPromptSplitter(QWidget* parent = 0);
-    ~CmdPromptSplitter() {}
-
-protected:
-    QSplitterHandle* createHandle();
-
-signals:
-    void pressResizeHistory(int y);
-    void releaseResizeHistory(int y);
-    void moveResizeHistory(int y);
-};
-
-/* . */
-class CmdPromptHandle : public QSplitterHandle
-{
-    Q_OBJECT
-
-public:
-    CmdPromptHandle(Qt::Orientation orientation, QSplitter* parent);
-    ~CmdPromptHandle() {}
-
-    int pressY;
-    int releaseY;
-    int moveY;
-
-protected:
-    void mousePressEvent(QMouseEvent* e);
-    void mouseReleaseEvent(QMouseEvent* e);
-    void mouseMoveEvent(QMouseEvent* e);
-
-signals:
-    void handlePressed(int y);
-    void handleReleased(int y);
-    void handleMoved(int y);
-};
-
-#define CONSOLE_STYLE_COLOR                 0
-#define CONSOLE_STYLE_BG_COLOR              1
-#define CONSOLE_STYLE_SELECTION_COLOR       2
-#define CONSOLE_STYLE_SELECTION_BG_COLOR    3
-#define CONSOLE_STYLE_FONT_FAMILY           4
-#define CONSOLE_STYLE_FONT_STYLE            5
-#define CONSOLE_STYLE_FONT_SIZE             6
-
-/* . */
 class CmdPrompt : public QWidget
 {
     Q_OBJECT
@@ -407,7 +355,7 @@ public:
     QVBoxLayout* promptVBoxLayout;
     QFrame* promptDivider;
 
-    CmdPromptSplitter* promptSplitter;
+    QSplitter* promptSplitter;
 
     QString styleHash[10];
     void updateStyle();
@@ -915,16 +863,6 @@ public:
 
     void addColorsToComboBox(QComboBox* comboBox);
 
-    void create_float_spinbox(
-        QGroupBox *gb,
-        QGridLayout* gridLayout,
-        const char *label_in,
-        EmbReal single_step,
-        EmbReal lower,
-        EmbReal upper,
-        int key,
-        int row);
-    QCheckBox* create_checkbox(QGroupBox *groupbox, std::string label);
 
 private slots:
     void comboBoxIconSizeCurrentIndexChanged(int);
@@ -1080,6 +1018,8 @@ class View : public QGraphicsView
     Q_OBJECT
 
 public:
+    ViewData *vdata;
+
     View(QGraphicsScene* theScene, QWidget* parent);
     ~View();
 
@@ -1094,18 +1034,6 @@ public:
     bool rulerMetric;
     QColor rulerColor;
     uint8_t rulerPixelSize;
-
-    bool grippingActive;
-    bool rapidMoveActive;
-    bool previewActive;
-    bool pastingActive;
-    bool movingActive;
-    bool selectingActive;
-    bool zoomWindowActive;
-    bool panningRealTimeActive;
-    bool panningPointActive;
-    bool panningActive;
-    bool qSnapActive;
 
     Geometry* gripBaseObj;
     Geometry* tempBaseObj;

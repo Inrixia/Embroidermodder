@@ -1228,7 +1228,7 @@ disable_action(std::string variable)
     if (variable == "move-rapid-fire") {
         View* gview = activeView();
         if (gview) {
-            gview->rapidMoveActive = 0;
+            gview->vdata->rapidMoveActive = 0;
         }
         return "";
     }
@@ -1614,7 +1614,7 @@ actuator(std::string line)
     }
     else {
         for (i=0; i<N_ACTIONS; i++) {
-            if (!strncmp((char*)line.c_str(), command_labels[i], strlen(command_labels[i]))) {
+            if (!strncmp((char*)line.c_str(), command_labels[i], MAX_STRING_LENGTH-1)) {
                 action_id = i;
                 break;
             }
@@ -1643,7 +1643,7 @@ actuator(std::string line)
  * Most calls should use this version directly rather than the CLI style version.
  */
 std::string
-actuator_core(int32_t action_id, std::string args_)
+actuator_core(int32_t action_id, std::string args_="")
 {
     std::vector<Node> result;
     char args[MAX_STRING_LENGTH];
@@ -2125,10 +2125,10 @@ actuator_core(int32_t action_id, std::string args_)
             _mainWin->nativeadd_line_action(mx, my, mx, my, 0, OBJ_RUBBER_ON);
         }
         else if (objType == "PATH") {
-            actuator("todo handle path type in add_rubber_action.);
+            debug_message("todo handle path type in add_rubber_action.);
         }
         else if (objType == "POINT") {
-            actuator("todo handle point type in add_rubber_action.);
+            debug_message("todo handle point type in add_rubber_action.);
         }
         else if (objType == "POLYGON") {
             _mainWin->nativeadd_polygon_action(mx, my, QPainterPath(), OBJ_RUBBER_ON);
@@ -2137,16 +2137,16 @@ actuator_core(int32_t action_id, std::string args_)
             _mainWin->nativeAddPolyline(mx, my, QPainterPath(), OBJ_RUBBER_ON);
         }
         else if (objType == "RAY") {
-            actuator("todo handle ray type in add_rubber_action.);
+            debug_message("handle ray type in add_rubber_action.);
         }
         else if (objType == "RECTANGLE") {
             _mainWin->nativeadd_rectangle_action(mx, my, mx, my, 0, 0, OBJ_RUBBER_ON);
         }
         else if (objType == "SPLINE") {
-            actuator("todo handle spline type in add_rubber_action.);
+            debug_message("handle spline type in add_rubber_action.);
         }
         else if (objType == "TEXTMULTI") {
-            actuator("todo handle text multi type in add_rubber_action.);
+            debug_message("handle text multi type in add_rubber_action.);
         }
         else if (objType == "TEXTSINGLE") {
             _mainWin->nativeadd_text_single_action("", mx, my, 0, false, OBJ_RUBBER_ON);
@@ -2380,7 +2380,7 @@ actuator_core(int32_t action_id, std::string args_)
         if (gview) {
             gview->clearRubberRoom();
             gview->previewOff();
-            gview->rapidMoveActive = false;
+            gview->vdata->rapidMoveActive = false;
         }
         prompt->promptInput->endCommand();
         return "";
@@ -2391,8 +2391,8 @@ actuator_core(int32_t action_id, std::string args_)
         /*
         _mainWin->setPromptPrefix("ERROR: (" + a[0].s + ") " + a[1].s);
         */
-        actuator("append-prompt-history");
-        actuator("end");
+        prompt_output("ERROR: ");
+        actuator_core(ACTION_END);
         return "";
     }
 
@@ -2755,7 +2755,6 @@ actuator_core(int32_t action_id, std::string args_)
 
     case ACTION_SCALE_SELECTED: {
         EmbVector v;
-        char *argv[5];
         v.x = atof(argv[0]);
         v.y = -atof(argv[1]);
         EmbReal factor = atof(argv[2]);
@@ -3061,7 +3060,6 @@ actuator_core(int32_t action_id, std::string args_)
         }
         else {
             prompt->alert("Nothing to undo");
-            actuator("set-prompt-prefix " + prefix.toStdString());
         }
         return "";
     }
@@ -3271,7 +3269,7 @@ enable_action(std::string args)
     if (command == "move-rapid-fire") {
         View* gview = activeView();
         if (gview) {
-            gview->rapidMoveActive = true;
+            gview->vdata->rapidMoveActive = true;
         }
         return "";
     }
@@ -3365,6 +3363,31 @@ SetTextAngle_action(std::string args)
     _mainWin->setTextAngle(a[0].r);
     */
     return "";
+}
+
+void
+prompt_output(char *txt)
+{
+    QString qtxt(txt);
+    prompt_output(qtxt);
+}
+
+void
+prompt_output(const char *txt)
+{
+    prompt_output((char*)txt);
+}
+
+void
+prompt_output(std::string txt)
+{
+    prompt_output(txt.c_str());
+}
+
+void
+prompt_output(QString txt)
+{
+    prompt->promptInput->appendHistory(txt, prompt->promptInput->prefix.length());
 }
 
 /* MainWindow::recentMenuAboutToShow
