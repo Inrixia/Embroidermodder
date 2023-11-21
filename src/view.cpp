@@ -212,7 +212,7 @@ View::addObject(Geometry* obj)
 {
     gscene->addItem(obj);
     gscene->update();
-    hashDeletedObjects.remove(obj->objID);
+    hashDeletedObjects.remove(obj->gdata->objID);
 }
 
 void
@@ -222,7 +222,7 @@ View::deleteObject(Geometry* obj)
     obj->setSelected(false);
     gscene->removeItem(obj);
     gscene->update();
-    hashDeletedObjects.insert(obj->objID, obj);
+    hashDeletedObjects.insert(obj->gdata->objID, obj);
 }
 
 /*
@@ -344,7 +344,7 @@ View::clearRubberRoom()
             if ((type == "OBJ_TYPE_PATH" && contains(spareRubberList, "SPARE_RUBBER_PATH")) ||
                (type == "OBJ_TYPE_POLYGON"  && contains(spareRubberList, "SPARE_RUBBER_POLYGON")) ||
                (type == "OBJ_TYPE_POLYLINE" && contains(spareRubberList, "SPARE_RUBBER_POLYLINE")) ||
-                (contains(spareRubberList, std::to_string(base->objID)))) {
+                (contains(spareRubberList, std::to_string(base->gdata->objID)))) {
                 if (!base->path().elementCount()) {
                     QMessageBox::critical(this,
                         translate_str("Empty Rubber Object Error"),
@@ -369,18 +369,14 @@ View::clearRubberRoom()
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::spareRubber(int64_t id)
 {
     spareRubberList.push_back(std::to_string(id));
 }
 
-/**
- * .
- */
+/* . */
 void
 View::setRubberMode(std::string mode)
 {
@@ -393,9 +389,7 @@ View::setRubberMode(std::string mode)
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::setRubberPoint(QString  key, const QPointF& point)
 {
@@ -407,9 +401,7 @@ View::setRubberPoint(QString  key, const QPointF& point)
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::setRubberText(QString  key, QString  txt)
 {
@@ -488,9 +480,7 @@ View::createOrigin()
     }
 }
 
-/**
- * .
- */
+/* . */
 void
 View::createGridRect()
 {
@@ -1048,9 +1038,7 @@ View::setCrossHairSize(quint8 percent)
     }
 }
 
-/**
- * .
- */
+/* . */
 void
 View::setCornerButton()
 {
@@ -1078,9 +1066,7 @@ View::setCornerButton()
     */
 }
 
-/**
- * .
- */
+/* . */
 void
 View::cornerButtonClicked()
 {
@@ -1088,9 +1074,7 @@ View::cornerButtonClicked()
     //actionHash[settings.display_scrollbar_widget_num]->trigger();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::zoomIn()
 {
@@ -1107,9 +1091,7 @@ View::zoomIn()
     QApplication::restoreOverrideCursor();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::zoomOut()
 {
@@ -1124,9 +1106,7 @@ View::zoomOut()
     QApplication::restoreOverrideCursor();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::zoomWindow()
 {
@@ -1135,9 +1115,7 @@ View::zoomWindow()
     clearSelection();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::zoomSelected()
 {
@@ -1158,9 +1136,7 @@ View::zoomSelected()
     QApplication::restoreOverrideCursor();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::zoomExtents()
 {
@@ -1175,27 +1151,21 @@ View::zoomExtents()
     QApplication::restoreOverrideCursor();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::panRealTime()
 {
     vdata->panningRealTimeActive = true;
 }
 
-/**
- * .
- */
+/* . */
 void
 View::panPoint()
 {
     vdata->panningPointActive = true;
 }
 
-/**
- * .
- */
+/* . */
 void
 View::panLeft()
 {
@@ -1204,9 +1174,7 @@ View::panLeft()
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::panRight()
 {
@@ -1215,9 +1183,7 @@ View::panRight()
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::panUp()
 {
@@ -1226,9 +1192,7 @@ View::panUp()
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::panDown()
 {
@@ -1237,9 +1201,7 @@ View::panDown()
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 void
 View::selectAll()
 {
@@ -1248,9 +1210,7 @@ View::selectAll()
     // gscene->setSelectionArea(allPath, Qt::IntersectsItemShape, this->transform());
 }
 
-/**
- * .
- */
+/* . */
 void
 View::selectionChanged()
 {
@@ -1259,9 +1219,7 @@ View::selectionChanged()
     }
 }
 
-/**
- * .
- */
+/* . */
 void
 View::mouseDoubleClickEvent(QMouseEvent* event)
 {
@@ -1273,15 +1231,13 @@ View::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-/**
- * .
- */
+/* . */
 void
 View::mousePressEvent(QMouseEvent* event)
 {
     updateMouseCoords(event->position().x(), event->position().y());
     if (event->button() == Qt::LeftButton) {
-        if (_mainWin->isCommandActive()) {
+        if (prompt->promptInput->cmdActive) {
             QPointF cmdPoint = mapToScene(event->pos());
             /* TODO: make this into an actuator call. */
             //mainWin->runCommandClick(_mainWin->activeCommand(), cmdPoint.x(), cmdPoint.y());
@@ -1489,9 +1445,7 @@ View::centerAt(const QPointF& centerPoint)
     centerOn(newCenter);
 }
 
-/**
- * .
- */
+/* . */
 void
 View::alignScenePointWithViewPoint(const QPointF& scenePoint, const QPoint& viewPoint)
 {
@@ -1506,9 +1460,7 @@ View::alignScenePointWithViewPoint(const QPointF& scenePoint, const QPoint& view
     centerOn(newCenter);
 }
 
-/**
- * .
- */
+/* . */
 void
 View::mouseMoveEvent(QMouseEvent* event)
 {
@@ -1516,7 +1468,7 @@ View::mouseMoveEvent(QMouseEvent* event)
     movePoint = event->pos();
     sceneMovePoint = mapToScene(movePoint);
 
-    if (_mainWin->isCommandActive()) {
+    if (prompt->promptInput->cmdActive) {
         if (vdata->rapidMoveActive) {
             /* todo: turn move into an actuator call.
              */
@@ -1648,9 +1600,7 @@ View::mouseReleaseEvent(QMouseEvent* event)
     gscene->update();
 }
 
-/**
- * .
- */
+/* . */
 bool
 View::allowZoomIn()
 {
@@ -1670,9 +1620,7 @@ View::allowZoomIn()
     return true;
 }
 
-/**
- * .
- */
+/* . */
 bool
 View::allowZoomOut()
 {

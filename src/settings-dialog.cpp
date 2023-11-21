@@ -1,4 +1,4 @@
-/**
+/*
  *  Embroidermodder 2.
  *
  *  ------------------------------------------------------------
@@ -725,14 +725,14 @@ Settings_Dialog::createTabOpenSave()
 
     for (int i=0; i<n_extensions; i++) {
         char filter[MAX_STRING_LENGTH];
-		QCheckBox* checkbox = new QCheckBox(extensions[i], groupBoxCustomFilter);
+        QCheckBox* checkbox = new QCheckBox(extensions[i], groupBoxCustomFilter);
         sprintf(filter, "*.%s", extensions[i]);
-		checkbox->setChecked(
+        checkbox->setChecked(
             QString(dialog[ST_OPENSAVE_FILTER].s).contains(filter,
             Qt::CaseInsensitive));
-		connect(checkbox, SIGNAL(stateChanged(int)), this,
+        connect(checkbox, SIGNAL(stateChanged(int)), this,
             SLOT(checkBoxCustomFilterStateChanged(int)));
-		checkBoxCustomFilter[extensions[i]] = checkbox;
+        checkBoxCustomFilter[extensions[i]] = checkbox;
     }
 
     QPushButton* buttonCustomFilterSelectAll = new QPushButton(translate_str("Select All"), groupBoxCustomFilter);
@@ -1964,10 +1964,7 @@ void Settings_Dialog::checkBoxGridLoadFromFileStateChanged(int checked)
     set_enabled(parent, "spinBoxGridSpacingAngle", !checked);
 }
 
-/**
- * @brief Settings_Dialog::comboBoxGridTypeCurrentIndexChanged
- * @param type
- */
+/* Callback for setting grid type. */
 void Settings_Dialog::comboBoxGridTypeCurrentIndexChanged(QString type)
 {
     strcpy(dialog[ST_GRID_TYPE].s, type.toStdString().c_str());
@@ -2084,9 +2081,7 @@ void Settings_Dialog::buttonQSnapClearAllClicked()
     emit buttonQSnapClearAll(false);
 }
 
-/**
- *
- */
+/*  . */
 void Settings_Dialog::comboBoxQSnapLocatorColorCurrentIndexChanged(int index)
 {
     //TODO: Alert user if color matched the display bg color
@@ -2107,7 +2102,7 @@ void Settings_Dialog::comboBoxQSnapLocatorColorCurrentIndexChanged(int index)
 void Settings_Dialog::checkBoxLwtShowLwtStateChanged(int checked)
 {
     preview[ST_LWT_SHOW].i = checked;
-    statusbar->toggle("LWT", checked);
+    statusbar->toggle(STATUSBAR_LWT, checked);
 
     QObject* senderObj = sender();
     if (!senderObj) {
@@ -2126,7 +2121,7 @@ void Settings_Dialog::checkBoxLwtShowLwtStateChanged(int checked)
 void Settings_Dialog::checkBoxLwtRealRenderStateChanged(int checked)
 {
     preview[ST_LWT_REAL].i = checked;
-    statusbar->toggle("LWT", checked);
+    statusbar->toggle(STATUSBAR_LWT, checked);
 }
 
 void Settings_Dialog::comboBoxSelectionCoolGripColorCurrentIndexChanged(int index)
@@ -2164,9 +2159,7 @@ Settings_Dialog::comboBoxSelectionHotGripColorCurrentIndexChanged(int index)
     }
 }
 
-/**
- * .
- */
+/* . */
 void Settings_Dialog::acceptChanges()
 {
     copy_node(dialog, preview, ST_MDI_USE_LOGO);
@@ -2224,9 +2217,9 @@ void Settings_Dialog::acceptChanges()
     prompt->setPromptFontSize(get_int(dialog, ST_PROMPT_FONT_SIZE));
     _mainWin->updateAllViewGridColors(get_uint(dialog, ST_GRID_COLOR));
     _mainWin->updateAllViewRulerColors(get_uint(dialog, ST_RULER_COLOR));
-    statusbar->toggle("LWT", get_bool(dialog, ST_LWT_SHOW));
+    statusbar->toggle(STATUSBAR_LWT, get_bool(dialog, ST_LWT_SHOW));
     /*
-    statusbar->toggle("REAL", get_bool(dialog, "lwt_real_render")); ?
+    statusbar->toggle(STATUSBAR_REAL, get_bool(dialog, ST_LWT_REAL)); ?
     */
     _mainWin->updatePickAddMode(get_bool(dialog, ST_SELECTION_PICK_ADD));
 
@@ -2236,9 +2229,7 @@ void Settings_Dialog::acceptChanges()
     accept();
 }
 
-/**
- * @brief Settings_Dialog::rejectChanges
- */
+/* Reject changes from this Settings Dialog interaction. */
 void
 Settings_Dialog::rejectChanges()
 {
@@ -2267,9 +2258,9 @@ Settings_Dialog::rejectChanges()
     prompt->setPromptFontSize(dialog[ST_PROMPT_FONT_SIZE].r);
     _mainWin->updateAllViewGridColors(get_uint(dialog, ST_GRID_COLOR));
     _mainWin->updateAllViewRulerColors(get_uint(dialog, ST_RULER_COLOR));
-    statusbar->toggle("LWT", settings[ST_LWT_SHOW].i);
+    statusbar->toggle(STATUSBAR_LWT, settings[ST_LWT_SHOW].i);
     /*
-    statusbar->toggle("REAL", settings[ST_LWT_REAL].i); ?
+    statusbar->toggle(STATUSBAR_REAL, settings[ST_LWT_REAL].i); ?
     */
 
     mdiArea->forceRepaint();

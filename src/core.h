@@ -694,14 +694,14 @@
 #define MENU_END                                -1
 #define MENU_FILE                                0
 #define MENU_EDIT                                1
-#define MENU_PAN                                 2
-#define MENU_ZOOM                                3
-#define MENU_VIEW                                4
-#define MENU_SETTINGS                            5
-#define MENU_WINDOW                              6
-#define MENU_HELP                                7
-#define MENU_DRAW                                8
-#define MENU_RECENT                              9
+#define MENU_VIEW                                2
+#define MENU_SETTINGS                            3
+#define MENU_WINDOW                              4
+#define MENU_HELP                                5
+#define MENU_DRAW                                6
+#define MENU_RECENT                              7
+#define MENU_ZOOM                                8
+#define MENU_PAN                                 9
 #define TOTAL_MENUS                             10
 
 /* Toolbars */
@@ -724,13 +724,22 @@
 #define TOTAL_TOOLBARS                          14
 
 /* Command Prompt Style. */
-#define CONSOLE_STYLE_COLOR                 0
-#define CONSOLE_STYLE_BG_COLOR              1
-#define CONSOLE_STYLE_SELECTION_COLOR       2
-#define CONSOLE_STYLE_SELECTION_BG_COLOR    3
-#define CONSOLE_STYLE_FONT_FAMILY           4
-#define CONSOLE_STYLE_FONT_STYLE            5
-#define CONSOLE_STYLE_FONT_SIZE             6
+#define CONSOLE_STYLE_COLOR                      0
+#define CONSOLE_STYLE_BG_COLOR                   1
+#define CONSOLE_STYLE_SELECTION_COLOR            2
+#define CONSOLE_STYLE_SELECTION_BG_COLOR         3
+#define CONSOLE_STYLE_FONT_FAMILY                4
+#define CONSOLE_STYLE_FONT_STYLE                 5
+#define CONSOLE_STYLE_FONT_SIZE                  6
+
+#define STATUSBAR_SNAP                           0
+#define STATUSBAR_GRID                           1
+#define STATUSBAR_RULER                          2
+#define STATUSBAR_ORTHO                          3
+#define STATUSBAR_POLAR                          4
+#define STATUSBAR_QSNAP                          5
+#define STATUSBAR_QTRACK                         6
+#define STATUSBAR_LWT                            7
 
 #ifdef __cplusplus
 extern "C" {
@@ -738,21 +747,7 @@ extern "C" {
 
 /* C/C++ Standard Libraries. */
 #include <stdio.h>
-#include <math.h>
-#include <time.h>
 #include <inttypes.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <assert.h>
-#include <errno.h>
-
-/* We assume here that all free systems and MacOS are POSIX compliant. */
-#if defined(WIN32)
-#include <windows.h>
-#else
-#include <unistd.h>
-#include <sys/utsname.h>
-#endif
 
 #include "../extern/libembroidery/src/embroidery.h"
 
@@ -827,9 +822,11 @@ typedef struct Setting_ {
 /*
  */
 typedef struct GeometryData_ {
+    uint64_t flags;
     uint32_t mode;
     uint32_t type;
     int32_t objID;
+
     EmbArc arc;
     EmbCircle circle;
     EmbEllipse ellipse;
@@ -847,17 +844,17 @@ typedef struct GeometryData_ {
 /*
  */
 typedef struct ViewData_ {
-    bool grippingActive;
-    bool rapidMoveActive;
-    bool previewActive;
-    bool pastingActive;
-    bool movingActive;
-    bool selectingActive;
-    bool zoomWindowActive;
-    bool panningRealTimeActive;
-    bool panningPointActive;
-    bool panningActive;
-    bool qSnapActive;
+    uint8_t grippingActive;
+    uint8_t rapidMoveActive;
+    uint8_t previewActive;
+    uint8_t pastingActive;
+    uint8_t movingActive;
+    uint8_t selectingActive;
+    uint8_t zoomWindowActive;
+    uint8_t panningRealTimeActive;
+    uint8_t panningPointActive;
+    uint8_t panningActive;
+    uint8_t qSnapActive;
 } ViewData;
 
 /* To allow us to resize general C arrays when necessary.
@@ -931,9 +928,9 @@ int insert_node(Node *branch, char key[MAX_STRING_LENGTH], Node *node);
 unsigned char validRGB(int r, int g, int b);
 int str_contains(char *s, char c);
 EmbReal fourier_series(EmbReal arg, EmbReal *terms, int n_terms);
-bool willUnderflowInt32(int64_t a, int64_t b);
-bool willOverflowInt32(int64_t a, int64_t b);
-int roundToMultiple(bool roundUp, int numToRound, int multiple);
+uint8_t willUnderflowInt32(int64_t a, int64_t b);
+uint8_t willOverflowInt32(int64_t a, int64_t b);
+int roundToMultiple(uint8_t roundUp, int numToRound, int multiple);
 int tokenize(char **argv, char *str, const char delim);
 void debug_message(const char *msg);
 int read_settings(void);
@@ -956,6 +953,8 @@ void geometry_context(
     GeometryData *geometry,
     char output[MAX_STRING_LENGTH]);
 void geometry_update(GeometryData *g);
+void geometry_set_flag(GeometryData *g, uint64_t flag);
+void geometry_unset_flag(GeometryData *g, uint64_t flag);
 
 /* The Settings System
  *
@@ -1001,6 +1000,7 @@ extern int32_t settings_menu[];
 extern int32_t window_menu[];
 extern int32_t help_menu[];
 extern int32_t draw_menu[];
+extern const char *menu_labels[];
 
 /* Toolbar data */
 extern ToolbarData toolbar_data[MAX_TOOLBARS];

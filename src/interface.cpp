@@ -31,9 +31,25 @@
 
 #include "embroidermodder.h"
 
+#include <unordered_map>
 #include <time.h>
 
 bool test_program = false;
+
+// Used when checking if fields vary
+QString fieldOldText;
+QString fieldNewText;
+QString fieldVariesText;
+QString fieldYesText;
+QString fieldNoText;
+QString fieldOnText;
+QString fieldOffText;
+
+std::unordered_map<std::string, QLineEdit *> lineEdits;
+std::unordered_map<std::string, QToolButton *> toolButtons;
+std::unordered_map<std::string, QSpinBox *> spinBoxes;
+std::unordered_map<std::string, QDoubleSpinBox *> doubleSpinBoxes;
+std::unordered_map<std::string, QComboBox *> comboBoxes;
 
 /* Make the translation function global in scope. */
 QString
@@ -667,8 +683,8 @@ StatusBar::StatusBar(QWidget *parent) : QStatusBar(parent)
         button->setAutoRaise(true);
         button->setCheckable(true);
 
-        connect(button, &QToolButton::toggled, this, [=](bool a) { toggle(button_list[i], a); } );
-        buttons[button_list[i]] = button;
+        connect(button, &QToolButton::toggled, this, [=](bool a) { toggle(i, a); } );
+        buttons[i] = button;
     }
 
     statusBarMouseCoord = new QLabel(this);
@@ -678,7 +694,7 @@ StatusBar::StatusBar(QWidget *parent) : QStatusBar(parent)
 
     this->addWidget(statusBarMouseCoord);
     for (int i=0; i<n; i++) {
-        this->addWidget(buttons[button_list[i]]);
+        this->addWidget(buttons[i]);
     }
 }
 
@@ -693,9 +709,7 @@ void StatusBar::setMouseCoord(EmbReal x, EmbReal y)
     //statusBarMouseCoord->setText(QString().setNum(x, 'E', 4) + ", " + QString().setNum(y, 'E', 4)); //TODO: use precision from unit settings
 }
 
-/**
- * .
- */
+/* . */
 void
 StatusBar::context_menu_action(QToolButton *button, const char *icon, const char *label, QMenu *menu, std::string setting_page)
 {
@@ -704,9 +718,7 @@ StatusBar::context_menu_action(QToolButton *button, const char *icon, const char
     menu->addAction(action);
 }
 
-/**
- * .
- */
+/* . */
 void
 StatusBar::context_menu_event(QContextMenuEvent *event, QToolButton *button)
 {
@@ -763,7 +775,7 @@ StatusBar::context_menu_event(QContextMenuEvent *event, QToolButton *button)
 }
 
 void
-StatusBar::toggle(std::string key, bool on)
+StatusBar::toggle(int key, bool on)
 {
     debug_message("StatusBarButton toggleSnap()");
     View* gview = activeView();
@@ -771,29 +783,42 @@ StatusBar::toggle(std::string key, bool on)
         return;
     }
     uint64_t flag = VIEW_STATE_GRID;
-    if (key == "SNAP") {
+    switch (key) {
+    case STATUSBAR_SNAP: {
         flag = VIEW_STATE_SNAP;
+        break;
     }
-    else if (key == "GRID") {
+    case STATUSBAR_GRID: {
         flag = VIEW_STATE_GRID;
+        break;
     }
-    else if (key == "RULER") {
+    case STATUSBAR_RULER: {
         flag = VIEW_STATE_RULER;
+        break;
     }
-    else if (key == "ORTHO") {
+    case STATUSBAR_ORTHO: {
         flag = VIEW_STATE_ORTHO;
+        break;
     }
-    else if (key == "POLAR") {
+    case STATUSBAR_POLAR: {
         flag = VIEW_STATE_POLAR;
+        break;
     }
-    else if (key == "QSNAP") {
+    case STATUSBAR_QSNAP: {
         flag = VIEW_STATE_QSNAP;
+        break;
     }
-    else if (key == "QTRACK") {
+    case STATUSBAR_QTRACK: {
         flag = VIEW_STATE_QTRACK;
+        break;
     }
-    else if (key == "LWT") {
+    case STATUSBAR_LWT: {
         flag = VIEW_STATE_LWT;
+        break;
+    }
+    default:
+        prompt->alert("Unrecognised toggle key");
+        break;
     }
 
     if (on) {
@@ -1056,7 +1081,6 @@ CmdPromptInput::CmdPromptInput(QWidget* parent) : QLineEdit(parent)
     debug_message("CmdPromptInput Constructor");
     setObjectName("Command Prompt Input");
 
-    defaultPrefix = "> ";
     prefix = "> ";
     curText = prefix;
 
@@ -1093,7 +1117,6 @@ CmdPromptInput::endCommand()
     rapidFireEnabled = false;
     emit stopBlinking();
 
-    prefix = defaultPrefix;
     clear();
 }
 
@@ -1404,7 +1427,6 @@ CmdPromptInput::eventFilter(QObject* obj, QEvent* event)
                 return true;
             case Qt::Key_Escape:
                 pressedKey->accept();
-                prefix = defaultPrefix;
                 clear();
                 emit appendHistory(curText + tr("*Cancel*"), prefix.length());
                 return true;
@@ -2204,14 +2226,14 @@ MdiWindow::onWindowActivated()
     debug_message("MdiWindow onWindowActivated()");
     gview->undoStack->setActive(true);
     _mainWin->setUndoCleanIcon(fileWasLoaded);
-    statusbar->buttons["SNAP"]->setChecked(gscene->property("ENABLE_SNAP").toBool());
-    statusbar->buttons["GRID"]->setChecked(gscene->property("ENABLE_GRID").toBool());
-    statusbar->buttons["RULER"]->setChecked(gscene->property("ENABLE_RULER").toBool());
-    statusbar->buttons["ORTHO"]->setChecked(gscene->property("ENABLE_ORTHO").toBool());
-    statusbar->buttons["POLAR"]->setChecked(gscene->property("ENABLE_POLAR").toBool());
-    statusbar->buttons["QSNAP"]->setChecked(gscene->property("ENABLE_QSNAP").toBool());
-    statusbar->buttons["QTRACK"]->setChecked(gscene->property("ENABLE_QTRACK").toBool());
-    statusbar->buttons["LWT"]->setChecked(gscene->property("ENABLE_LWT").toBool());
+    statusbar->buttons[STATUSBAR_SNAP]->setChecked(gscene->property("ENABLE_SNAP").toBool());
+    statusbar->buttons[STATUSBAR_GRID]->setChecked(gscene->property("ENABLE_GRID").toBool());
+    statusbar->buttons[STATUSBAR_RULER]->setChecked(gscene->property("ENABLE_RULER").toBool());
+    statusbar->buttons[STATUSBAR_ORTHO]->setChecked(gscene->property("ENABLE_ORTHO").toBool());
+    statusbar->buttons[STATUSBAR_POLAR]->setChecked(gscene->property("ENABLE_POLAR").toBool());
+    statusbar->buttons[STATUSBAR_QSNAP]->setChecked(gscene->property("ENABLE_QSNAP").toBool());
+    statusbar->buttons[STATUSBAR_QTRACK]->setChecked(gscene->property("ENABLE_QTRACK").toBool());
+    statusbar->buttons[STATUSBAR_LWT]->setChecked(gscene->property("ENABLE_LWT").toBool());
     prompt->setHistory(promptHistory);
 }
 
@@ -2352,9 +2374,7 @@ PropertyEditor::eventFilter(QObject *obj, QEvent *event)
     return QObject::eventFilter(obj, event);
 }
 
-/**
- * \todo document this
- */
+/* . */
 QComboBox*
 PropertyEditor::createComboBoxSelected()
 {
@@ -2363,9 +2383,7 @@ PropertyEditor::createComboBoxSelected()
     return comboBoxSelected;
 }
 
-/**
- * \todo document this
- */
+/* . */
 QToolButton*
 PropertyEditor::createToolButtonQSelect()
 {
@@ -2378,9 +2396,7 @@ PropertyEditor::createToolButtonQSelect()
     return toolButtonQSelect;
 }
 
-/**
- *
- */
+/* . */
 QToolButton*
 PropertyEditor::createToolButtonPickAdd()
 {
@@ -2391,9 +2407,7 @@ PropertyEditor::createToolButtonPickAdd()
     return toolButtonPickAdd;
 }
 
-/**
- *
- */
+/* . */
 void
 PropertyEditor::updatePickAddModeButton(bool pickAddMode)
 {
@@ -2625,8 +2639,8 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             updateLineEditNumIfVaries(lineEdits["text-single-rotation"], -obj->rotation(), true);
             updateLineEditNumIfVaries(lineEdits["text-single-x"], obj->scenePos().x(), false);
             updateLineEditNumIfVaries(lineEdits["text-single-y"], -obj->scenePos().y(), false);
-            updateComboBoxBoolIfVaries(comboBoxes["text-single-backward"], obj->flags & PROP_BACKWARD, true);
-            updateComboBoxBoolIfVaries(comboBoxes["text-single-upside-down"], obj->flags & PROP_UPSIDEDOWN, true);
+            updateComboBoxBoolIfVaries(comboBoxes["text-single-backward"], obj->gdata->flags & PROP_BACKWARD, true);
+            updateComboBoxBoolIfVaries(comboBoxes["text-single-upside-down"], obj->gdata->flags & PROP_UPSIDEDOWN, true);
         }
     }
 
@@ -2676,9 +2690,7 @@ PropertyEditor::updateLineEditNumIfVaries(QLineEdit* lineEdit, EmbReal num, bool
         lineEdit->setText(fieldVariesText);
 }
 
-/**
- *
- */
+/* . */
 void
 PropertyEditor::updateFontComboBoxStrIfVaries(QFontComboBox* fontComboBox, QString  str)
 {
@@ -2803,9 +2815,7 @@ void PropertyEditor::clearAllFields()
     }
 }
 
-/**
- * .
- */
+/* . */
 QGroupBox *
 PropertyEditor::createGroupBox(const char *group_box_key, const char *title)
 {
@@ -2861,9 +2871,7 @@ PropertyEditor::createGroupBox(const char *group_box_key, const char *title)
     return gb;
 }
 
-/**
- * .
- */
+/* . */
 QToolButton*
 PropertyEditor::createToolButton(QString iconName, QString txt)
 {
@@ -2876,9 +2884,7 @@ PropertyEditor::createToolButton(QString iconName, QString txt)
     return tb;
 }
 
-/**
- * .
- */
+/* . */
 QLineEdit*
 PropertyEditor::createLineEdit(QString  validatorType, bool readOnly)
 {
@@ -2911,9 +2917,7 @@ PropertyEditor::mapSignal(QObject* fieldObj, QString  name, QVariant value)
     signalMapper->setMapping(fieldObj, fieldObj);
 }
 
-/**
- * .
- */
+/* . */
 void
 PropertyEditor::fieldEdited(QObject* fieldObj)
 {

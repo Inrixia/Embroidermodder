@@ -116,7 +116,7 @@ Geometry::init(int type_, QRgb rgb, Qt::PenStyle lineType, QGraphicsItem* parent
     lwtPen.setCapStyle(Qt::RoundCap);
     lwtPen.setJoinStyle(Qt::RoundJoin);
 
-    objID = QDateTime::currentMSecsSinceEpoch();
+    gdata->objID = QDateTime::currentMSecsSinceEpoch();
 
     setObjectLineWeight("0.35"); //TODO: pass in proper lineweight
 
@@ -177,15 +177,15 @@ Geometry::update(void)
 {
     switch (Type) {
     case OBJ_TYPE_ARC: {
-        EmbVector center = embArc_center(arc);
+        EmbVector center = embArc_center(gdata->arc);
 
-        arcStartPoint = to_QPointF(embVector_subtract(arc.start, center));
-        arcMidPoint = to_QPointF(embVector_subtract(arc.mid, center));
-        arcEndPoint = to_QPointF(embVector_subtract(arc.end, center));
+        gdata->arc.start = embVector_subtract(gdata->arc.start, center);
+        gdata->arc.mid = embVector_subtract(gdata->arc.mid, center);
+        gdata->arc.end = embVector_subtract(gdata->arc.end, center);
 
         setPos(center.x, center.y);
 
-        EmbReal radius = embVector_distance(center, arc.mid);
+        EmbReal radius = embVector_distance(center, gdata->arc.mid);
         QRectF elRect;
         elRect.setWidth(radius*2.0);
         elRect.setHeight(radius*2.0);
@@ -197,13 +197,13 @@ Geometry::update(void)
         break;
     }
     case OBJ_TYPE_CIRCLE: {
-        setObjectRadius(circle.radius);
-        setObjectCenter(circle.center);
+        setObjectRadius(gdata->circle.radius);
+        setObjectCenter(gdata->circle.center);
         break;
     }
     case OBJ_TYPE_ELLIPSE: {
-        setObjectSize(ellipse.radius.x, ellipse.radius.y);
-        setObjectCenter(ellipse.center);
+        setObjectSize(gdata->ellipse.radius.x, gdata->ellipse.radius.y);
+        setObjectCenter(gdata->ellipse.center);
         break;
     }
     case OBJ_TYPE_DIMLEADER: {
@@ -255,28 +255,28 @@ Geometry::Geometry(Geometry* obj, QGraphicsItem* parent) : QGraphicsPathItem(par
         return;
     }
     init(obj->Type, obj->objPen.color().rgb(), Qt::SolidLine); //TODO: getCurrentLineType
-    flags = obj->flags;
+    gdata->flags = obj->gdata->flags;
     Type = obj->Type;
     setRotation(obj->rotation());
     setScale(obj->scale());
     switch (Type) {
     case OBJ_TYPE_ARC: {
-        arc.start = to_EmbVector(obj->objectStartPoint());
-        arc.mid = to_EmbVector(obj->objectMidPoint());
-        arc.end = to_EmbVector(obj->objectEndPoint());
+        gdata->arc.start = to_EmbVector(obj->objectStartPoint());
+        gdata->arc.mid = to_EmbVector(obj->objectMidPoint());
+        gdata->arc.end = to_EmbVector(obj->objectEndPoint());
         break;
     }
 
     case OBJ_TYPE_CIRCLE: {
-        circle.center = to_EmbVector(obj->scenePos());
-        circle.radius = obj->objectRadius();
+        gdata->circle.center = to_EmbVector(obj->scenePos());
+        gdata->circle.radius = obj->objectRadius();
         break;
     }
 
     case OBJ_TYPE_ELLIPSE: {
-        ellipse.center = to_EmbVector(obj->scenePos());
-        ellipse.radius.x = obj->objectWidth();
-        ellipse.radius.y = obj->objectHeight();
+        gdata->ellipse.center = to_EmbVector(obj->scenePos());
+        gdata->ellipse.radius.x = obj->objectWidth();
+        gdata->ellipse.radius.y = obj->objectHeight();
         break;
     }
 
@@ -287,7 +287,7 @@ Geometry::Geometry(Geometry* obj, QGraphicsItem* parent) : QGraphicsPathItem(par
         line.end = to_EmbVector(obj->objectEndPoint2());
 
         if (Type==OBJ_TYPE_DIMLEADER) {
-            flags |= ((!PROP_CURVED) & PROP_FILLED);
+            gdata->flags |= ((!PROP_CURVED) & PROP_FILLED);
         }
 
         setObjectEndPoint1(line.start);
@@ -380,7 +380,7 @@ Geometry::allGripPoints()
             objectEndPoint1(),
             objectEndPoint2()
         };
-        if (flags & PROP_CURVED) {
+        if (gdata->flags & PROP_CURVED) {
             gripPoints.push_back(objectMidPoint());
         }
         break;
@@ -663,34 +663,34 @@ Geometry::updateLeader()
 
     switch (arrowStyle) {
     case ARROW_STYLE_OPEN: {
-        arrowStylePath = QPainterPath();
-        arrowStylePath.moveTo(ap1);
-        arrowStylePath.lineTo(ap0);
-        arrowStylePath.lineTo(ap2);
-        arrowStylePath.lineTo(ap0);
-        arrowStylePath.lineTo(ap1);
+        normalPath = QPainterPath();
+        normalPath.moveTo(ap1);
+        normalPath.lineTo(ap0);
+        normalPath.lineTo(ap2);
+        normalPath.lineTo(ap0);
+        normalPath.lineTo(ap1);
         break;
     }
     case ARROW_STYLE_CLOSED: {
-        arrowStylePath = QPainterPath();
-        arrowStylePath.moveTo(ap1);
-        arrowStylePath.lineTo(ap0);
-        arrowStylePath.lineTo(ap2);
-        arrowStylePath.lineTo(ap1);
+        normalPath = QPainterPath();
+        normalPath.moveTo(ap1);
+        normalPath.lineTo(ap0);
+        normalPath.lineTo(ap2);
+        normalPath.lineTo(ap1);
         break;
     }
     case ARROW_STYLE_DOT: {
-        arrowStylePath = QPainterPath();
-        arrowStylePath.addEllipse(ap0, gdata->arrowStyleLength,
+        normalPath = QPainterPath();
+        normalPath.addEllipse(ap0, gdata->arrowStyleLength,
             gdata->arrowStyleLength);
         break;
     }
     case ARROW_STYLE_BOX: {
-        arrowStylePath = QPainterPath();
+        normalPath = QPainterPath();
         EmbReal side = QLineF(ap1, ap2).length();
         QRectF ar0(0, 0, side, side);
         ar0.moveCenter(ap0);
-        arrowStylePath.addRect(ar0);
+        normalPath.addRect(ar0);
         break;
     }
     case ARROW_STYLE_TICK:
@@ -698,10 +698,6 @@ Geometry::updateLeader()
     default:
         break;
     }
-
-    lineStylePath = QPainterPath();
-    lineStylePath.moveTo(ap0);
-    lineStylePath.lineTo(lp0);
 }
 
 /* Geometry::updateRubber
@@ -909,7 +905,7 @@ Geometry::updateRubber(QPainter* painter)
             arc.start = to_EmbVector(sceneTan1Point);
             arc.mid = to_EmbVector(sceneTan2Point);
             arc.end = to_EmbVector(sceneTan3Point);
-            sceneCenter = embArc_center(arc);
+            sceneCenter = embArc_center(gdata->arc);
             QPointF sceneCenterPoint(sceneCenter.x, sceneCenter.y);
             QLineF sceneLine(sceneCenterPoint, sceneTan3Point);
             setObjectCenter(to_EmbVector(sceneCenterPoint));
@@ -1515,13 +1511,9 @@ Geometry::setObjectRadius(EmbReal radius)
         startLine.setLength(rad);
         midLine.setLength(rad);
         endLine.setLength(rad);
-        arcStartPoint = startLine.p2();
-        arcMidPoint = midLine.p2();
-        arcEndPoint = endLine.p2();
-        EmbArc arc;
-        arc.start = to_EmbVector(arcStartPoint);
-        arc.mid = to_EmbVector(arcMidPoint);
-        arc.end = to_EmbVector(arcEndPoint);
+        gdata->arc.start = to_EmbVector(startLine.p2());
+        gdata->arc.mid = to_EmbVector(midLine.p2());
+        gdata->arc.end = to_EmbVector(endLine.p2());
         break;
     }
 
@@ -1568,24 +1560,21 @@ Geometry::setObjectPoint(EmbVector point, int64_t point_type)
 {
     switch (point_type) {
     case VECTOR_ARC_START_POINT: {
-        EmbArc arc;
-        arc.start = point;
-        arc.mid = to_EmbVector(objectMidPoint());
-        arc.end = to_EmbVector(objectEndPoint());
+        gdata->arc.start = point;
+        gdata->arc.mid = to_EmbVector(objectMidPoint());
+        gdata->arc.end = to_EmbVector(objectEndPoint());
         break;
     }
     case VECTOR_ARC_MID_POINT: {
-        EmbArc arc;
-        arc.start = to_EmbVector(objectStartPoint());
-        arc.mid = point;
-        arc.end = to_EmbVector(objectEndPoint());
+        gdata->arc.start = to_EmbVector(objectStartPoint());
+        gdata->arc.mid = point;
+        gdata->arc.end = to_EmbVector(objectEndPoint());
         break;
     }
     case VECTOR_ARC_END_POINT: {
-        EmbArc arc;
-        arc.start = to_EmbVector(objectStartPoint());
-        arc.mid = to_EmbVector(objectMidPoint());
-        arc.end = point;
+        gdata->arc.start = to_EmbVector(objectStartPoint());
+        gdata->arc.mid = to_EmbVector(objectMidPoint());
+        gdata->arc.end = point;
         break;
     }
     default:
@@ -1677,7 +1666,7 @@ Geometry::objectStartPoint()
 {
     QPointF start_point = objLine.pointAt(0.0);
     if (Type == OBJ_TYPE_ARC) {
-        start_point = arcMidPoint;
+        start_point = to_QPointF(gdata->arc.start);
     }
     return scale_and_rotate(start_point);
 }
@@ -1687,7 +1676,7 @@ Geometry::objectMidPoint()
 {
     QPointF mid_point = objLine.pointAt(0.5);
     if (Type == OBJ_TYPE_ARC) {
-        mid_point = arcMidPoint;
+        mid_point = to_QPointF(gdata->arc.mid);
     }
     return scale_and_rotate(mid_point);
 }
@@ -1697,7 +1686,7 @@ Geometry::objectEndPoint()
 {
     QPointF end_point = objLine.pointAt(1.0);
     if (Type == OBJ_TYPE_ARC) {
-        end_point = arcEndPoint;
+        end_point = to_QPointF(gdata->arc.end);
     }
     return scale_and_rotate(end_point);
 }
@@ -1745,7 +1734,7 @@ Geometry::objectReal(int64_t real_type)
 
     case REAL_CHORD: {
         if (Type == OBJ_TYPE_ARC) {
-            return embArc_chord(arc);
+            return embArc_chord(gdata->arc);
         }
         /* report error */
         break;
@@ -1888,11 +1877,11 @@ Geometry::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
     }
 
     case OBJ_TYPE_DIMLEADER: {
-        painter->drawPath(lineStylePath);
-        painter->drawPath(arrowStylePath);
+        painter->drawLine(objLine);
+        painter->drawPath(normalPath);
 
-        if (flags & PROP_FILLED) {
-            painter->fillPath(arrowStylePath, objPen.color());
+        if (gdata->flags & PROP_FILLED) {
+            painter->fillPath(normalPath, objPen.color());
         }
         break;
     }
@@ -1951,7 +1940,7 @@ Geometry::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
     }
 
     case OBJ_TYPE_TEXTSINGLE: {
-        painter->drawPath(objTextPath);
+        painter->drawPath( normalPath);
         break;
     }
 
@@ -2489,7 +2478,7 @@ saveObjectAsStitches(int objType, View *view, Geometry *obj)
      * TODO: Improve precision, replace simplified
      */
     case OBJ_TYPE_TEXTSINGLE: {
-        std::vector<QPainterPath> pathList = obj->objectSavePathList();
+        std::vector<QPainterPath> pathList = obj->subPathList();
         foreach(QPainterPath path, pathList) {
             toPolyline(view, position, path.simplified(), "0", color, "CONTINUOUS", "BYLAYER");
         }
@@ -2741,11 +2730,11 @@ void Geometry::setObjectText(QString str)
     QFont font;
     font.setFamily(objTextFont);
     font.setPointSizeF(gdata->text_size);
-    font.setBold(flags & PROP_BOLD);
-    font.setItalic(flags & PROP_ITALIC);
-    font.setUnderline(flags & PROP_UNDERLINE);
-    font.setStrikeOut(flags & PROP_STRIKEOUT);
-    font.setOverline(flags & PROP_OVERLINE);
+    font.setBold(gdata->flags & PROP_BOLD);
+    font.setItalic(gdata->flags & PROP_ITALIC);
+    font.setUnderline(gdata->flags & PROP_UNDERLINE);
+    font.setStrikeOut(gdata->flags & PROP_STRIKEOUT);
+    font.setOverline(gdata->flags & PROP_OVERLINE);
     textPath.addText(0, 0, font, str);
 
     //Translate the path based on the justification
@@ -2797,13 +2786,13 @@ void Geometry::setObjectText(QString str)
     }
 
     /* Backward or Upside Down */
-    if (flags & (PROP_BACKWARD + PROP_UPSIDEDOWN)) {
+    if (gdata->flags & (PROP_BACKWARD + PROP_UPSIDEDOWN)) {
         EmbReal horiz = 1.0;
         EmbReal vert = 1.0;
-        if (flags & PROP_BACKWARD) {
+        if (gdata->flags & PROP_BACKWARD) {
             horiz = -1.0;
         }
-        if (flags & PROP_UPSIDEDOWN) {
+        if (gdata->flags & PROP_UPSIDEDOWN) {
             vert = -1.0;
         }
 
@@ -2832,15 +2821,15 @@ void Geometry::setObjectText(QString str)
                                     horiz * P4.x, vert * P4.y);
             }
         }
-        objTextPath = flippedPath;
+         normalPath = flippedPath;
     }
     else {
-        objTextPath = textPath;
+         normalPath = textPath;
     }
 
     //Add the grip point to the shape path
-    QPainterPath gripPath = objTextPath;
-    gripPath.connectPath(objTextPath);
+    QPainterPath gripPath =  normalPath;
+    gripPath.connectPath( normalPath);
     gripPath.addRect(-0.00000001, -0.00000001, 0.00000002, 0.00000002);
     setPath(gripPath);
 }
@@ -2883,11 +2872,11 @@ Geometry::setObjectTextSize(EmbReal size)
 void
 Geometry::setObjectTextStyle(bool bold, bool italic, bool under, bool strike, bool over)
 {
-    flags |= bold * PROP_BOLD;
-    flags |= italic * PROP_ITALIC;
-    flags |= under * PROP_UNDERLINE;
-    flags |= strike * PROP_STRIKEOUT;
-    flags |= over * PROP_OVERLINE;
+    gdata->flags |= bold * PROP_BOLD;
+    gdata->flags |= italic * PROP_ITALIC;
+    gdata->flags |= under * PROP_UNDERLINE;
+    gdata->flags |= strike * PROP_STRIKEOUT;
+    gdata->flags |= over * PROP_OVERLINE;
     setObjectText(objText);
 }
 
@@ -2896,7 +2885,7 @@ Geometry::setObjectTextStyle(bool bold, bool italic, bool under, bool strike, bo
 void
 Geometry::setObjectTextBold(bool val)
 {
-    flags |= val * PROP_BOLD;
+    gdata->flags |= val * PROP_BOLD;
     setObjectText(objText);
 }
 
@@ -2904,7 +2893,7 @@ Geometry::setObjectTextBold(bool val)
 void
 Geometry::setObjectTextItalic(bool val)
 {
-    flags |= val * PROP_ITALIC;
+    gdata->flags |= val * PROP_ITALIC;
     setObjectText(objText);
 }
 
@@ -2912,7 +2901,7 @@ Geometry::setObjectTextItalic(bool val)
 void
 Geometry::setObjectTextUnderline(bool val)
 {
-    flags |= val * PROP_UNDERLINE;
+    gdata->flags |= val * PROP_UNDERLINE;
     setObjectText(objText);
 }
 
@@ -2920,7 +2909,7 @@ Geometry::setObjectTextUnderline(bool val)
 void
 Geometry::setObjectTextStrikeOut(bool val)
 {
-    flags |= val * PROP_STRIKEOUT;
+    gdata->flags |= val * PROP_STRIKEOUT;
     setObjectText(objText);
 }
 
@@ -2928,7 +2917,7 @@ Geometry::setObjectTextStrikeOut(bool val)
 void
 Geometry::setObjectTextOverline(bool val)
 {
-    flags |= val * PROP_OVERLINE;
+    gdata->flags |= val * PROP_OVERLINE;
     setObjectText(objText);
 }
 
@@ -2936,7 +2925,7 @@ Geometry::setObjectTextOverline(bool val)
 void
 Geometry::setObjectTextBackward(bool val)
 {
-    flags |= val * PROP_BACKWARD;
+    gdata->flags |= val * PROP_BACKWARD;
     setObjectText(objText);
 }
 
@@ -2944,7 +2933,7 @@ Geometry::setObjectTextBackward(bool val)
 void
 Geometry::setObjectTextUpsideDown(bool val)
 {
-    flags |= val * PROP_UPSIDEDOWN;
+    gdata->flags |= val * PROP_UPSIDEDOWN;
     setObjectText(objText);
 }
 
@@ -2959,7 +2948,7 @@ Geometry::subPathList()
 
     std::vector<QPainterPath> pathList;
 
-    QPainterPath path = objTextPath;
+    QPainterPath path =  normalPath;
 
     QPainterPath::Element element;
     std::vector<int> pathMoves;

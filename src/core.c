@@ -18,6 +18,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
+#include <assert.h>
+#include <math.h>
 
 #include "core.h"
 
@@ -68,6 +70,19 @@ const char *object_names[] = {
     "Text",
     "Unknown",
     "END"
+};
+
+const char *menu_labels[] = {
+	"&File",
+	"&Edit",
+	"&View",
+	"&Settings",
+	"&Window",
+	"&Help",
+	"&Draw",
+	"Open &Recent",
+	"&Zoom",
+	"&Pan"
 };
 
 /* . */
@@ -752,9 +767,7 @@ const char types[][MAX_STRING_LENGTH] = {
     "UNKNOWN"
 };
 
-/**
- * .
- */
+/* File name extensions for embroidery formats with any level of support. */
 const char *extensions[] = {
     "100",
     "10o",
@@ -1174,7 +1187,7 @@ fourier_series(EmbReal arg, EmbReal *terms, int n_terms)
 }
 
 /* . */
-bool
+uint8_t
 willUnderflowInt32(int64_t a, int64_t b)
 {
     assert(LLONG_MAX>INT_MAX);
@@ -1183,7 +1196,7 @@ willUnderflowInt32(int64_t a, int64_t b)
 }
 
 /* . */
-bool
+uint8_t
 willOverflowInt32(int64_t a, int64_t b)
 {
     assert(LLONG_MAX>INT_MAX);
@@ -1202,7 +1215,7 @@ willOverflowInt32(int64_t a, int64_t b)
  * the result.
  */
 int
-roundToMultiple(bool roundUp, int numToRound, int multiple)
+roundToMultiple(uint8_t roundUp, int numToRound, int multiple)
 {
     if (multiple == 0) {
         return numToRound;

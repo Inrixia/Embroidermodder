@@ -13,6 +13,15 @@
  *      https://peps.python.org/pep-0007/
  */
 
+
+/* We assume here that all free systems and MacOS are POSIX compliant. */
+#if defined(WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <sys/utsname.h>
+#endif
+
 #include "embroidermodder.h"
 
 int pop_command(const char *line);
@@ -997,7 +1006,7 @@ void
 MainWindow::toggleGrid()
 {
     debug_message("toggleGrid()");
-    statusbar->buttons["GRID"]->toggle();
+    statusbar->buttons[STATUSBAR_GRID]->toggle();
 }
 
 /* MainWindow::toggleRuler */
@@ -1005,7 +1014,7 @@ void
 MainWindow::toggleRuler()
 {
     debug_message("toggleRuler()");
-    statusbar->buttons["RULER"]->toggle();
+    statusbar->buttons[STATUSBAR_RULER]->toggle();
 }
 
 /* MainWindow::toggleLwt */
@@ -1013,7 +1022,7 @@ void
 MainWindow::toggleLwt()
 {
     debug_message("toggleLwt()");
-    statusbar->buttons["LWT"]->toggle();
+    statusbar->buttons[STATUSBAR_LWT]->toggle();
 }
 
 /* Prompt history appended. */
@@ -1290,19 +1299,9 @@ MainWindow::MainWindow() : QMainWindow(0)
     move(pos);
     resize(size);
 
-    //Menus
-    menuHash[MENU_FILE] = new QMenu(translate_str("&File"), this);
-    menuHash[MENU_EDIT] = new QMenu(translate_str("&Edit"), this);
-    menuHash[MENU_VIEW] = new QMenu(translate_str("&View"), this);
-    menuHash[MENU_SETTINGS] = new QMenu(translate_str("&Settings"), this);
-    menuHash[MENU_WINDOW] = new QMenu(translate_str("&Window"), this);
-    menuHash[MENU_HELP] = new QMenu(translate_str("&Help"), this);
-    menuHash[MENU_DRAW] = new QMenu(translate_str("&Draw"), this);
-
-    //SubMenus
-    menuHash[MENU_RECENT] = new QMenu(translate_str("Open &Recent"), this);
-    menuHash[MENU_ZOOM] = new QMenu(translate_str("&Zoom"), this);
-    menuHash[MENU_PAN] = new QMenu(translate_str("&Pan"), this);
+    for (int i=0; i<TOTAL_MENUS; i++) {
+        menuHash[i] = new QMenu(translate_str(menu_labels[i]), this);
+    }
 
     //Toolbars
     for (int i=0; i<TOTAL_TOOLBARS; i++) {
@@ -2690,14 +2689,13 @@ actuator_core(int32_t action_id, std::string args_="")
     case ACTION_REDO: {
         QString prefix = prompt->promptInput->prefix;
         if (dockUndoEdit->canRedo()) {
-            actuator("set-prompt-prefix Redo " + dockUndoEdit->redoText().toStdString());
-            actuator("append-history ");
+            prompt_output("Redo " + dockUndoEdit->redoText());
             dockUndoEdit->redo();
-            actuator("set-prompt-prefix " + prefix.toStdString());
+            prompt_output(prefix);
         }
         else {
             prompt->alert("Nothing to redo");
-            actuator("set-prompt-prefix " + prefix.toStdString());
+            prompt_output(prefix);
         }
         return "";
     }
@@ -3050,13 +3048,9 @@ actuator_core(int32_t action_id, std::string args_="")
     case ACTION_UNDO: {
         QString prefix = prompt->promptInput->prefix;
         if (dockUndoEdit->canUndo()) {
-            actuator("set-prompt-prefix Undo "
-                + dockUndoEdit->undoText().toStdString());
-            /* \bug this won't append history because there's no mechanism
-               for and empty string */
-            actuator("append-history ");
+            prompt_output("Undo " + dockUndoEdit->undoText());
             dockUndoEdit->undo();
-            actuator("set-prompt-prefix " + prefix.toStdString());
+            prompt_output(prefix);
         }
         else {
             prompt->alert("Nothing to undo");
@@ -3777,7 +3771,7 @@ MainWindow::updateMenuToolbarStatusbar()
         statusbar->statusBarMouseCoord->show();
         int n = string_array_length(button_list);
         for (int i=0; i<n; i++) {
-            statusbar->buttons[button_list[i]]->show();
+            statusbar->buttons[i]->show();
         }
     }
     else {
@@ -3807,7 +3801,7 @@ MainWindow::updateMenuToolbarStatusbar()
         statusbar->statusBarMouseCoord->hide();
         int n = string_array_length(button_list);
         for (int i=0; i<n; i++) {
-            statusbar->buttons[button_list[i]]->hide();
+            statusbar->buttons[i]->hide();
         }
     }
     /* TODO: decide why this call was here */

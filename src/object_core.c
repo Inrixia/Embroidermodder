@@ -30,6 +30,8 @@ GeometryData*
 geometry_init(int type)
 {
     GeometryData *g = malloc(sizeof(GeometryData));
+    g->flags = 0;
+
     g->arrowStyleAngle = 15.0;
     g->arrowStyleLength = 1.0;
     g->lineStyleAngle = 45.0;
@@ -63,9 +65,9 @@ geometry_init(int type)
     }
 
     case DISTANCE: {
-		init();
-		clear_selection();
-		prompt_output("Specify first point: ");
+        init();
+        clear_selection();
+        prompt_output("Specify first point: ");
         break;
     }
 
@@ -100,7 +102,7 @@ geometry_init(int type)
         prev_x = 0.0f;
         prev_y = 0.0f;
         num 0;
-        prompt_output(tr("Specify first point: "));
+        prompt_output(translate_str("Specify first point: "));
         break;
     }
 
@@ -138,6 +140,18 @@ geometry_free(GeometryData *g)
     free(g);
 }
 
+void
+set_geometry_flag(GeometryData *g, uint64_t flag)
+{
+    g->flags |= flag;
+}
+
+void
+unset_geometry_flag(GeometryData *g, uint64_t flag)
+{
+    g->flags ^= flag;
+}
+
 /* Script to run on each click for this geometry object.
  *
  * The modes are documented in detail in the reference manual.
@@ -157,7 +171,7 @@ geometry_left_click(GeometryData *geometry, EmbVector v)
             setRubberMode("CIRCLE_1P_RAD");
             setRubberPoint("CIRCLE_CENTER", center.x, center.y);
             actuator("append-prompt");
-            set_prompt_prefix(tr("Specify radius of circle or [Diameter]: ");
+            prompt_output(translate_str("Specify radius of circle or [Diameter]: ");
         }
         else {
             point2 = v;
@@ -194,7 +208,7 @@ geometry_left_click(GeometryData *geometry, EmbVector v)
             setRubberMode("CIRCLE_2P");
             setRubberPoint("CIRCLE_TAN1", v);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
+            prompt_output(translate_str("Specify second end point of circle's diameter: ");
         }
         else if (iter2 == properties.end()) {
             point2 = node_vector(v);
@@ -214,7 +228,7 @@ geometry_left_click(GeometryData *geometry, EmbVector v)
             point1.x = x;
             point1.y = y;
             append_prompt_history();
-            set_prompt_prefix(tr("Specify second point on circle: ");
+            prompt_output(translate_str("Specify second point on circle: ");
         }
         else if (std::isnan(point2.x)) {
             point2.x = x;
@@ -244,7 +258,7 @@ geometry_left_click(GeometryData *geometry, EmbVector v)
         point1.x = x;
         point1.y = y;
         append_prompt_history();
-        set_prompt_prefix(tr("Specify point on object for second tangent of circle: ");
+        prompt_output(translate_str("Specify point on object for second tangent of circle: ");
         mode = MODE_TTR_SET_POINT_2;
         break;
     }
@@ -253,7 +267,7 @@ geometry_left_click(GeometryData *geometry, EmbVector v)
         point2.x = x;
         point2.y = y;
         append_prompt_history();
-        set_prompt_prefix(tr("Specify radius of circle: ");
+        prompt_output(translate_str("Specify radius of circle: ");
         mode = MODE_TTR_SET_POINT_3;
         break;
     }
@@ -262,7 +276,7 @@ geometry_left_click(GeometryData *geometry, EmbVector v)
         point3.x = x;
         point3.y = y;
         append_prompt_history();
-        set_prompt_prefix(tr("Specify second point: ");
+        prompt_output(translate_str("Specify second point: ");
         mode = MODE_CIRCLE_DEFAULT;
         break;
     }
@@ -292,21 +306,21 @@ geometry_prompt(
         if (std::isnan(point1.x)) {
             if (str == "2P") {
                 mode = MODE_CIRCLE_2P;
-                set_prompt_prefix(tr("Specify first end point of circle's diameter: ");
+                prompt_output(translate_str("Specify first end point of circle's diameter: ");
             }
             else if (str == "3P") {
                 mode = MODE_CIRCLE_3P;
-                set_prompt_prefix(tr("Specify first point of circle: ");
+                prompt_output(translate_str("Specify first point of circle: ");
             }
             else if (str == "T" || str == "TTR") {
                 mode = MODE_CIRCLE_TTR;
-                set_prompt_prefix(tr("Specify point on object for first tangent of circle: ");
+                prompt_output(translate_str("Specify point on object for first tangent of circle: ");
             }
             else {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Point or option keyword required."));
-                    set_prompt_prefix(tr("Specify center point for circle or [3P/2P/Ttr (tan tan radius)]: ");
+                    alert(translate_str("Point or option keyword required."));
+                    prompt_output(translate_str("Specify center point for circle or [3P/2P/Ttr (tan tan radius)]: ");
                 }
                 else {
                     x1 = std::stof(strList[0]);
@@ -316,7 +330,7 @@ geometry_prompt(
                     addRubber("CIRCLE");
                     setRubberMode("CIRCLE_1P_RAD");
                     setRubberPoint("CIRCLE_CENTER", center.x, center.y);
-                    set_prompt_prefix(tr("Specify radius of circle or [Diameter]: ");
+                    prompt_output(translate_str("Specify radius of circle or [Diameter]: ");
                 }
             }
         }
@@ -324,13 +338,13 @@ geometry_prompt(
             if (str == "D" || str == "DIAMETER") {
                 mode = MODE_CIRCLE_1P_DIA;
                 setRubberMode("CIRCLE_1P_DIA");
-                set_prompt_prefix(tr("Specify diameter of circle: ");
+                prompt_output(translate_str("Specify diameter of circle: ");
             }
             else {
                 EmbReal num = atof(str);
                 if (std::isnan(num)) {
-                    alert(tr("Requires numeric radius, point on circumference, or \"D\"."));
-                    set_prompt_prefix(tr("Specify radius of circle or [Diameter]: "));
+                    alert(translate_str("Requires numeric radius, point on circumference, or \"D\"."));
+                    prompt_output(translate_str("Specify radius of circle or [Diameter]: "));
                 }
                 else {
                     radius = num;
@@ -351,8 +365,8 @@ geometry_prompt(
         if (std::isnan(point2.x)) {
             EmbReal num = atof(str);
             if (std::isnan(num)) {
-                alert(tr("Requires numeric distance or second point."));
-                set_prompt_prefix(tr("Specify diameter of circle: "));
+                alert(translate_str("Requires numeric distance or second point."));
+                prompt_output(translate_str("Specify diameter of circle: "));
             }
             else {
                 diameter = num;
@@ -372,8 +386,8 @@ geometry_prompt(
         if (std::isnan(point1.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify first end point of circle's diameter: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify first end point of circle's diameter: ");
             }
             else {
                 x1 = atof(strList[0]);
@@ -381,14 +395,14 @@ geometry_prompt(
                 addRubber("CIRCLE");
                 setRubberMode("CIRCLE_2P");
                 setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
-                set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
+                prompt_output(translate_str("Specify second end point of circle's diameter: ");
             }
         }
         else if (std::isnan(point2.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify second end point of circle's diameter: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify second end point of circle's diameter: ");
             }
             else {
                 x2 = atof(strList[0]);
@@ -407,20 +421,20 @@ geometry_prompt(
         if (std::isnan(point1.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify first point of circle: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify first point of circle: ");
             }
             else {
                 point1.x = atof(strList[0]);
                 point1.y = atof(strList[1]);
-                set_prompt_prefix(tr("Specify second point of circle: ");
+                prompt_output(translate_str("Specify second point of circle: ");
             }
         }
         else if (std::isnan(point2.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify second point of circle: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify second point of circle: ");
             }
             else {
                 point2.x = atof(strList[0]);
@@ -429,14 +443,14 @@ geometry_prompt(
                 setRubberMode("CIRCLE_3P");
                 setRubberPoint("CIRCLE_TAN1", point1.x, point1.y);
                 setRubberPoint("CIRCLE_TAN2", point2.x, point2.y);
-                set_prompt_prefix(tr("Specify third point of circle: ");
+                prompt_output(translate_str("Specify third point of circle: ");
             }
         }
         else if (std::isnan(point3.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify third point of circle: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify third point of circle: ");
             }
             else {
                 point3.x = atof(strList[0]);
@@ -486,7 +500,7 @@ geometry_context(
     } 
 
     case MODE_ELLIPSE_MAJORDIAMETER_MINORRADIUS: {
-		debug_message("TODO ELLIPSE context()");
+        debug_message("TODO ELLIPSE context()");
         break;
     } 
 
@@ -589,7 +603,7 @@ Geometry::distance_click(EmbVector v)
         setRubberMode("LINE");
         setRubberPoint("LINE_START", point1.x, point1.y);
         append_prompt_history();
-        set_prompt_prefix(tr("Specify second point: "));
+        prompt_output(translate_str("Specify second point: "));
     }
     else {
         append_prompt_history();
@@ -607,8 +621,8 @@ Geometry::distance_prompt(String args)
     EmbReal strList = str.split(",");
     if (std::isnan(point1.x)) {
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Requires numeric distance or two points."));
-            set_prompt_prefix(tr("Specify first point: "));
+            alert(translate_str("Requires numeric distance or two points."));
+            prompt_output(translate_str("Specify first point: "));
         }
         else {
             point1.x = atof(strList[0]);
@@ -616,13 +630,13 @@ Geometry::distance_prompt(String args)
             addRubber("LINE");
             setRubberMode("LINE");
             setRubberPoint("LINE_START", point1.x, point1.y);
-            set_prompt_prefix(tr("Specify second point: "));
+            prompt_output(translate_str("Specify second point: "));
         }
     }
     else {
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Requires numeric distance or two points."));
-            set_prompt_prefix(tr("Specify second point: "));
+            alert(translate_str("Requires numeric distance or two points."));
+            prompt_output(translate_str("Specify second point: "));
         }
         else {
             point2.x = atof(strList[0]);
@@ -633,7 +647,7 @@ Geometry::distance_prompt(String args)
     }
 }
 
-/**
+/*
  * Cartesian Coordinate System reported:
  *
  *               (+)
@@ -687,7 +701,7 @@ Geometry::ellipse_click(EmbVector v)
             setRubberMode("ELLIPSE_LINE");
             setRubberPoint("ELLIPSE_LINE_POINT1", point1.x, point1.y);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify first axis end point: ");
+            prompt_output(translate_str("Specify first axis end point: ");
         }
         else if (std::isnan(point2.x)) {
             point2 = v;
@@ -702,7 +716,7 @@ Geometry::ellipse_click(EmbVector v)
             setRubberPoint("ELLIPSE_WIDTH", width, 0);
             setRubberPoint("ELLIPSE_ROT", rot, 0);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify second axis end point or [Rotation]: ");
+            prompt_output(translate_str("Specify second axis end point or [Rotation]: ");
         }
         else if (std::isnan(point3.x)) {
             point3.x = x;
@@ -728,7 +742,7 @@ Geometry::ellipse_click(EmbVector v)
             setRubberPoint("ELLIPSE_LINE_POINT1", point1.x, point1.y);
             setRubberPoint("ELLIPSE_CENTER", center.x, center.y);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify first axis end point: ");
+            prompt_output(translate_str("Specify first axis end point: ");
         }
         else if (std::isnan(point2.x)) {
             point2.x = x;
@@ -740,7 +754,7 @@ Geometry::ellipse_click(EmbVector v)
             setRubberPoint("ELLIPSE_WIDTH", width, 0);
             setRubberPoint("ELLIPSE_ROT", rot, 0);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify second axis end point or [Rotation]: ");
+            prompt_output(translate_str("Specify second axis end point or [Rotation]: ");
         }
         else if (std::isnan(point3.x)) {
             point3.x = x;
@@ -781,13 +795,13 @@ Geometry::ellipse_prompt(String args)
         if (std::isnan(point1.x)) {
             if (str == "C" || str == "CENTER") {
                 mode = MODE_MAJORRADIUS_MINORRADIUS;
-                set_prompt_prefix(tr("Specify center point: "));
+                prompt_output(translate_str("Specify center point: "));
             }
             else {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Point or option keyword required."));
-                    set_prompt_prefix(tr("Specify first axis start point or [Center]: ");
+                    alert(translate_str("Point or option keyword required."));
+                    prompt_output(translate_str("Specify first axis start point or [Center]: ");
                 }
                 else {
                     point1.x = atof(strList[0]);
@@ -795,15 +809,15 @@ Geometry::ellipse_prompt(String args)
                     addRubber("ELLIPSE");
                     setRubberMode("ELLIPSE_LINE");
                     setRubberPoint("ELLIPSE_LINE_POINT1", point1.x, point1.y);
-                    set_prompt_prefix(tr("Specify first axis end point: ");
+                    prompt_output(translate_str("Specify first axis end point: ");
                 }
             }
         }
         else if (std::isnan(point2.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify first axis end point: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify first axis end point: ");
             }
             else {
                 point2.x = atof(strList[0]);
@@ -818,19 +832,19 @@ Geometry::ellipse_prompt(String args)
                 setRubberPoint("ELLIPSE_CENTER", center.x, center.y);
                 setRubberPoint("ELLIPSE_WIDTH", width, 0);
                 setRubberPoint("ELLIPSE_ROT", rot, 0);
-                set_prompt_prefix(tr("Specify second axis end point or [Rotation]: ");
+                prompt_output(translate_str("Specify second axis end point or [Rotation]: ");
             }
         }
         else if (std::isnan(point3.x)) {
             if (str == "R" || str == "ROTATION") {
                 mode = MODE_ELLIPSE_ROTATION;
-                set_prompt_prefix(tr("Specify rotation: ");
+                prompt_output(translate_str("Specify rotation: ");
             }
             else {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Point or option keyword required."));
-                    set_prompt_prefix(tr("Specify second axis end point or [Rotation]: ");
+                    alert(translate_str("Point or option keyword required."));
+                    prompt_output(translate_str("Specify second axis end point or [Rotation]: ");
                 }
                 else {
                     point3.x = atof(strList[0]);
@@ -848,8 +862,8 @@ Geometry::ellipse_prompt(String args)
         if (std::isnan(point1.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify center point: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify center point: ");
             }
             else {
                 point1.x = atof(strList[0]);
@@ -860,14 +874,14 @@ Geometry::ellipse_prompt(String args)
                 setRubberMode("ELLIPSE_LINE");
                 setRubberPoint("ELLIPSE_LINE_POINT1", point1.x, point1.y);
                 setRubberPoint("ELLIPSE_CENTER", center.x, center.y);
-                set_prompt_prefix(tr("Specify first axis end point: ");
+                prompt_output(translate_str("Specify first axis end point: ");
             }
         }
         else if (std::isnan(point2.x)) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify first axis end point: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify first axis end point: ");
             }
             else {
                 point2.x = atof(strList[0]);
@@ -878,19 +892,19 @@ Geometry::ellipse_prompt(String args)
                 setRubberPoint("ELLIPSE_AXIS1_POINT2", point2.x, point2.y);
                 setRubberPoint("ELLIPSE_WIDTH", width, 0);
                 setRubberPoint("ELLIPSE_ROT", rot, 0);
-                set_prompt_prefix(tr("Specify second axis end point or [Rotation]: ");
+                prompt_output(translate_str("Specify second axis end point or [Rotation]: ");
             }
         }
         else if (std::isnan(point3.x)) {
             if (str == "R" || str == "ROTATION") {
                 mode = MODE_ELLIPSE_ROTATION;
-                set_prompt_prefix(tr("Specify ellipse rotation: ");
+                prompt_output(translate_str("Specify ellipse rotation: ");
             }
             else {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Point or option keyword required."));
-                    set_prompt_prefix(tr("Specify second axis end point or [Rotation]: ");
+                    alert(translate_str("Point or option keyword required."));
+                    prompt_output(translate_str("Specify second axis end point or [Rotation]: ");
                 }
                 else {
                     point3.x = atof(strList[0]);
@@ -912,8 +926,8 @@ Geometry::ellipse_prompt(String args)
         }
         else if (std::isnan(point3.x)) {
             if (std::isnan(str)) {
-                alert(tr("Invalid angle. Input a numeric angle or pick a point."));
-                set_prompt_prefix(tr("Specify rotation: ");
+                alert(translate_str("Invalid angle. Input a numeric angle or pick a point."));
+                prompt_output(translate_str("Specify rotation: ");
             }
             else {
                 EmbReal angle = atof(str);
@@ -937,7 +951,7 @@ Geometry::erase_main(void)
 
     if (numSelected() <= 0) {
         //TODO: Prompt to select objects if nothing is preselected
-        alert(tr("Preselect objects before invoking the delete command."));
+        alert(translate_str("Preselect objects before invoking the delete command."));
         end();
         messageBox("information", tr("Delete Preselect"), tr("Preselect objects before invoking the delete command."));
     }
@@ -957,7 +971,7 @@ Geometry::heart_main(void)
     scale.x = node(1.0f);
     scale.y = node(1.0f);
     init();
-    actuator("clear-selection");
+    clear_selection();;
     mode = node_str("MODE_NUM_POINTS");
 
     //Heart4: 10.0 / 512
@@ -975,19 +989,21 @@ void
 Geometry::updateHeart(String style, int numPoints, EmbReal xScale, EmbReal yScale)
 {
     for (int i = 0; i <= numPoints; i++) {
-        EmbReal xx, yy;
+        EmbVector v;
         EmbReal t = (2.0*CONSTANT_PI)/numPoints*i;
 
         if (style == "HEART4") {
-            xx = cos(t)*((sin(t)*sqrt(abs(cos(t))))/(sin(t)+7/5) - 2*sin(t) + 2);
-            yy = sin(t)*((sin(t)*sqrt(abs(cos(t))))/(sin(t)+7/5) - 2*sin(t) + 2);
+            v.x = cos(t)*((sin(t)*sqrt(abs(cos(t))))/(sin(t)+7/5) - 2*sin(t) + 2);
+            v.y = sin(t)*((sin(t)*sqrt(abs(cos(t))))/(sin(t)+7/5) - 2*sin(t) + 2);
         }
         else if (style == "HEART5") {
-            xx = 16*pow(sin(t), 3);
-            yy = 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t);
+            v.x = 16*pow(sin(t), 3);
+            v.y = 13*cos(t) - 5*cos(2*t) - 2*cos(3*t) - cos(4*t);
         }
 
-        setRubberPoint("POLYGON_POINT_" + i.toString(), xx*xScale, yy*yScale);
+        v.x *= xScale;
+        v.y *= yScale;
+        setRubberPoint("POLYGON_POINT_" + i.toString(), v);
     }
 
     setRubberText("POLYGON_NUM_POINTS", numPoints.toString());
@@ -998,64 +1014,56 @@ void
 Geometry::line_main(void)
 {
     init();
-    actuator("clear-selection");
-    firstRun = true;
-    first = {0.0f, 0.0f};
-    prev = {0.0f, 0.0f};
-    set_prompt_prefix(tr("Specify first point: ");
+    clear_selection();
+    g->firstRun = true;
+    g->first = {0.0f, 0.0f};
+    g->prev = {0.0f, 0.0f};
+    prompt_output(translate_str("Specify first point: ");
 }
 
 /* . */
 void
-Geometry::line_click(EmbReal x, EmbReal y)
+Geometry::line_click(GeometryData *g, EmbVector v)
 {
     if (firstRun) {
-        firstRun = false;
-        first.x = x;
-        first.y = y;
-        prev.x = x;
-        prev.y = y;
+        g->firstRun = false;
+        g->first = v;
+        g->prev = v;
         addRubber("LINE");
         setRubberMode("LINE");
-        setRubberPoint("LINE_START", firstX, first.y);
-        append_prompt_history();
-        set_prompt_prefix(tr("Specify next point or [Undo]: ");
+        setRubberPoint("LINE_START", g->first);
+        prompt_output(translate_str("Specify next point or [Undo]: ");
     }
     else {
-        setRubberPoint("LINE_END", x, y);
+        setRubberPoint("LINE_END", v);
         vulcanize();
         addRubber("LINE");
         setRubberMode("LINE");
-        setRubberPoint("LINE_START", x, y);
+        setRubberPoint("LINE_START", v);
         append_prompt_history();
-        prev.x = x;
-        prev.y = y;
+        prev = v;
     }
 }
 
 
-/**
- * .
- */
+/* . */
 void
 Geometry::line_prompt(String args)
 {
     if (firstRun) {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify first point: "));
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify first point: "));
         }
         else {
             firstRun = false;
-            first.x = atof(strList[0]);
-            first.y = atof(strList[1]);
-            prev.x = first.x;
-            prev.y = first.y;
+            g->first = get_vector(strList);
+            g->prev = g->first;
             addRubber("LINE");
             setRubberMode("LINE");
-            setRubberPoint("LINE_START", firstX, first.y);
-            set_prompt_prefix(tr("Specify next point or [Undo]: "));
+            setRubberPoint("LINE_START", g->first);
+            prompt_output(translate_str("Specify next point or [Undo]: "));
         }
     }
     else {
@@ -1065,8 +1073,8 @@ Geometry::line_prompt(String args)
         else {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Point or option keyword required."));
-                set_prompt_prefix(tr("Specify next point or [Undo]: ");
+                alert(translate_str("Point or option keyword required."));
+                prompt_output(translate_str("Specify next point or [Undo]: ");
             }
             else {
                 EmbReal x = atof(strList[0]);
@@ -1078,7 +1086,7 @@ Geometry::line_prompt(String args)
                 setRubberPoint("LINE_START", x, y);
                 prev.x = x;
                 properties["prevY"] = y;
-                set_prompt_prefix(tr("Specify next point or [Undo]: ");
+                prompt_output(translate_str("Specify next point or [Undo]: ");
             }
         }
     }
@@ -1112,8 +1120,8 @@ Geometry::locate_point_prompt(String args)
 {
     std::vector<std::string> strList = tokenize(args, ',');
     if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-        alert(tr("Invalid point."));
-        prompt_output(tr("Specify point: ");
+        alert(translate_str("Invalid point."));
+        prompt_output(translate_str("Specify point: ");
     }
     else {
         prompt_output("X = " + strList[0] + ", Y = " + strList[1]);
@@ -1136,12 +1144,12 @@ Geometry::move_main(void)
 
     if (numSelected() <= 0) {
         //TODO: Prompt to select objects if nothing is preselected
-        alert(tr("Preselect objects before invoking the move command."));
+        alert(translate_str("Preselect objects before invoking the move command."));
         end();
         messageBox("information", tr("Move Preselect"), tr("Preselect objects before invoking the move command."));
     }
     else {
-        set_prompt_prefix(tr("Specify base point: "));
+        prompt_output(translate_str("Specify base point: "));
     }
 }
 
@@ -1156,7 +1164,7 @@ Geometry::move_click(EmbVector v)
         setRubberMode("LINE");
         setRubberPoint("LINE_START", base);
         previewOn("SELECTED", "MOVE", base, 0);
-        prompt_output(tr("Specify destination point: ");
+        prompt_output(translate_str("Specify destination point: ");
     }
     else {
         dest = v;
@@ -1174,8 +1182,8 @@ Geometry::move_prompt(String str)
     if (firstRun.b) {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify base point: ");
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify base point: ");
         }
         else {
             firstRun = node_int(false);
@@ -1185,14 +1193,14 @@ Geometry::move_prompt(String str)
             setRubberMode("LINE");
             setRubberPoint("LINE_START", baseX, baseY);
             previewOn("SELECTED", "MOVE", baseX, baseY, 0);
-            set_prompt_prefix(tr("Specify destination point: ");
+            prompt_output(translate_str("Specify destination point: ");
         }
     }
     else {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify destination point: ");
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify destination point: ");
         }
         else {
             dest.x = atof(strList[0]);
@@ -1214,9 +1222,9 @@ Geometry::path_main(void)
     first = {0.0, 0.0};
     prev = {0.0, 0.0};
     init();
-    actuator("clear-selection");
+    clear_selection();;
     firstRun = atof(true);
-    set_prompt_prefix(tr("Specify start point: ");
+    prompt_output(translate_str("Specify start point: ");
 }
 
 /* . */
@@ -1231,7 +1239,7 @@ Geometry::path_click(EmbReal x, EmbReal y)
         prev.y = y;
         addPath(x, y);
         append_prompt_history();
-        set_prompt_prefix(tr("Specify next point or [Arc/Undo]: ");
+        prompt_output(translate_str("Specify next point or [Arc/Undo]: ");
     }
     else {
         append_prompt_history();
@@ -1255,8 +1263,8 @@ Geometry::path_prompt(String args)
     else {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Point or option keyword required."));
-            set_prompt_prefix(tr("Specify next point or [Arc/Undo]: ");
+            alert(translate_str("Point or option keyword required."));
+            prompt_output(translate_str("Specify next point or [Arc/Undo]: ");
         }
         else {
             EmbReal x = atof(strList[0]);
@@ -1266,7 +1274,7 @@ Geometry::path_prompt(String args)
                 first = embVector(x, y);
                 prev = embVector(x, y);
                 addPath(x, y);
-                set_prompt_prefix(tr("Specify next point or [Arc/Undo]: ");
+                prompt_output(translate_str("Specify next point or [Arc/Undo]: ");
             }
             else {
                 appendLineToPath(x, y);
@@ -1281,11 +1289,11 @@ void
 Geometry::point_main(void)
 {
     init();
-    actuator("clear-selection");
+    clear_selection();;
     firstRun = true;
     setPromptPrefix("TODO: Current point settings: PDMODE=?  PDSIZE=?"); //TODO: tr needed here when complete
     append_prompt_history();
-    set_prompt_prefix(tr("Specify first point: ");
+    prompt_output(translate_str("Specify first point: ");
 }
 
 /* . */
@@ -1295,7 +1303,7 @@ Geometry::point_click(EmbVector v)
     if (firstRun) {
         firstRun = false;
         append_prompt_history();
-        set_prompt_prefix(tr("Specify next point: "));
+        prompt_output(translate_str("Specify next point: "));
         addPoint(x, y);
     }
     else {
@@ -1317,27 +1325,27 @@ Geometry::point_prompt(String str)
         }
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify first point: "));
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify first point: "));
         }
         else {
             firstRun = false;
             EmbReal x = atof(strList[0]);
             EmbReal y = atof(strList[1]);
-            set_prompt_prefix(tr("Specify next point: "));
+            prompt_output(translate_str("Specify next point: "));
             addPoint(x,y);
         }
     }
     else {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify next point: "));
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify next point: "));
         }
         else {
             EmbReal x = atof(strList[0]);
             EmbReal y = atof(strList[1]);
-            set_prompt_prefix(tr("Specify next point: "));
+            prompt_output(translate_str("Specify next point: "));
             addPoint(x,y);
         }
     }
@@ -1348,7 +1356,7 @@ void
 Geometry::polygon_main(void)
 {
     init();
-    actuator("clear-selection");
+    clear_selection();;
     center = embVector(0.0f, 0.0f);
     side1 = embVector(0.0f, 0.0f);
     side2 = embVector(0.0f, 0.0f);
@@ -1357,7 +1365,7 @@ Geometry::polygon_main(void)
     polyType = "Inscribed"; //Default
     numSides = 4;           //Default
     mode = MODE_NUM_SIDES;
-    set_prompt_prefix(tr("Enter number of sides" + " {" + numSides.toString() + "}: ");
+    prompt_output(translate_str("Enter number of sides" + " {" + numSides.toString() + "}: ");
 }
 
 /* . */
@@ -1374,7 +1382,7 @@ Geometry::polygon_click(EmbVector v)
         center = v;
         mode = POLYGON_MODE_POLYTYPE;
         append_prompt_history();
-        set_prompt_prefix(tr("Specify polygon type [Inscribed in circle/Circumscribed around circle]") + " {" + polyType + "}: ");
+        prompt_output(translate_str("Specify polygon type [Inscribed in circle/Circumscribed around circle]") + " {" + polyType + "}: ");
         break;
     }
     case MODE_POLYGON_INSCRIBE: {
@@ -1406,18 +1414,18 @@ Geometry::polygon_prompt(String str)
 {
     case MODE_POLYGON_NUM_SIDES: {
         if (str == "" && numSides >= 3 && numSides <= 1024) {
-            set_prompt_prefix(tr("Specify center point or [Sidelength]: ");
+            prompt_output(translate_str("Specify center point or [Sidelength]: ");
             mode = MODE_CENTER_PT;
         }
         else {
             EmbReal tmp = atof(str);
             if (std::isnan(tmp) || !isInt(tmp) || tmp < 3 || tmp > 1024) {
-                alert(tr("Requires an integer between 3 and 1024."));
-                set_prompt_prefix(tr("Enter number of sides" + " {" + numSides.toString() + "}: ");
+                alert(translate_str("Requires an integer between 3 and 1024."));
+                prompt_output(translate_str("Enter number of sides" + " {" + numSides.toString() + "}: ");
             }
             else {
                 numSides = tmp;
-                set_prompt_prefix(tr("Specify center point or [Sidelength]: "));
+                prompt_output(translate_str("Specify center point or [Sidelength]: "));
                 mode = MODE_CENTER_PT;
             }
         }
@@ -1426,19 +1434,19 @@ Geometry::polygon_prompt(String str)
     case MODE_POLYGON_CENTER_PT: {
         if (str == "S" || str == "SIDELENGTH") {
             mode = MODE_SIDE_LEN;
-            set_prompt_prefix(tr("Specify start point: "));
+            prompt_output(translate_str("Specify start point: "));
         }
         else {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Point or option keyword required."));
-                set_prompt_prefix(tr("Specify center point or [Sidelength]: "));
+                alert(translate_str("Point or option keyword required."));
+                prompt_output(translate_str("Specify center point or [Sidelength]: "));
             }
             else {
                 center.x = atof(strList[0]);
                 center.y = atof(strList[1]);
                 mode = MODE_POLYTYPE;
-                set_prompt_prefix(tr("Specify polygon type [Inscribed in circle/Circumscribed around circle]") + " {" + properties["polyType + "}: ");
+                prompt_output(translate_str("Specify polygon type [Inscribed in circle/Circumscribed around circle]") + " {" + properties["polyType + "}: ");
             }
         }
     }
@@ -1446,7 +1454,7 @@ Geometry::polygon_prompt(String str)
         if (str == "INSCRIBED") {
             mode = MODE_INSCRIBE;
             polyType = "Inscribed";
-            set_prompt_prefix(tr("Specify polygon corner point or [Distance]: ");
+            prompt_output(translate_str("Specify polygon corner point or [Distance]: ");
             addRubber("POLYGON");
             setRubberMode("POLYGON_INSCRIBE");
             setRubberPoint("POLYGON_CENTER", center.x, center.y);
@@ -1455,7 +1463,7 @@ Geometry::polygon_prompt(String str)
         else if (str == "CIRCUMSCRIBED") {
             mode = MODE_CIRCUMSCRIBE;
             polyType = "Circumscribed";
-            set_prompt_prefix(tr("Specify polygon side point or [Distance]: ");
+            prompt_output(translate_str("Specify polygon side point or [Distance]: ");
             addRubber("POLYGON");
             setRubberMode("POLYGON_CIRCUMSCRIBE");
             setRubberPoint("POLYGON_CENTER", center.x, center.y);
@@ -1464,7 +1472,7 @@ Geometry::polygon_prompt(String str)
         else if (str == "") {
             if (polyType == "Inscribed") {
                 mode = MODE_INSCRIBE;
-                set_prompt_prefix(tr("Specify polygon corner point or [Distance]: ");
+                prompt_output(translate_str("Specify polygon corner point or [Distance]: ");
                 addRubber("POLYGON");
                 setRubberMode("POLYGON_INSCRIBE");
                 setRubberPoint("POLYGON_CENTER", center.x, center.y);
@@ -1472,7 +1480,7 @@ Geometry::polygon_prompt(String str)
             }
             else if (polyType == "Circumscribed") {
                 mode = MODE_CIRCUMSCRIBE;
-                set_prompt_prefix(tr("Specify polygon side point or [Distance]: ");
+                prompt_output(translate_str("Specify polygon side point or [Distance]: ");
                 addRubber("POLYGON");
                 setRubberMode("POLYGON_CIRCUMSCRIBE");
                 setRubberPoint("POLYGON_CENTER", center.x, center.y);
@@ -1483,20 +1491,20 @@ Geometry::polygon_prompt(String str)
             }
         }
         else {
-            alert(tr("Invalid option keyword."));
-            set_prompt_prefix(tr("Specify polygon type [Inscribed in circle/Circumscribed around circle]") + " {" + polyType + "}: ");
+            alert(translate_str("Invalid option keyword."));
+            prompt_output(translate_str("Specify polygon type [Inscribed in circle/Circumscribed around circle]") + " {" + polyType + "}: ");
         }
     }
     case MODE_INSCRIBE) {
         if (str == "D" || str == "DISTANCE") {
             mode = MODE_DISTANCE;
-            set_prompt_prefix(tr("Specify distance: "));
+            prompt_output(translate_str("Specify distance: "));
         }
         else {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Point or option keyword required."));
-                set_prompt_prefix(tr("Specify polygon corner point or [Distance]: "));
+                alert(translate_str("Point or option keyword required."));
+                prompt_output(translate_str("Specify polygon corner point or [Distance]: "));
             }
             else {
                 pointI.x = atof(strList[0]);
@@ -1510,13 +1518,13 @@ Geometry::polygon_prompt(String str)
     case MODE_CIRCUMSCRIBE) {
         if (str == "D" || str == "DISTANCE") {
             mode = MODE_DISTANCE;
-            set_prompt_prefix(tr("Specify distance: "));
+            prompt_output(translate_str("Specify distance: "));
         }
         else {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Point or option keyword required."));
-                set_prompt_prefix(tr("Specify polygon side point or [Distance]: "));
+                alert(translate_str("Point or option keyword required."));
+                prompt_output(translate_str("Specify polygon side point or [Distance]: "));
             }
             else {
                 pointC.x = atof(strList[0]);
@@ -1529,8 +1537,8 @@ Geometry::polygon_prompt(String str)
     }
     case MODE_DISTANCE) {
         if (std::isnan(str)) {
-            alert(tr("Requires valid numeric distance."));
-            set_prompt_prefix(tr("Specify distance: "));
+            alert(translate_str("Requires valid numeric distance."));
+            prompt_output(translate_str("Specify distance: "));
         }
         else {
             if (polyType == "Inscribed") {
@@ -1577,7 +1585,7 @@ Geometry::polyline_click(EmbVector v)
         setRubberMode("POLYLINE");
         setRubberPoint("POLYLINE_POINT_0", first);
         append_prompt_history();
-        set_prompt_prefix(tr("Specify next point or [Undo]: ");
+        prompt_output(translate_str("Specify next point or [Undo]: ");
     }
     else {
         num++;
@@ -1588,17 +1596,16 @@ Geometry::polyline_click(EmbVector v)
         prev = v;
     }
 }
-/**
- * .
- */
+
+/* . */
 void
 Geometry::polyline_prompt(String str)
 {
     if (firstRun.b) {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify first point: "));
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify first point: "));
         }
         else {
             firstRun = false;
@@ -1609,7 +1616,7 @@ Geometry::polyline_prompt(String str)
             addRubber("POLYLINE");
             setRubberMode("POLYLINE");
             setRubberPoint("POLYLINE_POINT_0", firstX, first.y);
-            set_prompt_prefix(tr("Specify next point or [Undo]: ");
+            prompt_output(translate_str("Specify next point or [Undo]: ");
         }
     }
     else {
@@ -1619,8 +1626,8 @@ Geometry::polyline_prompt(String str)
         else {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Point or option keyword required."));
-                set_prompt_prefix(tr("Specify next point or [Undo]: ");
+                alert(translate_str("Point or option keyword required."));
+                prompt_output(translate_str("Specify next point or [Undo]: ");
             }
             else {
                 EmbReal x = atof(strList[0]);
@@ -1631,7 +1638,7 @@ Geometry::polyline_prompt(String str)
                 spareRubber("POLYLINE");
                 prev.x = x;
                 prev.y = y;
-                set_prompt_prefix(tr("Specify next point or [Undo]: ");
+                prompt_output(translate_str("Specify next point or [Undo]: ");
             }
         }
     }
@@ -1659,7 +1666,7 @@ Geometry::quickleader_click(EmbVector v)
         setRubberMode("DIMLEADER_LINE");
         setRubberPoint("DIMLEADER_LINE_START", point1.x, point1.y);
         append_prompt_history();
-        set_prompt_prefix(tr("Specify second point: "));
+        prompt_output(translate_str("Specify second point: "));
     }
     else {
         point2.x = v.x;
@@ -1678,8 +1685,8 @@ Geometry::quickleader_prompt(String str)
     EmbReal strList = str.split(",");
     if (std::isnan(point1.x)) {
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Requires two points."));
-            set_prompt_prefix(tr("Specify first point: "));
+            alert(translate_str("Requires two points."));
+            prompt_output(translate_str("Specify first point: "));
         }
         else {
             point1.x = atoi(strList[0]);
@@ -1687,13 +1694,13 @@ Geometry::quickleader_prompt(String str)
             addRubber("DIMLEADER");
             setRubberMode("DIMLEADER_LINE");
             setRubberPoint("DIMLEADER_LINE_START", point1.x, point1.y);
-            set_prompt_prefix(tr("Specify second point: ");
+            prompt_output(translate_str("Specify second point: ");
         }
     }
     else {
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Requires two points."));
-            set_prompt_prefix(tr("Specify second point: ");
+            alert(translate_str("Requires two points."));
+            prompt_output(translate_str("Specify second point: ");
         }
         else {
             point2.x = atoi(strList[0]);
@@ -1714,7 +1721,7 @@ const char rectangle_click_script[][MAX_STRING_LENGTH] = {
         addRubber("RECTANGLE");
         setRubberMode("RECTANGLE");
         setRubberPoint("RECTANGLE_START", x, y);
-        set_prompt_prefix(tr("Specify other corner point or [Dimensions]: "));
+        prompt_output(translate_str("Specify other corner point or [Dimensions]: "));
     }
     else {
         newRect = true;
@@ -1742,8 +1749,8 @@ Geometry::rectangle_prompt(String str)
     else {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify first point: "));
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify first point: "));
         }
         else {
             EmbReal x = atoi(strList[0]);
@@ -1755,7 +1762,7 @@ Geometry::rectangle_prompt(String str)
                 addRubber("RECTANGLE");
                 setRubberMode("RECTANGLE");
                 setRubberPoint("RECTANGLE_START", x, y);
-                set_prompt_prefix(tr("Specify other corner point or [Dimensions]: "));
+                prompt_output(translate_str("Specify other corner point or [Dimensions]: "));
             }
             else {
                 properties["newRect"] = true;
@@ -1774,9 +1781,9 @@ void
 Geometry::rgb_main(void)
 {
     init();
-    actuator("clear-selection");
+    clear_selection();;
     actuator("mode=RGB_MODE_BACKGROUND");
-    set_prompt_prefix(tr("Enter RED,GREEN,BLUE values for background or [Crosshair/Grid]: "));
+    prompt_output(translate_str("Enter RED,GREEN,BLUE values for background or [Crosshair/Grid]: "));
 }
 
 /* . */
@@ -1786,20 +1793,18 @@ Geometry::rgb_click(EmbVector v)
     //Do Nothing, prompt only command.
 }
 
-/**
- * .
- */
+/* . */
 void
 Geometry::rgb_prompt(String str)
 {
     if (mode == "RGB_MODE_BACKGROUND") {
         if (str == "C" || str == "CROSSHAIR") {
             mode = atoi("RGB_MODE_CROSSHAIR");
-            set_prompt_prefix(tr("Specify crosshair color: "));
+            prompt_output(translate_str("Specify crosshair color: "));
         }
         else if (str == "G" || str == "GRID") {
             mode = RGB_MODE_GRID;
-            set_prompt_prefix(tr("Specify grid color: "));
+            prompt_output(translate_str("Specify grid color: "));
         }
         else {
             EmbReal strList = str.split(",");
@@ -1807,8 +1812,8 @@ Geometry::rgb_prompt(String str)
             EmbReal g = atoi(strList[1]);
             EmbReal b = atoi(strList[2]);
             if (!validRGB(r,g,b)) {
-                alert(tr("Invalid color. R,G,B values must be in the range of 0-255."));
-                set_prompt_prefix(tr("Specify background color: "));
+                alert(translate_str("Invalid color. R,G,B values must be in the range of 0-255."));
+                prompt_output(translate_str("Specify background color: "));
             }
             else {
                 setBackgroundColor(r,g,b);
@@ -1822,8 +1827,8 @@ Geometry::rgb_prompt(String str)
         EmbReal g = atoi(strList[1]);
         EmbReal b = atoi(strList[2]);
         if (!validRGB(r,g,b)) {
-            alert(tr("Invalid color. R,G,B values must be in the range of 0-255."));
-            set_prompt_prefix(tr("Specify crosshair color: "));
+            alert(translate_str("Invalid color. R,G,B values must be in the range of 0-255."));
+            prompt_output(translate_str("Specify crosshair color: "));
         }
         else {
             setCrossHairColor(r,g,b);
@@ -1836,8 +1841,8 @@ Geometry::rgb_prompt(String str)
         EmbReal g = atof(strList[1]);
         EmbReal b = atof(strList[2]);
         if (!validRGB(r,g,b)) {
-            alert(tr("Invalid color. R,G,B values must be in the range of 0-255."));
-            set_prompt_prefix(tr("Specify grid color: "));
+            alert(translate_str("Invalid color. R,G,B values must be in the range of 0-255."));
+            prompt_output(translate_str("Specify grid color: "));
         }
         else {
             setGridColor(r,g,b);
@@ -1864,12 +1869,12 @@ Geometry::rotate_main(String args)
 
     if (numSelected() <= 0) {
         //TODO: Prompt to select objects if nothing is preselected
-        alert(tr("Preselect objects before invoking the rotate command."));
+        alert(translate_str("Preselect objects before invoking the rotate command."));
         end();
         messageBox("information", tr("Rotate Preselect"), tr("Preselect objects before invoking the rotate command."));
     }
     else {
-        set_prompt_prefix(tr("Specify base point: "));
+        prompt_output(translate_str("Specify base point: "));
     }
 }
 
@@ -1887,7 +1892,7 @@ Geometry::rotate_click(EmbVector v)
             setRubberPoint("LINE_START", properties["baseX, properties["baseY);
             previewOn("SELECTED", "ROTATE", properties["baseX, properties["baseY, 0);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify rotation angle or [Reference]: "));
+            prompt_output(translate_str("Specify rotation angle or [Reference]: "));
         }
         else {
             dest = v;
@@ -1905,7 +1910,7 @@ Geometry::rotate_click(EmbVector v)
             addRubber("LINE");
             setRubberMode("LINE");
             setRubberPoint("LINE_START", properties["baseRX"], properties["baseRY"]);
-            set_prompt_prefix(tr("Specify second point: ");
+            prompt_output(translate_str("Specify second point: ");
         }
         else if (std::isnan(destRX)) {
             properties["destR"] = v;
@@ -1913,7 +1918,7 @@ Geometry::rotate_click(EmbVector v)
             setRubberPoint("LINE_START", baseX, baseY);
             previewOn("SELECTED", "ROTATE", baseX, baseY, angleRef);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify the new angle: ");
+            prompt_output(translate_str("Specify the new angle: ");
         }
         else if (std::isnan(angleNew)) {
             angleNew = calculateAngle(baseX, baseY, x, y);
@@ -1932,8 +1937,8 @@ Geometry::rotate_prompt(String str)
         if (firstRun) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify base point: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify base point: ");
             }
             else {
                 firstRun = false;
@@ -1943,20 +1948,20 @@ Geometry::rotate_prompt(String str)
                 setRubberMode("LINE");
                 setRubberPoint("LINE_START", baseX, baseY);
                 previewOn("SELECTED", "ROTATE", baseX, baseY, 0);
-                set_prompt_prefix(tr("Specify rotation angle or [Reference]: ");
+                prompt_output(translate_str("Specify rotation angle or [Reference]: ");
             }
         }
         else {
             if (str == "R" || str == "REFERENCE") {
                 mode = MODE_REFERENCE;
-                set_prompt_prefix(tr("Specify the reference angle") + " {0.00}: ");
+                prompt_output(translate_str("Specify the reference angle") + " {0.00}: ");
                 clearRubber();
                 previewOff();
             }
             else {
                 if (std::isnan(str)) {
-                    alert(tr("Requires valid numeric angle, second point, or option keyword."));
-                    set_prompt_prefix(tr("Specify rotation angle or [Reference]: ");
+                    alert(translate_str("Requires valid numeric angle, second point, or option keyword."));
+                    prompt_output(translate_str("Specify rotation angle or [Reference]: ");
                 }
                 else {
                     angle = atof(str);
@@ -1972,8 +1977,8 @@ Geometry::rotate_prompt(String str)
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Requires valid numeric angle or two points."));
-                    set_prompt_prefix(tr("Specify the reference angle {0.00}: ");
+                    alert(translate_str("Requires valid numeric angle or two points."));
+                    prompt_output(translate_str("Specify the reference angle {0.00}: ");
                 }
                 else {
                     properties["baseR.x"] = atof(strList[0]);
@@ -1981,7 +1986,7 @@ Geometry::rotate_prompt(String str)
                     addRubber("LINE");
                     setRubberMode("LINE");
                     setRubberPoint("LINE_START", properties["baseRX"], properties["baseRY"]);
-                    set_prompt_prefix(tr("Specify second point: ");
+                    prompt_output(translate_str("Specify second point: ");
                 }
             }
             else {
@@ -1996,15 +2001,15 @@ Geometry::rotate_prompt(String str)
                 setRubberMode("LINE");
                 setRubberPoint("LINE_START", baseX, baseY);
                 previewOn("SELECTED", "ROTATE", baseX, baseY, angleRef);
-                set_prompt_prefix(tr("Specify the new angle: ");
+                prompt_output(translate_str("Specify the new angle: ");
             }
         }
         else if (std::isnan(destRX)) {
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Requires valid numeric angle or two points."));
-                    set_prompt_prefix(tr("Specify second point: "));
+                    alert(translate_str("Requires valid numeric angle or two points."));
+                    prompt_output(translate_str("Specify second point: "));
                 }
                 else {
                     properties["destR.x"] = atof(strList[0]);
@@ -2012,7 +2017,7 @@ Geometry::rotate_prompt(String str)
                     angleRef = calculateAngle(properties["baseRX"], properties["baseRY"], destRX, destRY);
                     previewOn("SELECTED", "ROTATE", baseX, baseY, angleRef);
                     setRubberPoint("LINE_START", baseX, baseY);
-                    set_prompt_prefix(tr("Specify the new angle: ");
+                    prompt_output(translate_str("Specify the new angle: ");
                 }
             }
             else {
@@ -2022,15 +2027,15 @@ Geometry::rotate_prompt(String str)
                 // The reference angle is what we will use later.
                 angleRef = atof(str);
                 previewOn("SELECTED", "ROTATE", baseX, baseY, angleRef);
-                set_prompt_prefix(tr("Specify the new angle: ");
+                prompt_output(translate_str("Specify the new angle: ");
             }
         }
         else if (std::isnan(angleNew)) {
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Requires valid numeric angle or second point."));
-                    set_prompt_prefix(tr("Specify the new angle: ");
+                    alert(translate_str("Requires valid numeric angle or second point."));
+                    prompt_output(translate_str("Specify the new angle: ");
                 }
                 else {
                     EmbVector v;
@@ -2142,12 +2147,12 @@ Geometry::scale_main(void)
 
     if (numSelected() <= 0) {
         //TODO: Prompt to select objects if nothing is preselected
-        alert(tr("Preselect objects before invoking the scale command."));
+        alert(translate_str("Preselect objects before invoking the scale command."));
         end();
         messageBox("information", tr("Scale Preselect"), tr("Preselect objects before invoking the scale command."));
     }
     else {
-        set_prompt_prefix(tr("Specify base point: "));
+        prompt_output(translate_str("Specify base point: "));
     }
 }
 
@@ -2165,7 +2170,7 @@ Geometry::scale_click(EmbVector v)
             setRubberPoint("LINE_START", base);
             previewOn("SELECTED", "SCALE", base, 1);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify scale factor or [Reference]: "));
+            prompt_output(translate_str("Specify scale factor or [Reference]: "));
         }
         else {
             dest = v;
@@ -2184,7 +2189,7 @@ Geometry::scale_click(EmbVector v)
             addRubber("LINE");
             setRubberMode("LINE");
             setRubberPoint("LINE_START", properties["baseR"]);
-            set_prompt_prefix(tr("Specify second point: "));
+            prompt_output(translate_str("Specify second point: "));
         }
         else if (std::isnan(destRX)) {
             properties["destR"] = v;
@@ -2193,22 +2198,22 @@ Geometry::scale_click(EmbVector v)
                 destRX = 0.0f;
                 destRY = 0.0f;
                 factorRef = 0.0f;
-                alert(tr("Value must be positive and nonzero."));
-                set_prompt_prefix(tr("Specify second point: "));
+                alert(translate_str("Value must be positive and nonzero."));
+                prompt_output(translate_str("Specify second point: "));
             }
             else {
                 append_prompt_history();
                 setRubberPoint("LINE_START", baseX, baseY);
                 previewOn("SELECTED", "SCALE", baseX, baseY, factorRef);
-                set_prompt_prefix(tr("Specify new length: ");
+                prompt_output(translate_str("Specify new length: ");
             }
         }
         else if (std::isnan(factorNew)) {
             factorNew = calculateDistance(baseX, baseY, x, y);
             if (factorNew <= 0.0) {
                 factorNew = 0.0f;
-                alert(tr("Value must be positive and nonzero."));
-                set_prompt_prefix(tr("Specify new length: ");
+                alert(translate_str("Value must be positive and nonzero."));
+                prompt_output(translate_str("Specify new length: ");
             }
             else {
                 append_prompt_history();
@@ -2228,8 +2233,8 @@ Geometry::scale_prompt(String str)
         if (firstRun) {
             EmbReal strList = str.split(",");
             if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                alert(tr("Invalid point."));
-                set_prompt_prefix(tr("Specify base point: ");
+                alert(translate_str("Invalid point."));
+                prompt_output(translate_str("Specify base point: ");
             }
             else {
                 firstRun = false;
@@ -2239,20 +2244,20 @@ Geometry::scale_prompt(String str)
                 setRubberMode("LINE");
                 setRubberPoint("LINE_START", baseX, baseY);
                 previewOn("SELECTED", "SCALE", baseX, baseY, 1);
-                set_prompt_prefix(tr("Specify scale factor or [Reference]: ");
+                prompt_output(translate_str("Specify scale factor or [Reference]: ");
             }
         }
         else {
             if (str == "R" || str == "REFERENCE") {
                 mode = MODE_REFERENCE;
-                set_prompt_prefix(tr("Specify reference length {1}: ");
+                prompt_output(translate_str("Specify reference length {1}: ");
                 clearRubber();
                 previewOff();
             }
             else {
                 if (std::isnan(str)) {
-                    alert(tr("Requires valid numeric distance, second point, or option keyword."));
-                    set_prompt_prefix(tr("Specify scale factor or [Reference]: ");
+                    alert(translate_str("Requires valid numeric distance, second point, or option keyword."));
+                    prompt_output(translate_str("Specify scale factor or [Reference]: ");
                 }
                 else {
                     factor = atof(str);
@@ -2268,8 +2273,8 @@ Geometry::scale_prompt(String str)
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Requires valid numeric distance or two points."));
-                    set_prompt_prefix(tr("Specify reference length {1}: ");
+                    alert(translate_str("Requires valid numeric distance or two points."));
+                    prompt_output(translate_str("Specify reference length {1}: ");
                 }
                 else {
                     properties["baseR.x"] = atof(strList[0]);
@@ -2277,7 +2282,7 @@ Geometry::scale_prompt(String str)
                     addRubber("LINE");
                     setRubberMode("LINE");
                     setRubberPoint("LINE_START", properties["baseRX, properties["baseRY);
-                    set_prompt_prefix(tr("Specify second point: "));
+                    prompt_output(translate_str("Specify second point: "));
                 }
             }
             else {
@@ -2294,15 +2299,15 @@ Geometry::scale_prompt(String str)
                     destRX = 0.0f;
                     destRY = 0.0f;
                     factorRef = 0.0f;
-                    alert(tr("Value must be positive and nonzero."));
-                    set_prompt_prefix(tr("Specify reference length") + " {1}: ");
+                    alert(translate_str("Value must be positive and nonzero."));
+                    prompt_output(translate_str("Specify reference length") + " {1}: ");
                 }
                 else {
                     addRubber("LINE");
                     setRubberMode("LINE");
                     setRubberPoint("LINE_START", properties["baseX, properties["baseY);
                     previewOn("SELECTED", "SCALE", properties["baseX, properties["baseY, properties["factorRef);
-                    set_prompt_prefix(tr("Specify new length: "));
+                    prompt_output(translate_str("Specify new length: "));
                 }
             }
         }
@@ -2310,8 +2315,8 @@ Geometry::scale_prompt(String str)
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Requires valid numeric distance or two points."));
-                    set_prompt_prefix(tr("Specify second point: "));
+                    alert(translate_str("Requires valid numeric distance or two points."));
+                    prompt_output(translate_str("Specify second point: "));
                 }
                 else {
                     properties["destR.x"] = atof(strList[0]);
@@ -2321,13 +2326,13 @@ Geometry::scale_prompt(String str)
                         destRX = 0.0f;
                         destRY = 0.0f;
                         factorRef = 0.0f;
-                        alert(tr("Value must be positive and nonzero."));
-                        set_prompt_prefix(tr("Specify second point: "));
+                        alert(translate_str("Value must be positive and nonzero."));
+                        prompt_output(translate_str("Specify second point: "));
                     }
                     else {
                         setRubberPoint("LINE_START", baseX, baseY);
                         previewOn("SELECTED", "SCALE", baseX, baseY, factorRef);
-                        set_prompt_prefix(tr("Specify new length: ");
+                        prompt_output(translate_str("Specify new length: ");
                     }
                 }
             }
@@ -2343,13 +2348,13 @@ Geometry::scale_prompt(String str)
                     destRX = 0.0f;
                     destRY = 0.0f;
                     factorRef = 0.0f;
-                    alert(tr("Value must be positive and nonzero."));
-                    set_prompt_prefix(tr("Specify second point: "));
+                    alert(translate_str("Value must be positive and nonzero."));
+                    prompt_output(translate_str("Specify second point: "));
                 }
                 else {
                     setRubberPoint("LINE_START", baseX, baseY);
                     previewOn("SELECTED", "SCALE", baseX, baseY, factorRef);
-                    set_prompt_prefix(tr("Specify new length: "));
+                    prompt_output(translate_str("Specify new length: "));
                 }
             }
         }
@@ -2357,8 +2362,8 @@ Geometry::scale_prompt(String str)
             if (std::isnan(str)) {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Requires valid numeric distance or second point."));
-                    set_prompt_prefix(tr("Specify new length: "));
+                    alert(translate_str("Requires valid numeric distance or second point."));
+                    prompt_output(translate_str("Specify new length: "));
                 }
                 else {
                     EmbReal x = atof(strList[0]);
@@ -2366,8 +2371,8 @@ Geometry::scale_prompt(String str)
                     factorNew = calculateDistance(baseX, baseY, x, y);
                     if (factorNew <= 0.0) {
                         factorNew = 0.0f;
-                        alert(tr("Value must be positive and nonzero."));
-                        set_prompt_prefix(tr("Specify new length: "));
+                        alert(translate_str("Value must be positive and nonzero."));
+                        prompt_output(translate_str("Specify new length: "));
                     }
                     else {
                         scaleSelected(baseX, baseY, factorNew/factorRef);
@@ -2380,8 +2385,8 @@ Geometry::scale_prompt(String str)
                 factorNew = atof(str);
                 if (factorNew <= 0.0) {
                     factorNew = 0.0f;
-                    alert(tr("Value must be positive and nonzero."));
-                    set_prompt_prefix(tr("Specify new length: "));
+                    alert(translate_str("Value must be positive and nonzero."));
+                    prompt_output(translate_str("Specify new length: "));
                 }
                 else {
                     scaleSelected(properties["baseX, properties["baseY, properties["factorNew/properties["factorRef);
@@ -2398,7 +2403,7 @@ void
 Geometry::text_single_main(void)
 {
     init();
-    actuator("clear-selection");
+    clear_selection();;
     properties["text"] = atof("");
     properties["text.x"] = 0.0f;
     properties["text.y"] = 0.0f;
@@ -2407,9 +2412,9 @@ Geometry::text_single_main(void)
     properties["textHeight"] = 0.0f;
     properties["textRotation"] = 0.0f;
     mode = MODE_TEXT_SINGLE_SETGEOM;
-    set_prompt_prefix(tr("Current font: " + "{" + properties["textFont"].s + "} " + tr("Text height: ") + "{" +  textSize() + "}");
+    prompt_output(translate_str("Current font: " + "{" + properties["textFont"].s + "} " + tr("Text height: ") + "{" +  textSize() + "}");
     append_prompt_history();
-    set_prompt_prefix(tr("Specify start point of text or [Justify/Setfont]: ");
+    prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: ");
 }
 
 /* . */
@@ -2426,19 +2431,19 @@ Geometry::text_single_click(EmbVector v)
             setRubberMode("LINE");
             setRubberPoint("LINE_START", textX, textY);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify text height" + " {" + textSize() + "}: ");
+            prompt_output(translate_str("Specify text height" + " {" + textSize() + "}: ");
         }
         else if (std::isnan(properties["textHeight"].r)) {
             properties["textHeight"] = calculateDistance(textX, textY, x, y);
             setTextSize(properties["textHeight"].r);
             append_prompt_history();
-            set_prompt_prefix(tr("Specify text angle") + " {" + textAngle() + "}: ");
+            prompt_output(translate_str("Specify text angle") + " {" + textAngle() + "}: ");
         }
         else if (std::isnan(properties["textRotation"].r)) {
             properties["textRotation"] = calculateAngle(textX, textY, x, y);
             setTextAngle(properties["textRotation"].r);
             append_prompt_history();
-            set_prompt_prefix(tr("Enter text: "));
+            prompt_output(translate_str("Enter text: "));
             mode = MODE_RAPID;
             prompt->enableRapidFire();
             clearRubber();
@@ -2469,89 +2474,89 @@ Geometry::text_single_prompt(String str)
             mode = MODE_SETGEOM;
             textJustify = node("Center");
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify center point of text or [Justify/Setfont]: ");
+            prompt_output(translate_str("Specify center point of text or [Justify/Setfont]: ");
         }
         else if (str == "R" || str == "RIGHT") {
             mode = MODE_SETGEOM;
             textJustify = node("Right");
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify right-end point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify right-end point of text or [Justify/Setfont]: "));
         }
         else if (str == "A" || str == "ALIGN") {
             mode = MODE_SETGEOM;
             textJustify = "Aligned";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify start point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: "));
         }
         else if (str == "M" || str == "MIDDLE") {
             mode = MODE_SETGEOM;
             textJustify = "Middle";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify middle point of text or [Justify/Setfont]: ");
+            prompt_output(translate_str("Specify middle point of text or [Justify/Setfont]: ");
         }
         else if (str == "F" || str == "FIT") {
             mode = MODE_SETGEOM;
             textJustify = "Fit";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify start point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: "));
         }
         else if (str == "TL" || str == "TOPLEFT") {
             mode = MODE_SETGEOM;
             textJustify = "Top Left";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify top-left point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify top-left point of text or [Justify/Setfont]: "));
         }
         else if (str == "TC" || str == "TOPCENTER") {
             mode = MODE_SETGEOM;
             textJustify = "Top Center";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify top-center point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify top-center point of text or [Justify/Setfont]: "));
         }
         else if (str == "TR" || str == "TOPRIGHT") {
             mode = MODE_SETGEOM;
             textJustify = "Top Right";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify top-right point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify top-right point of text or [Justify/Setfont]: "));
         }
         else if (str == "ML" || str == "MIDDLELEFT") {
             mode = MODE_SETGEOM;
             textJustify = "Middle Left";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify middle-left point of text or [Justify/Setfont]: ");
+            prompt_output(translate_str("Specify middle-left point of text or [Justify/Setfont]: ");
         }
         else if (str == "MC" || str == "MIDDLECENTER") {
             mode = MODE_SETGEOM;
             textJustify = "Middle Center";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify middle-center point of text or [Justify/Setfont]: ");
+            prompt_output(translate_str("Specify middle-center point of text or [Justify/Setfont]: ");
         }
         else if (str == "MR" || str == "MIDDLERIGHT") {
             mode = MODE_SETGEOM;
             textJustify = "Middle Right";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify middle-right point of text or [Justify/Setfont]: ");
+            prompt_output(translate_str("Specify middle-right point of text or [Justify/Setfont]: ");
         }
         else if (str == "BL" || str == "BOTTOMLEFT") {
             mode = MODE_SETGEOM;
             textJustify = "Bottom Left";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify bottom-left point of text or [Justify/Setfont]: ");
+            prompt_output(translate_str("Specify bottom-left point of text or [Justify/Setfont]: ");
         }
         else if (str == "BC" || str == "BOTTOMCENTER") {
             mode = MODE_SETGEOM;
             textJustify = "Bottom Center";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify bottom-center point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify bottom-center point of text or [Justify/Setfont]: "));
         }
         else if (str == "BR" || str == "BOTTOMRIGHT") {
             mode = MODE_SETGEOM;
             textJustify = "Bottom Right";
             setRubberText("TEXT_JUSTIFY", textJustify);
-            set_prompt_prefix(tr("Specify bottom-right point of text or [Justify/Setfont]: "));
+            prompt_output(translate_str("Specify bottom-right point of text or [Justify/Setfont]: "));
         }
         else {
             alert(translate("Invalid option keyword."));
-            set_prompt_prefix(tr("Text Justification Options [Center/Right/Align/Middle/Fit/TL/TC/TR/ML/MC/MR/BL/BC/BR]: ");
+            prompt_output(translate_str("Text Justification Options [Center/Right/Align/Middle/Fit/TL/TC/TR/ML/MC/MR/BL/BC/BR]: ");
         }
     }
     case MODE_SETFONT: {
@@ -2559,23 +2564,23 @@ Geometry::text_single_prompt(String str)
         textFont = str;
         setRubberText("TEXT_FONT", textFont);
         setTextFont(properties["textFont"].s);
-        set_prompt_prefix(tr("Specify start point of text or [Justify/Setfont]: ");
+        prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: ");
     }
     case MODE_SETGEOM: {
         if (std::isnan(textX)) {
             if (str == "J" || str == "JUSTIFY") {
                 mode = "MODE_JUSTIFY";
-                set_prompt_prefix(tr("Text Justification Options [Center/Right/Align/Middle/Fit/TL/TC/TR/ML/MC/MR/BL/BC/BR]: ");
+                prompt_output(translate_str("Text Justification Options [Center/Right/Align/Middle/Fit/TL/TC/TR/ML/MC/MR/BL/BC/BR]: ");
             }
             else if (str == "S" || str == "SETFONT") {
                 mode = MODE_SETFONT;
-                set_prompt_prefix(tr("Specify font name: ");
+                prompt_output(translate_str("Specify font name: ");
             }
             else {
                 EmbReal strList = str.split(",");
                 if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-                    alert(tr("Point or option keyword required."));
-                    set_prompt_prefix(tr("Specify start point of text or [Justify/Setfont]: ");
+                    alert(translate_str("Point or option keyword required."));
+                    prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: ");
                 }
                 else {
                     properties["text.x"] = atof(strList[0]);
@@ -2583,29 +2588,29 @@ Geometry::text_single_prompt(String str)
                     addRubber("LINE");
                     setRubberMode("LINE");
                     setRubberPoint("LINE_START", textX, textY);
-                    set_prompt_prefix(tr("Specify text height") + " {" + textSize() + "}: ");
+                    prompt_output(translate_str("Specify text height") + " {" + textSize() + "}: ");
                 }
             }
         }
         else if (std::isnan(properties["textHeight"].r)) {
             if (str == "") {
                 properties["textHeight"] = textSize();
-                set_prompt_prefix(tr("Specify text angle") + " {" + textAngle() + "}: ");
+                prompt_output(translate_str("Specify text angle") + " {" + textAngle() + "}: ");
             }
             else if (std::isnan(str)) {
-                alert(tr("Requires valid numeric distance or second point."));
-                set_prompt_prefix(tr("Specify text height") + " {" + textSize() + "}: ");
+                alert(translate_str("Requires valid numeric distance or second point."));
+                prompt_output(translate_str("Specify text height") + " {" + textSize() + "}: ");
             }
             else {
                 properties["textHeight"] = atof(str);
                 setTextSize(properties["textHeight"]);
-                set_prompt_prefix(tr("Specify text angle") + " {" + textAngle() + "}: ");
+                prompt_output(translate_str("Specify text angle") + " {" + textAngle() + "}: ");
             }
         }
         else if (std::isnan(properties["textRotation"])) {
             if (str == "") {
                 properties["textRotation"] = textAngle();
-                set_prompt_prefix(tr("Enter text: ");
+                prompt_output(translate_str("Enter text: ");
                 mode = "MODE_RAPID";
                 prompt->enableRapidFire();
                 clearRubber();
@@ -2618,13 +2623,13 @@ Geometry::text_single_prompt(String str)
                 setRubberText("TEXT_RAPID", properties["text"].s);
             }
             else if (std::isnan(str)) {
-                alert(tr("Requires valid numeric angle or second point."));
-                set_prompt_prefix(tr("Specify text angle") + " {" + textAngle() + "}: ");
+                alert(translate_str("Requires valid numeric angle or second point."));
+                prompt_output(translate_str("Specify text angle") + " {" + textAngle() + "}: ");
             }
             else {
                 properties["textRotation"] = atof(str);
                 setTextAngle(properties["textRotation"].r);
-                set_prompt_prefix(tr("Enter text: ");
+                prompt_output(translate_str("Enter text: ");
                 mode = MODE_RAPID;
                 prompt->enableRapidFire();
                 clearRubber();
@@ -2649,7 +2654,7 @@ Geometry::text_single_prompt(String str)
             else {
                 vulcanize();
                 end();
-                /** TODO: Rather than ending the command, calculate where the
+                /* TODO: Rather than ending the command, calculate where the
                  * next line would be and modify the x/y to the new point.
                  */
             }
@@ -2692,7 +2697,7 @@ void
 Geometry::star_main(void)
 {
     init();
-    actuator("clear-selection");
+    clear_selection();;
     numPoints = atof(5);
     center.x = 0.0f;
     center.y = 0.0f;
@@ -2701,7 +2706,7 @@ Geometry::star_main(void)
     point2.x = atof(2.0f);
     point2.y = atof(2.0f);
     mode = MODE_STAR_NUM_POINTS;
-    set_prompt_prefix(tr("Enter number of star points {5}: ");
+    prompt_output(translate_str("Enter number of star points {5}: ");
 }
 
 /* . */
@@ -2718,7 +2723,7 @@ Geometry::star_click(EmbReal mouse)
     case MODE_STAR_CENTER_PT: {
         center = mouse;
         mode = STAR_MODE_RAD_OUTER;
-        set_prompt_prefix(tr("Specify outer radius of star: ");
+        prompt_output(translate_str("Specify outer radius of star: ");
         addRubber("POLYGON");
         setRubberMode("POLYGON");
         updateStar(properties, center);
@@ -2729,7 +2734,7 @@ Geometry::star_click(EmbReal mouse)
     case MODE_STAR_RAD_OUTER: {
         point1 = mouse;
         mode.s = "MODE_RAD_INNER";
-        set_prompt_prefix(tr("Specify inner radius of star: ");
+        prompt_output(translate_str("Specify inner radius of star: ");
         updateStar(point1);
         break;
     }
@@ -2780,18 +2785,18 @@ Geometry::star_prompt(String str)
     switch (mode) {
     case STAR_MODE_NUM_POINTS: {
         if (str == "" && numPoints >= 3 && numPoints <= 1024) {
-            set_prompt_prefix(tr("Specify center point: ");
+            prompt_output(translate_str("Specify center point: ");
             mode = MODE_STAR_CENTER_PT;
         }
         else {
             EmbReal tmp = atof(str);
             if (std::isnan(tmp) || !isInt(tmp) || tmp < 3 || tmp > 1024) {
-                alert(tr("Requires an integer between 3 and 1024."));
-                set_prompt_prefix(tr("Enter number of star points") + " {" + numPoints.toString() + "}: ");
+                alert(translate_str("Requires an integer between 3 and 1024."));
+                prompt_output(translate_str("Enter number of star points") + " {" + numPoints.toString() + "}: ");
             }
             else {
                 numPoints = tmp;
-                set_prompt_prefix(tr("Specify center point: ");
+                prompt_output(translate_str("Specify center point: ");
                 mode = MODE_STAR_CENTER_PT;
             }
         }
@@ -2801,14 +2806,14 @@ Geometry::star_prompt(String str)
     case MODE_STAR_CENTER_PT: {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify center point: ");
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify center point: ");
         }
         else {
             center.x = atof(strList[0]);
             center.y = atof(strList[1]);
             mode = MODE_STAR_RAD_OUTER;
-            set_prompt_prefix(tr("Specify outer radius of star: ");
+            prompt_output(translate_str("Specify outer radius of star: ");
             addRubber("POLYGON");
             setRubberMode("POLYGON");
             updateStar(qsnapX(), qsnapY());
@@ -2820,14 +2825,14 @@ Geometry::star_prompt(String str)
     case MODE_STAR_RAD_OUTER: {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify outer radius of star: ");
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify outer radius of star: ");
         }
         else {
             point1.x = atof(strList[0]);
             point1.y = atof(strList[1]);
             mode = MODE_RAD_INNER;
-            set_prompt_prefix(tr("Specify inner radius of star: ");
+            prompt_output(translate_str("Specify inner radius of star: ");
             updateStar(qsnapX(), qsnapY());
         }
         break;
@@ -2836,8 +2841,8 @@ Geometry::star_prompt(String str)
     case MODE_STAR_RAD_INNER: {
         EmbReal strList = str.split(",");
         if (std::isnan(strList[0]) || std::isnan(strList[1])) {
-            alert(tr("Invalid point."));
-            set_prompt_prefix(tr("Specify inner radius of star: ");
+            alert(translate_str("Invalid point."));
+            prompt_output(translate_str("Specify inner radius of star: ");
         }
         else {
             point2.x = atof(strList[0]);

@@ -19,7 +19,6 @@
 #define __EMBROIDERMODDER_UTILITY_H__
 
 #include <vector>
-#include <unordered_map>
 #include <string>
 
 /* From this source code directory. */
@@ -42,9 +41,7 @@ class UndoEditor;
 class MainWindow;
 class Geometry;
 
-/* Global variables
- * ----------------
- */
+/* Global variables. */
 extern MdiArea* mdiArea;
 extern MainWindow* _mainWin;
 extern CmdPrompt* prompt;
@@ -53,9 +50,7 @@ extern UndoEditor* dockUndoEdit;
 extern StatusBar* statusbar;
 extern QAction* actionHash[MAX_ACTIONS];
 
-/* Functions in the global namespace
- * ---------------------------------
- */
+/* Functions in the global namespace. */
 void prompt_output(char *txt);
 void prompt_output(const char *txt);
 void prompt_output(QString txt);
@@ -100,8 +95,8 @@ QDoubleSpinBox *make_spinbox(QGroupBox *gb, std::string d,
 QCheckBox *make_checkbox(QGroupBox *gb, std::string d,
     const char *label, const char *icon, int key);
 void create_float_spinbox(QGroupBox *gb, QGridLayout* gridLayout,
-	const char *label_in, EmbReal single_step, EmbReal lower, EmbReal upper,
-	int key, int row);
+    const char *label_in, EmbReal single_step, EmbReal lower, EmbReal upper,
+    int key, int row);
 
 /* The Geometry class
  *
@@ -121,26 +116,11 @@ public:
     QHash<QString, QPointF> objRubberPoints;
     QHash<QString, QString> objRubberTexts;
 
-    EmbArc arc;
-    EmbCircle circle;
-    EmbEllipse ellipse;
-
-    QPointF arcStartPoint;
-    QPointF arcMidPoint;
-    QPointF arcEndPoint;
-
-    int64_t objID;
-    int64_t mode;
-    uint64_t flags = 0;
-
-    QPainterPath lineStylePath;
-    QPainterPath arrowStylePath;
     QPainterPath normalPath;
 
     QString objText;
     QString objTextFont;
     QString objTextJustify;
-    QPainterPath objTextPath;
 
     int gripIndex;
 
@@ -157,9 +137,7 @@ public:
     /* Destructor. */
     ~Geometry();
 
-    /* Alter state */
-    void setFlag_(uint64_t new_flag) { flags |= new_flag; }
-    void unsetFlag_(uint64_t new_flag) { flags ^= new_flag; }
+    void update(void);
 
     /* Getters */
     QPointF objectRubberPoint(QString key);
@@ -201,7 +179,6 @@ public:
     QPainterPath objectCopyPath();
     QPainterPath objectSavePath();
 
-    std::vector<QPainterPath> objectSavePathList() { return subPathList(); }
     std::vector<QPainterPath> subPathList();
 
     int findIndex(const QPointF& point);
@@ -227,10 +204,6 @@ public:
 
     void realRender(QPainter* painter, const QPainterPath& renderPath);
     void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*);
-
-    /* Updaters, todo: combine */
-    void updateArcRect(EmbReal radius);
-    void update(void);
 
     /* Setters */
     void init_rect(EmbRect rect);
@@ -281,7 +254,6 @@ public:
     ~CmdPromptInput() {}
 
     QString curText;
-    QString defaultPrefix;
     QString prefix;
 
     QString lastCmd;
@@ -482,13 +454,15 @@ public:
 
     virtual void updateMenuToolbarStatusbar();
 
+    bool shiftKeyPressedState;
+    int numOfDocs;
+    int docIndex;
+
     std::vector<QGraphicsItem*> cutCopyObjectList;
 
+    /* TODO: these should be settings */
     QString formatFilterOpen;
     QString formatFilterSave;
-
-    bool isCommandActive() { return prompt->promptInput->cmdActive; }
-    QString activeCommand() { return prompt->promptInput->curCmd; }
 
     QString platformString();
 
@@ -496,6 +470,29 @@ public:
     void populate_toolbars(Qt::ToolBarArea area, int32_t list[]);
     QIcon create_icon(QString stub);
     QIcon create_icon(int32_t stub);
+
+    QAction* myFileSeparator;
+
+    // Selectors
+    QComboBox* layerSelector;
+    QComboBox* colorSelector;
+    QComboBox* linetypeSelector;
+    QComboBox* lineweightSelector;
+    QFontComboBox* textFontSelector;
+    QComboBox* textSizeSelector;
+
+    QByteArray layoutState;
+
+    virtual void resizeEvent(QResizeEvent*);
+    void closeEvent(QCloseEvent *event);
+    void loadFormats();
+
+    std::vector<MdiWindow*> listMdiWin;
+    QMdiSubWindow* findMdiWindow(std::string fileName);
+
+    void createAllActions();
+    void createAllMenus();
+    void createAllToolbars();
 
 public slots:
 
@@ -519,35 +516,6 @@ public slots:
     void pickAddModeToggled();
 
     void settingsPrompt();
-
-protected:
-    virtual void resizeEvent(QResizeEvent*);
-    void closeEvent(QCloseEvent *event);
-    void loadFormats();
-
-    bool shiftKeyPressedState;
-
-    QByteArray layoutState;
-
-    int numOfDocs;
-    int docIndex;
-
-    std::vector<MdiWindow*> listMdiWin;
-    QMdiSubWindow* findMdiWindow(std::string fileName);
-
-    QAction* myFileSeparator;
-
-    void createAllActions();
-    void createAllMenus();
-    void createAllToolbars();
-
-    // Selectors
-    QComboBox* layerSelector;
-    QComboBox* colorSelector;
-    QComboBox* linetypeSelector;
-    QComboBox* lineweightSelector;
-    QFontComboBox* textFontSelector;
-    QComboBox* textSizeSelector;
 
 public slots:
     void stub_testing();
@@ -749,7 +717,6 @@ public:
     void mapSignal(QObject* fieldObj, QString name, QVariant value);
 
     // Selection
-    // ====================
     QComboBox*   createComboBoxSelected();
     QToolButton* createToolButtonQSelect();
     QToolButton* createToolButtonPickAdd();
@@ -759,21 +726,6 @@ public:
     QToolButton* toolButtonPickAdd;
 
     //TODO: Alphabetic/Categorized TabWidget
-
-    std::unordered_map<std::string, QLineEdit *> lineEdits;
-    std::unordered_map<std::string, QToolButton *> toolButtons;
-    std::unordered_map<std::string, QSpinBox *> spinBoxes;
-    std::unordered_map<std::string, QDoubleSpinBox *> doubleSpinBoxes;
-    std::unordered_map<std::string, QComboBox *> comboBoxes;
-
-    // Used when checking if fields vary
-    QString fieldOldText;
-    QString fieldNewText;
-    QString fieldVariesText;
-    QString fieldYesText;
-    QString fieldNoText;
-    QString fieldOnText;
-    QString fieldOffText;
 
     QFontComboBox* comboBoxTextSingleFont;
 
@@ -935,11 +887,11 @@ class StatusBar : public QStatusBar
 
 public:
     StatusBar(QWidget* parent = 0);
-    std::unordered_map<std::string, QToolButton*> buttons;
+    QToolButton* buttons[8];
     QLabel* statusBarMouseCoord;
     void setMouseCoord(EmbReal x, EmbReal y);
     void context_menu_action(QToolButton *button, const char *icon, const char *label, QMenu *menu, std::string setting_page);
-    void toggle(std::string key, bool on);
+    void toggle(int key, bool on);
     void context_menu_event(QContextMenuEvent *event, QToolButton *button);
 };
 
@@ -975,6 +927,11 @@ public slots:
 
     void updateCleanIcon(bool opened);
 };
+
+typedef struct UndoData_ {
+    EmbVector pivot;
+    EmbVector before;
+} UndoData;
 
 /* . */
 class UndoableCommand : public QUndoCommand
@@ -1023,20 +980,13 @@ public:
     View(QGraphicsScene* theScene, QWidget* parent);
     ~View();
 
-    uint64_t state;
-
-    int formatType;
-    EmbPattern *pattern;
-
-    QColor gridColor;
-    QPainterPath gridPath;
-    QPainterPath originPath;
-    bool rulerMetric;
-    QColor rulerColor;
-    uint8_t rulerPixelSize;
-
     Geometry* gripBaseObj;
     Geometry* tempBaseObj;
+
+    QPainterPath gridPath;
+    QPainterPath originPath;
+    QColor gridColor;
+    QColor rulerColor;
 
     QGraphicsScene* gscene;
     QUndoStack* undoStack;
@@ -1050,29 +1000,38 @@ public:
     QPoint releasePoint;
     QPointF sceneGripPoint;
 
+    uint8_t rulerMetric;
+    uint8_t rulerPixelSize;
+    uint8_t qsnapLocatorSize;
+    uint8_t qsnapApertureSize;
+    uint8_t gripSize;
+    uint8_t pickBoxSize;
+    uint32_t crosshairSize;
+    uint32_t previewMode;
+    uint32_t panDistance;
+
+    uint64_t state;
+
+    int formatType;
+    EmbPattern *pattern;
+
+    EmbReal previewData;
+    EmbVector panStartPos;
+
     QPoint viewMousePoint;
     QPointF sceneMousePoint;
     QRgb qsnapLocatorColor;
-    uint8_t qsnapLocatorSize;
-    uint8_t qsnapApertureSize;
     QRgb gripColorCool;
     QRgb gripColorHot;
-    uint8_t gripSize;
-    uint8_t pickBoxSize;
     QRgb crosshairColor;
-    uint32_t crosshairSize;
 
     QHash<int64_t, QGraphicsItem*> hashDeletedObjects;
     std::vector<std::string> spareRubberList;
     std::vector<QGraphicsItem*> rubberRoomList;
     std::vector<QGraphicsItem*> previewObjectList;
     QPointF previewPoint;
-    EmbReal previewData;
-    uint32_t previewMode;
     QPointF cutCopyMousePoint;
     QPointF pasteDelta;
-    uint32_t panDistance;
-    EmbVector panStartPos;
 
     /* Graphics functions */
     void draw_line(QPainter *painter, QPointF start, QPointF end);
