@@ -702,7 +702,7 @@ public:
     std::vector<QGraphicsItem*> selectedItemList;
 
     QToolButton* createToolButton(QString iconName, QString txt);
-    QLineEdit* createLineEdit(QString validatorType = QString(), bool readOnly = false);
+    QLineEdit* createLineEdit(int validatorType, bool readOnly);
 
     int precisionAngle;
     int precisionLength;
@@ -729,7 +729,7 @@ public:
 
     QFontComboBox* comboBoxTextSingleFont;
 
-    QGroupBox *createGroupBox(const char *group_box_key, const char *title);
+    QGroupBox *createGroupBox(int group_box_key, const char *title);
 
     QGroupBox *groupBoxes[GB_TOTAL];
 

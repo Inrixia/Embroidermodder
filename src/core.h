@@ -369,11 +369,6 @@
 #define LINE_STYLE_FLARED                        1
 #define LINE_STYLE_FLETCHING                     2
 
-/* Mathematical Constants. */
-#define CONSTANT_PI         3.14159265358979323846
-#define RADIANS_TO_DEGREES    (180.0f/CONSTANT_PI)
-#define DEGREES_TO_RADIANS    (CONSTANT_PI/180.0f)
-
 /* UI Editing Modes */
 
 /* Polygon editing modes. */
@@ -473,7 +468,7 @@
 
 /* Groupboxen */
 #define GB_GENERAL                               0
-#define GB_GROUPBOX_ARC                          1
+#define GB_GEOM_ARC                              1
 #define GB_MISC_ARC                              2
 #define GB_GEOM_BLOCK                            3
 #define GB_GEOM_CIRCLE                           4
@@ -488,7 +483,7 @@
 #define GB_GEOM_ELLIPSE                         13
 #define GB_GEOM_IMAGE                           14
 #define GB_MISC_IMAGE                           15
-#define GB_INFINITE_LINE                        16
+#define GB_GEOM_INFINITE_LINE                   16
 #define GB_GEOM_LINE                            17
 #define GB_GEOM_PATH                            18
 #define GB_MISC_PATH                            19
@@ -647,20 +642,128 @@
 #define SETTINGS_TOTAL                         114
 
 /* Line editors */
-#define LE_ARC_CENTER_X                          0
-#define LE_ARC_CENTER_Y                          1
-#define LE_ARC_RADIUS                            2
-#define LE_ARC_START_ANGLE                       3
-#define LE_ARC_END_ANGLE                         4
-#define LE_ARC_START_X                           5
-#define LE_ARC_START_Y                           6
-#define LE_ARC_END_X                             7
-#define LE_ARC_END_Y                             8
-#define LE_ARC_AREA                              9
-#define LE_ARC_LENGTH                           10
-#define LE_ARC_CHORD                            11
-#define LE_ARC_INC_ANGLE                        12
-#define LE_ARC_CLOCKWISE                        13
+#define ED_GENERAL_LAYER                         0
+#define ED_GENERAL_COLOR                         1
+#define ED_GENERAL_LINE_TYPE                     2
+#define ED_GENERAL_LINE_WEIGHT                   3
+#define ED_ARC_CENTER_X                          4
+#define ED_ARC_CENTER_Y                          5
+#define ED_ARC_RADIUS                            6
+#define ED_ARC_START_ANGLE                       7
+#define ED_ARC_END_ANGLE                         8
+#define ED_ARC_START_X                           9
+#define ED_ARC_START_Y                          10
+#define ED_ARC_END_X                            11
+#define ED_ARC_END_Y                            12
+#define ED_ARC_AREA                             13
+#define ED_ARC_LENGTH                           14
+#define ED_ARC_CHORD                            15
+#define ED_ARC_INC_ANGLE                        16
+#define ED_ARC_CLOCKWISE                        17
+#define ED_BLOCK_X                              18
+#define ED_BLOCK_Y                              19
+#define ED_CIRCLE_RADIUS                        15
+#define ED_CIRCLE_DIAMETER                      16
+#define ED_CIRCLE_CENTER_X                      17
+#define ED_CIRCLE_CENTER_Y                      18
+#define ED_CIRCLE_AREA                          21
+#define ED_CIRCLE_CIRCUMFERENCE                 22
+#define ED_DIM_ALIGNED_X                        23
+#define ED_DIM_ANGULAR_X                        24
+#define ED_DIM_ARC_LENGTH_X                     25
+#define ED_DIM_DIAMETER_X                       26
+#define ED_ELLIPSE_CENTER_X                     27
+#define ED_ELLIPSE_CENTER_Y                     28
+#define ED_ELLIPSE_RADIUS_MAJOR                 29
+#define ED_ELLIPSE_RADIUS_MINOR                 30
+#define ED_ELLIPSE_DIAMETER_MAJOR               31
+#define ED_ELLIPSE_DIAMETER_MINOR               32
+#define ED_TEXT_SINGLE_HEIGHT                   33
+#define ED_TEXT_SINGLE_ROTATION                 34
+#define ED_TEXT_SINGLE_X                        35
+#define ED_TEXT_SINGLE_Y                        36
+#define ED_TEXT_SINGLE_BACKWARD                 37
+#define ED_TEXT_SINGLE_UPSIDE_DOWN              38
+#define ED_TEXT_MULTI_X                         39
+#define ED_TEXT_MULTI_Y                         40
+#define ED_LINE_START_X                         41
+#define ED_LINE_START_Y                         42
+#define ED_LINE_END_X                           43
+#define ED_LINE_END_Y                           44
+#define ED_LINE_POINT_X                         45
+#define ED_LINE_POINT_Y                         46
+#define ED_TEXT_SINGLE_CONTENTS                 47
+#define ED_TEXT_SINGLE_FONT                     48
+#define ED_TEXT_SINGLE_JUSTIFY                  49
+#define ED_RECTANGLE_CORNER1_X                  50
+#define ED_RECTANGLE_CORNER1_Y                  51
+#define ED_RECTANGLE_CORNER2_X                  52
+#define ED_RECTANGLE_CORNER2_Y                  53
+#define ED_RECTANGLE_CORNER3_X                  54
+#define ED_RECTANGLE_CORNER3_Y                  55
+#define ED_RECTANGLE_CORNER4_X                  56
+#define ED_RECTANGLE_CORNER4_Y                  57
+#define ED_RECTANGLE_WIDTH                      58
+#define ED_RECTANGLE_HEIGHT                     59
+#define ED_RECTANGLE_AREA                       60
+#define ED_RAY_X1                               61
+#define ED_RAY_Y1                               62
+#define ED_RAY_X2                               63
+#define ED_RAY_Y2                               64
+#define ED_RAY_VECTOR_X                         65
+#define ED_RAY_VECTOR_Y                         66
+#define ED_GEOMETRY_DIM_LINEAR_X                67
+#define ED_GEOM_DIM_ORDINATE_X                  68
+#define ED_DIM_RADIUS_X                         69
+#define ED_ELLIPSE_SEMI_MINOR_AXIS              70
+#define ED_ELLIPSE_SEMI_MAJOR_AXIS              71
+#define ED_ELLIPSE_MAJOR_AXIS                   72
+#define ED_ELLIPSE_MINOR_AXIS                   73
+#define ED_IMAGE_X                              74
+#define ED_IMAGE_Y                              75
+#define ED_IMAGE_WIDTH                          76
+#define ED_IMAGE_HEIGHT                         77
+#define ED_IMAGE_NAME                           78
+#define ED_IMAGE_PATH                           79
+#define ED_INFINITE_LINE_X1                     80
+#define ED_INFINITE_LINE_Y1                     81
+#define ED_INFINITE_LINE_X2                     82
+#define ED_INFINITE_LINE_Y2                     83
+#define ED_INFINITE_LINE_VECTOR_X               84
+#define ED_INFINITE_LINE_VECTOR_Y               85
+#define ED_LINE_DELTA_X                         86
+#define ED_LINE_DELTA_Y                         87
+#define ED_LINE_ANGLE                           88
+#define ED_LINE_LENGTH                          89
+#define ED_PATH_VERTEX_NUM                      90
+#define ED_PATH_VERTEX_X                        91
+#define ED_PATH_VERTEX_Y                        92
+#define ED_PATH_AREA                            93
+#define ED_PATH_LENGTH                          94
+#define ED_PATH_CLOSED                          95
+#define ED_POINT_X                              96
+#define ED_POINT_Y                              97
+#define ED_POLYGON_CENTER_X                     98
+#define ED_POLYGON_CENTER_Y                     99
+#define ED_POLYGON_RADIUS_VERTEX               100
+#define ED_POLYGON_RADIUS_SIDE                 101
+#define ED_POLYGON_DIAMETER_VERTEX             102
+#define ED_POLYGON_DIAMETER_SIDE               103
+#define ED_POLYGON_INTERIOR_ANGLE              104
+#define ED_POLYLINE_VERTEX_NUM                 105
+#define ED_POLYLINE_VERTEX_X                   106
+#define ED_POLYLINE_VERTEX_Y                   107
+#define ED_POLYLINE_VERTEX_AREA                108
+#define ED_POLYLINE_VERTEX_LENGTH              109
+#define ED_POLYLINE_VERTEX_CLOSED              110
+#define TOTAL_EDITORS                          111
+
+/* Editor types */
+#define EDITOR_DOUBLE                            0
+#define EDITOR_COMBOBOX                          1
+#define EDITOR_FONT                              2
+#define EDITOR_INT                               3
+#define EDITOR_STRING                            4
 
 /* View state */
 #define VIEW_STATE_GRID                       0x01
@@ -732,6 +835,7 @@
 #define CONSOLE_STYLE_FONT_STYLE                 5
 #define CONSOLE_STYLE_FONT_SIZE                  6
 
+/* Statusbar buttons */
 #define STATUSBAR_SNAP                           0
 #define STATUSBAR_GRID                           1
 #define STATUSBAR_RULER                          2
@@ -789,12 +893,11 @@ typedef struct ActionData_ {
 /*
  */
 typedef struct LineEditData_ {
-    int32_t id;
-    char groupbox[MAX_STRING_LENGTH];
-    char key[MAX_STRING_LENGTH];
+    int32_t groupbox;
+    int32_t key;
     char icon[MAX_STRING_LENGTH];
     char label[MAX_STRING_LENGTH];
-    char type[MAX_STRING_LENGTH];
+    int32_t type;
     char map_signal[MAX_STRING_LENGTH];
 } LineEditData;
 

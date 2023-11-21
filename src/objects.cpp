@@ -1202,7 +1202,7 @@ Geometry::objectDiameter()
 EmbReal
 Geometry::objectCircumference()
 {
-    return CONSTANT_PI * objectDiameter();
+    return embConstantPi * objectDiameter();
 }
 
 QPointF
@@ -1703,7 +1703,7 @@ Geometry::objectArea()
         return ((r*r)/2)*(theta - std::sin(theta));
     }
     case OBJ_TYPE_CIRCLE:
-        return CONSTANT_PI*objectRadius()*objectRadius();
+        return embConstantPi * objectRadius() * objectRadius();
     default:
         break;
     }
@@ -1965,7 +1965,7 @@ Geometry::setObjectDiameter(EmbReal diameter)
 void
 Geometry::setObjectArea(EmbReal area)
 {
-    EmbReal radius = std::sqrt(area/CONSTANT_PI);
+    EmbReal radius = std::sqrt(area/embConstantPi);
     setObjectRadius(radius);
 }
 
@@ -1973,7 +1973,7 @@ Geometry::setObjectArea(EmbReal area)
 void
 Geometry::setObjectCircumference(EmbReal circumference)
 {
-    EmbReal diameter = circumference/CONSTANT_PI;
+    EmbReal diameter = circumference/embConstantPi;
     setObjectDiameter(diameter);
 }
 

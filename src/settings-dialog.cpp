@@ -720,7 +720,7 @@ Settings_Dialog::createTabOpenSave()
 
     copy_node(dialog, settings, ST_OPENSAVE_FILTER);
 
-    std::unordered_map<std::string, QCheckBox*> checkBoxCustomFilter;
+    QCheckBox *checkBoxCustomFilter[100];
     int n_extensions = string_array_length(extensions);
 
     for (int i=0; i<n_extensions; i++) {
@@ -732,7 +732,7 @@ Settings_Dialog::createTabOpenSave()
             Qt::CaseInsensitive));
         connect(checkbox, SIGNAL(stateChanged(int)), this,
             SLOT(checkBoxCustomFilterStateChanged(int)));
-        checkBoxCustomFilter[extensions[i]] = checkbox;
+        checkBoxCustomFilter[i] = checkbox;
     }
 
     QPushButton* buttonCustomFilterSelectAll = new QPushButton(translate_str("Select All"), groupBoxCustomFilter);
@@ -741,7 +741,7 @@ Settings_Dialog::createTabOpenSave()
         connect(
             this,
             SIGNAL(buttonCustomFilterSelectAll(bool)),
-            checkBoxCustomFilter[extensions[i]],
+            checkBoxCustomFilter[i],
             SLOT(setChecked(bool))
         );
     }
@@ -752,7 +752,7 @@ Settings_Dialog::createTabOpenSave()
         connect(
             this,
             SIGNAL(buttonCustomFilterClearAll(bool)),
-            checkBoxCustomFilter[extensions[i]],
+            checkBoxCustomFilter[i],
             SLOT(setChecked(bool))
         );
     }
@@ -764,7 +764,7 @@ Settings_Dialog::createTabOpenSave()
             break;
         }
         std::string ext = extensions[10*j+i];
-        gridLayoutCustomFilter->addWidget(checkBoxCustomFilter[ext], i, j, Qt::AlignLeft);
+        gridLayoutCustomFilter->addWidget(checkBoxCustomFilter[10*j+i], i, j, Qt::AlignLeft);
     }
     gridLayoutCustomFilter->addWidget(buttonCustomFilterSelectAll, 0, 6, Qt::AlignLeft);
     gridLayoutCustomFilter->addWidget(buttonCustomFilterClearAll, 1, 6, Qt::AlignLeft);
