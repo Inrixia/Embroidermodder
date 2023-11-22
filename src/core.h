@@ -417,6 +417,24 @@
 #define INT_TEXT_UPSIDEDOWN                      6
 
 /* Rubber modes */
+#define RUBBER_CIRCLE_1P_RAD                     0
+#define RUBBER_CIRCLE_1P_DIA                     1
+#define RUBBER_CIRCLE_2P                         2
+#define RUBBER_CIRCLE_3P                         3
+#define RUBBER_CIRCLE_TTR                        5
+#define RUBBER_CIRCLE_TTT                        6
+#define RUBBER_DIMLEADER_LINE                    7
+#define RUBBER_ELLIPSE_LINE                      8
+#define RUBBER_ELLIPSE_MAJORDIAMETER_MINORDIAMETER 9
+#define RUBBER_ELLIPSE_MAJORRADIUS_MINORRADIUS  10
+#define RUBBER_ELLIPSE_ROTATION                 11
+#define RUBBER_LINE                             12
+#define RUBBER_POLYGON                          13
+#define RUBBER_POLYGON_INSCRIBE                 14
+#define RUBBER_POLYGON_CIRCUMSCRIBE             15
+#define RUBBER_POLYLINE                         16
+#define RUBBER_RECTANGLE                        17
+#define RUBBER_TEXTSINGLE                       18
 #define N_RUBBER_MODES                          40
 
 /* Justify */
@@ -1004,16 +1022,6 @@ typedef struct ViewData_ {
     uint8_t qSnapActive;
 } ViewData;
 
-/* To allow us to resize general C arrays when necessary.
- * Note that for char arrays, the buffer is a normal c-style string.
- */
-typedef struct Cvector_ {
-    char *buffer;
-    int32_t size;
-    int32_t max_length;
-    int32_t element_size;
-} Cvector;
-
 /*
  */
 typedef struct ToolbarData_ {
@@ -1037,39 +1045,16 @@ typedef struct RubberPoint_ {
     char text[MAX_STRING_LENGTH];
     EmbVector position;
 } RubberPoint;
+
 /*
  *
  */
-struct Node_ {
-    struct Node_ **leaves;
-    int32_t n_leaves;
-    int32_t max_leaves;
-    char key[MAX_STRING_LENGTH];
-    char data[MAX_STRING_LENGTH];
+typedef struct Node_ {
     char s[MAX_STRING_LENGTH];
     int32_t i;
     EmbReal r;
-    Cvector *vec;
     int32_t type;
-};
-
-typedef struct Node_ Node;
-
-/* Memory management. */
-Cvector *cvector_create(size_t element_size);
-void cvector_append(Cvector *a, Cvector *b);
-void cvector_add_cstr(Cvector *a, char *b);
-Cvector *cvector_copy(Cvector *a);
-void cvector_free(Cvector *vector);
-int string_array_length(const char *list[]);
-
-Node *create_node(int type);
-int add_leaf(Node *branch, Node *leaf);
-void print_tree(Node *branch, int indent);
-Node *find_node(Node *branch, char key[MAX_STRING_LENGTH]);
-void free_node(Node *branch);
-Node *create_and_add_leaf(Node *parent, char *key, char *value);
-int insert_node(Node *branch, char key[MAX_STRING_LENGTH], Node *node);
+} Node;
 
 /* Utility Functions. */
 unsigned char validRGB(int r, int g, int b);
@@ -1082,10 +1067,8 @@ int tokenize(char **argv, char *str, const char delim);
 void debug_message(const char *msg);
 int read_settings(void);
 void write_settings(void);
+int string_array_length(const char *list[]);
 EmbVector rotate_vector(EmbVector v, EmbReal alpha);
-
-/* Global memory. */
-extern Node *root;
 
 /* Geometry UI Processors */
 GeometryData *geometry_init(int type);

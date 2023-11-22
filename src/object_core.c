@@ -2437,16 +2437,17 @@ Geometry::text_single_main(void)
 {
     init();
     clear_selection();;
-    properties["text"] = atof("");
-    properties["text.x"] = 0.0f;
-    properties["text.y"] = 0.0f;
-    properties["text.justify"] = atof("Left");
-    properties["textFont"] = textFont();
-    properties["textHeight"] = 0.0f;
-    properties["textRotation"] = 0.0f;
+    g->text = "";
+    g->text.x = 0.0f;
+    g->text.y = 0.0f;
+    g->text.justify = atof("Left");
+    g->textFont = textFont();
+    g->textHeight = 0.0f;
+    g->textRotation = 0.0f;
     mode = MODE_TEXT_SINGLE_SETGEOM;
-    prompt_output(translate_str("Current font: " + "{" + properties["textFont"].s + "} " + tr("Text height: ") + "{" +  textSize() + "}");
-    prompt_output();
+    prompt_output(translate_str("Current font: ") + "{"
+        + properties["textFont"].s + "} " + tr("Text height: ") + "{"
+        + textSize() + "}");
     prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: ");
 }
 
@@ -2458,11 +2459,10 @@ Geometry::text_single_click(EmbVector v)
 
     case MODE_TEXT_SINGLE_SETGEOM: {
         if (std::isnan(textX)) {
-            properties["text.x"] = x;
-            properties["text.y"] = y;
+            g->position = v;
             addRubber("LINE");
             setRubberMode("LINE");
-            setRubberPoint("LINE_START", textX, textY);
+            setRubberPoint("LINE_START", v);
             prompt_output();
             prompt_output(translate_str("Specify text height" + " {" + textSize() + "}: ");
         }
@@ -2616,11 +2616,10 @@ Geometry::text_single_prompt(String str)
                     prompt_output(translate_str("Specify start point of text or [Justify/Setfont]: ");
                 }
                 else {
-                    properties["text.x"] = atof(strList[0]);
-                    properties["text.y"] = atof(strList[1]);
+                    g->position = get_vector(strList);
                     addRubber("LINE");
                     setRubberMode("LINE");
-                    setRubberPoint("LINE_START", textX, textY);
+                    setRubberPoint("LINE_START", g->position);
                     prompt_output(translate_str("Specify text height") + " {" + textSize() + "}: ");
                 }
             }
@@ -2846,8 +2845,7 @@ Geometry::star_prompt(String str)
             prompt_output(translate_str("Specify outer radius of star: ");
         }
         else {
-            point1.x = atof(strList[0]);
-            point1.y = atof(strList[1]);
+            point1 = get_vector(strList);
             mode = MODE_RAD_INNER;
             prompt_output(translate_str("Specify inner radius of star: ");
             updateStar(qsnapX(), qsnapY());
@@ -2862,10 +2860,9 @@ Geometry::star_prompt(String str)
             prompt_output(translate_str("Specify inner radius of star: ");
         }
         else {
-            point2.x = atof(strList[0]);
-            point2.y = atof(strList[1]);
+            point2 = get_vector(strList);
             actuator("disable move-rapid-fire");
-            updateStar(point2.x, point2.y);
+            updateStar();
             spareRubber("POLYGON");
             end();
         }
