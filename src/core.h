@@ -419,41 +419,68 @@
 /* Rubber modes */
 #define N_RUBBER_MODES                          40
 
+/* Justify */
+#define JUSTIFY_LEFT                             0
+#define JUSTIFY_CENTER                           1
+#define JUSTIFY_RIGHT                            2
+#define JUSTIFY_ALIGNED                          3
+#define JUSTIFY_MIDDLE                           4
+#define JUSTIFY_FIT                              5
+#define JUSTIFY_TOP_LEFT                         6
+#define JUSTIFY_TOP_CENTER                       7
+#define JUSTIFY_TOP_RIGHT                        8
+#define JUSTIFY_MIDDLE_LEFT                      9
+#define JUSTIFY_MIDDLE_CENTER                   10
+#define JUSTIFY_MIDDLE_RIGHT                    11
+#define JUSTIFY_BOTTOM_LEFT                     12
+#define JUSTIFY_BOTTOM_CENTER                   13
+#define JUSTIFY_BOTTOM_RIGHT                    14
+#define TOTAL_JUSTIFY                           15
+
 /* User Interface Mode */
-#define MODE_ARC                                 0
-#define MODE_CIRCLE_1P_RAD                       1
-#define MODE_CIRCLE_1P_DIA                       2
-#define MODE_CIRCLE_2P                           3
-#define MODE_CIRCLE_3P                           4
-#define MODE_CIRCLE_TTR                          5
-#define MODE_CIRCLE_TTR_SET_POINT_2              6
-#define MODE_CIRCLE_TTR_SET_POINT_3              7
-#define MODE_ELLIPSE                             8
-#define MODE_RECTANGLE                           9
-#define MODE_STAR_NUM_POINTS                    10
-#define MODE_STAR_CENTER_PT                     11
-#define MODE_STAR_RAD_INNER                     12
-#define MODE_STAR_RAD_OUTER                     13
-#define MODE_POLYGON_NUM_SIDES                  14
-#define MODE_POLYGON_POLYTYPE                   15
-#define MODE_POLYGON_DISTANCE                   16
-#define MODE_POLYGON_CENTER_PT                  17
-#define MODE_POLYGON_INSCRIBE                   18
-#define MODE_POLYGON_CIRCUMSCRIBE               19
-#define MODE_POLYGON_SIDE_LEN                   20
-#define MODE_POINT                              21
-#define MODE_RGB                                22
-#define MODE_LINE                               23
-#define MODE_ROTATE                             24
-#define MODE_SCALE                              25
-#define MODE_TEXT_SINGLE_SETGEOM                26
-#define MODE_PATH                               27
-#define MODE_POLYLINE                           28
-#define MODE_MOVE                               29
-#define MODE_DISTANCE                           30
-#define MODE_QUICKLEADER                        31
-#define MODE_LOCATE_POINT                       32
-#define MODE_ELLIPSE_MAJORDIAMETER_MINORRADIUS  33
+#define MODE_ARC_INIT                            0
+#define MODE_CIRCLE_INIT                         1
+#define MODE_CIRCLE_1P_RAD                       2
+#define MODE_CIRCLE_1P_DIA                       3
+#define MODE_CIRCLE_2P                           4
+#define MODE_CIRCLE_3P                           5
+#define MODE_CIRCLE_TTR                          6
+#define MODE_CIRCLE_TTR_SET_POINT_2              7
+#define MODE_CIRCLE_TTR_SET_POINT_3              8
+#define MODE_ELLIPSE_INIT                        9
+#define MODE_RECTANGLE_INIT                     10
+#define MODE_STAR_INIT                          11
+#define MODE_STAR_NUM_POINTS                    12
+#define MODE_STAR_CENTER_PT                     13
+#define MODE_STAR_RAD_INNER                     14
+#define MODE_STAR_RAD_OUTER                     15
+#define MODE_POLYGON_INIT                       16
+#define MODE_POLYGON_NUM_SIDES                  17
+#define MODE_POLYGON_POLYTYPE                   18
+#define MODE_POLYGON_DISTANCE                   19
+#define MODE_POLYGON_CENTER_PT                  20
+#define MODE_POLYGON_INSCRIBE                   21
+#define MODE_POLYGON_CIRCUMSCRIBE               22
+#define MODE_POLYGON_SIDE_LEN                   23
+#define MODE_POINT_INIT                         24
+#define MODE_RGB                                25
+#define MODE_LINE                               26
+#define MODE_ROTATE                             27
+#define MODE_SCALE                              28
+#define MODE_TEXT_SINGLE_SETGEOM                29
+#define MODE_PATH_INIT                          30
+#define MODE_POLYLINE_INIT                      31
+#define MODE_MOVE                               32
+#define MODE_DISTANCE                           33
+#define MODE_QUICKLEADER_INIT                   34
+#define MODE_SNOWFLAKE_INIT                     35
+#define MODE_SNOWFLAKE_NUM_POINTS               36
+#define MODE_LOCATE_POINT                       37
+#define MODE_ELLIPSE_MAJORDIAMETER_MINORRADIUS  38
+#define MODE_DOLPHIN_INIT                       39
+#define MODE_DOLPHIN_NUM_POINTS                 40
+#define MODE_ERASE                              41
+#define TOTAL_MODES                             42
 
 /* Object Properties: packed into the uint64_t flags variable. */
 #define PROP_BOLD                           0x0001
@@ -930,11 +957,28 @@ typedef struct GeometryData_ {
     uint32_t type;
     int32_t objID;
 
+    int firstRun;
+
+    int minPoints;
+    int numPoints;
+    int maxPoints;
+
+    EmbReal width;
+    EmbReal height;
+    EmbReal rotation;
+
     EmbArc arc;
     EmbCircle circle;
     EmbEllipse ellipse;
     EmbLine line;
     EmbVector vector;
+
+    EmbVector center;
+    EmbVector point1;
+    EmbVector point2;
+    EmbVector first;
+    EmbVector prev;
+    EmbVector scale;
 
     EmbReal arrowStyleAngle;
     EmbReal arrowStyleLength;

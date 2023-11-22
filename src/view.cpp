@@ -159,23 +159,23 @@ View::View(QGraphicsScene* theScene, QWidget* parent) : QGraphicsView(theScene, 
     EmbReal scale;
     std::string grid_type;
     int ui_mode;
-    bool ortho_mode;
-    bool polar_mode;
-    bool qsnap_mode;
-    bool qtrack_mode;
-    bool lwt_mode;
-    bool real_render;
-    bool metric;
-    bool simulate;
+    uint8_t ortho_mode;
+    uint8_t polar_mode;
+    uint8_t qsnap_mode;
+    uint8_t qtrack_mode;
+    uint8_t lwt_mode;
+    uint8_t real_render;
+    uint8_t metric;
+    uint8_t simulate;
     clock_t simulation_start;
     std::string text_font;
     EmbReal text_size;
     EmbReal text_angle;
-    bool text_style_bold;
-    bool text_style_italic;
-    bool text_style_underline;
-    bool text_style_overline;
-    bool text_style_strikeout;
+    uint8_t text_style_bold;
+    uint8_t text_style_italic;
+    uint8_t text_style_underline;
+    uint8_t text_style_overline;
+    uint8_t text_style_strikeout;
     std::string filename;
     std::vector<std::string> undo_history;
     int selected[100];
@@ -284,7 +284,7 @@ View::previewOff()
     gscene->update();
 }
 
-bool View::allowRubber()
+uint8_t View::allowRubber()
 {
     //if (!rubberRoomList.size()) //TODO: this check should be removed later
         return true;
@@ -328,7 +328,7 @@ View::vulcanizeObject(Geometry* obj)
     }
 }
 
-bool
+uint8_t
 contains(std::vector<std::string> list, std::string entry)
 {
     return std::count(list.begin(), list.end(), entry) != 0;
@@ -660,7 +660,7 @@ View::selected_items()
 void
 View::draw_rulers(QPainter* painter, const QRectF& rect)
 {
-    bool proceed = true;
+    uint8_t proceed = true;
 
     EmbVector view_dim;
     view_dim.x = width();  //View Width
@@ -702,7 +702,7 @@ View::draw_rulers(QPainter* painter, const QRectF& rect)
     }
     int unit = distStr.toInt();
     EmbReal fraction;
-    bool feet = true;
+    uint8_t feet = true;
     if (rulerMetric) {
         if (unit < 10) unit = 10;
         fraction = unit/10;
@@ -1247,9 +1247,9 @@ View::mousePressEvent(QMouseEvent* event)
         QRectF pickbox = rect_from_center(viewMousePoint, pickBoxSize);
         std::vector<QGraphicsItem*> pickList = to_vector(gscene->items(pickbox));
 
-        bool itemsInPickBox = pickList.size();
+        uint8_t itemsInPickBox = pickList.size();
         if (itemsInPickBox && !vdata->selectingActive && !vdata->grippingActive) {
-            bool itemsAlreadySelected = pickList.at(0)->isSelected();
+            uint8_t itemsAlreadySelected = pickList.at(0)->isSelected();
             if (!itemsAlreadySelected) {
                 pickList.at(0)->setSelected(true);
             }
@@ -1261,7 +1261,7 @@ View::mousePressEvent(QMouseEvent* event)
 
                 QPointF gripPoint = base->mouseSnapPoint(sceneMousePoint);
                 QRectF gripRect = rect_from_center(gripPoint, qsnapLocatorSize);
-                bool foundGrip = gripRect.intersects(pickbox);
+                uint8_t foundGrip = gripRect.intersects(pickbox);
 
                 /* If the pick point is within the item's grip box, start gripping */
                 if (foundGrip) {
@@ -1601,7 +1601,7 @@ View::mouseReleaseEvent(QMouseEvent* event)
 }
 
 /* . */
-bool
+uint8_t
 View::allowZoomIn()
 {
     QPointF origin  = mapToScene(0,0);
@@ -1621,7 +1621,7 @@ View::allowZoomIn()
 }
 
 /* . */
-bool
+uint8_t
 View::allowZoomOut()
 {
     QPointF origin = mapToScene(0,0);
@@ -1700,7 +1700,7 @@ View::contextMenuEvent(QContextMenuEvent* event)
 {
     QMenu menu;
     std::vector<QGraphicsItem*> itemList = selected_items();
-    bool selectionEmpty = itemList.empty();
+    uint8_t selectionEmpty = itemList.empty();
 
     for (int i = 0; i < (int)itemList.size(); i++) {
         if (itemList.at(i)->data(OBJ_TYPE) != OBJ_TYPE_NULL) {
@@ -1817,7 +1817,7 @@ View::startGripping(Geometry* obj)
 
 /* . */
 void
-View::stopGripping(bool accept)
+View::stopGripping(uint8_t accept)
 {
     vdata->grippingActive = false;
     if (gripBaseObj) {
@@ -2108,7 +2108,7 @@ View::numSelected()
 
 /* . */
 void
-View::showScrollBars(bool val)
+View::showScrollBars(uint8_t val)
 {
     if (val) {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);

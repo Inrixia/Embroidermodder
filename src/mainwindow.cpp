@@ -26,7 +26,7 @@
 
 int pop_command(const char *line);
 
-extern bool test_program;
+extern uint8_t test_program;
 
 MainWindow* _mainWin = 0;
 MdiArea* mdiArea = 0;
@@ -76,7 +76,7 @@ emb_sleep(int seconds)
 
 /* Create menu. */
 void
-create_menu(int32_t menu, const int32_t *def, bool topLevel)
+create_menu(int32_t menu, const int32_t *def, uint8_t topLevel)
 {
     if (topLevel) {
         _mainWin->menuBar()->addMenu(menuHash[menu]);
@@ -148,9 +148,9 @@ MainWindow::create_toolbar(ToolbarData t)
     }
 
     connect(toolbarHash[t.id],
-        SIGNAL(topLevelChanged(bool)),
+        SIGNAL(topLevelChanged(uint8_t)),
         this,
-        SLOT(floatingChangedToolBar(bool)));
+        SLOT(floatingChangedToolBar(uint8_t)));
 
     if (t.horizontal) {
         toolbarHash[t.id]->setOrientation(Qt::Horizontal);
@@ -225,7 +225,7 @@ MainWindow::createAllToolbars()
 
     toolbarHash[TOOLBAR_LAYER]->addAction(actionHash[ACTION_LAYER_PREVIOUS]);
 
-    connect(toolbarHash[TOOLBAR_LAYER], SIGNAL(topLevelChanged(bool)), this, SLOT(floatingChangedToolBar(bool)));
+    connect(toolbarHash[TOOLBAR_LAYER], SIGNAL(topLevelChanged(uint8_t)), this, SLOT(floatingChangedToolBar(uint8_t)));
 
     colorSelector->setFocusProxy(prompt);
     //NOTE: Qt4.7 wont load icons without an extension...
@@ -289,7 +289,7 @@ MainWindow::createAllToolbars()
     toolbarHash[TOOLBAR_PROPERTIES]->addWidget(lineweightSelector);
     connect(lineweightSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(lineweightSelectorIndexChanged(int)));
 
-    connect(toolbarHash[TOOLBAR_PROPERTIES], SIGNAL(topLevelChanged(bool)), this, SLOT(floatingChangedToolBar(bool)));
+    connect(toolbarHash[TOOLBAR_PROPERTIES], SIGNAL(topLevelChanged(uint8_t)), this, SLOT(floatingChangedToolBar(uint8_t)));
 
     toolbarHash[TOOLBAR_TEXT]->addWidget(textFontSelector);
     QString font_(settings[ST_TEXT_FONT].s);
@@ -330,12 +330,12 @@ MainWindow::createAllToolbars()
     toolbarHash[TOOLBAR_TEXT]->addWidget(textSizeSelector);
     connect(textSizeSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(textSizeSelectorIndexChanged(int)));
 
-    connect(toolbarHash[TOOLBAR_TEXT], SIGNAL(topLevelChanged(bool)), this, SLOT(floatingChangedToolBar(bool)));
+    connect(toolbarHash[TOOLBAR_TEXT], SIGNAL(topLevelChanged(uint8_t)), this, SLOT(floatingChangedToolBar(uint8_t)));
 
     toolbarHash[TOOLBAR_PROMPT]->addWidget(prompt);
     toolbarHash[TOOLBAR_PROMPT]->setAllowedAreas(Qt::TopToolBarArea | Qt::BottomToolBarArea);
-    connect(toolbarHash[TOOLBAR_PROMPT], SIGNAL(topLevelChanged(bool)),
-        prompt, SLOT(floatingChanged(bool)));
+    connect(toolbarHash[TOOLBAR_PROMPT], SIGNAL(topLevelChanged(uint8_t)),
+        prompt, SLOT(floatingChanged(uint8_t)));
 
     // Horizontal
     toolbarHash[TOOLBAR_VIEW]->setOrientation(Qt::Horizontal);
@@ -544,7 +544,7 @@ MainWindow::buttonTipOfTheDayClicked(int button)
 }
 
 /* . */
-bool
+uint8_t
 MainWindow::isShiftPressed()
 {
     return shiftKeyPressedState;
@@ -632,14 +632,14 @@ MainWindow::activeUndoStack(void)
 
 /* Set undo clean icon. */
 void
-MainWindow::setUndoCleanIcon(bool opened)
+MainWindow::setUndoCleanIcon(uint8_t opened)
 {
     dockUndoEdit->updateCleanIcon(opened);
 }
 
 /* Update all view scrollbars. */
 void
-MainWindow::updateAllViewScrollBars(bool val)
+MainWindow::updateAllViewScrollBars(uint8_t val)
 {
     QList<QMdiSubWindow*> windowList = mdiArea->subWindowList();
     for (int i = 0; i < windowList.count(); ++i) {
@@ -722,7 +722,7 @@ MainWindow::updateAllViewRulerColors(QRgb color)
 
 /* Update pickAdd mode. */
 void
-MainWindow::updatePickAddMode(bool val)
+MainWindow::updatePickAddMode(uint8_t val)
 {
     settings[ST_SELECTION_PICK_ADD].i = val;
     dockPropEdit->updatePickAddModeButton(val);
@@ -1139,8 +1139,8 @@ add_polyline_action(std::string args)
         return "TYPE ERROR: addPolyline(): array cannot contain an odd number of elements";
     }
 
-    bool lineTo = false;
-    bool xCoord = true;
+    uint8_t lineTo = false;
+    uint8_t xCoord = true;
     EmbReal x = 0;
     EmbReal y = 0;
     EmbReal startX = 0;
@@ -1690,7 +1690,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* add_circle_action.
      *
-     * EmbReal centerX, EmbReal centerY, EmbReal radius, bool fill, std::string rubberMode
+     * EmbReal centerX, EmbReal centerY, EmbReal radius, uint8_t fill, std::string rubberMode
      */
     case ACTION_ADD_CIRCLE: {
         QGraphicsScene* gscene = gview->scene();
@@ -1700,7 +1700,7 @@ actuator_core(int32_t action_id, std::string args_="")
             circle.center.x = 0.0;
             circle.center.y = -0.0;
             circle.radius = 10.0;
-            bool fill = false;
+            uint8_t fill = false;
             std::string rubberMode = "OBJ_RUBBER_OFF";
 
             /*
@@ -1751,7 +1751,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* Add an ellipse to the scene.
      *
-     * EmbReal centerX, EmbReal centerY, EmbReal width, EmbReal height, EmbReal rot, bool fill, std::string rubberMode
+     * EmbReal centerX, EmbReal centerY, EmbReal width, EmbReal height, EmbReal rot, uint8_t fill, std::string rubberMode
      */
     case ACTION_ADD_ELLIPSE: {
 
@@ -1949,8 +1949,8 @@ actuator_core(int32_t action_id, std::string args_="")
             return "TYPE ERROR: add_polygon_action(): array cannot contain an odd number of elements";
         }
 
-        bool lineTo = false;
-        bool xCoord = true;
+        uint8_t lineTo = false;
+        uint8_t xCoord = true;
         EmbReal x = 0;
         EmbReal y = 0;
         EmbReal startX = 0;
@@ -2018,7 +2018,7 @@ actuator_core(int32_t action_id, std::string args_="")
             rect.top = atof(argv[2]);
             rect.bottom = -atof(argv[3]);
             EmbReal rot = atof(argv[4]);
-            bool fill = (argv[5] == "1");
+            uint8_t fill = (argv[5] == "1");
             std::string rubberMode = argv[6];
 
             /*
@@ -2043,7 +2043,7 @@ actuator_core(int32_t action_id, std::string args_="")
     /* AddRegularPolygon
      *
      * EmbReal centerX, EmbReal centerY, quint16 sides, uint8_t mode,
-     * EmbReal rad, EmbReal rot, bool fill
+     * EmbReal rad, EmbReal rot, uint8_t fill
      */
     case ACTION_ADD_REGULAR_POLYGON: {
         return "";
@@ -2051,7 +2051,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* add_rounded_rectangle_action.
      *
-     * EmbReal x, EmbReal y, EmbReal w, EmbReal h, EmbReal rad, EmbReal rot, bool fill
+     * EmbReal x, EmbReal y, EmbReal w, EmbReal h, EmbReal rad, EmbReal rot, uint8_t fill
      */
     case ACTION_ADD_ROUNDED_RECTANGLE: {
         /*
@@ -2157,7 +2157,7 @@ actuator_core(int32_t action_id, std::string args_="")
     /* add_slot_action
      * args
      *
-     * EmbReal centerX, EmbReal centerY, EmbReal diameter, EmbReal length, EmbReal rot, bool fill, std::string rubberMode
+     * EmbReal centerX, EmbReal centerY, EmbReal diameter, EmbReal length, EmbReal rot, uint8_t fill, std::string rubberMode
      */
     case ACTION_ADD_SLOT: {
         //TODO: Use UndoableAddCommand for slots
@@ -2177,7 +2177,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* add_text_multi_action
      *
-     * QString str, EmbReal x, EmbReal y, EmbReal rot, bool fill, std::string rubberMode
+     * QString str, EmbReal x, EmbReal y, EmbReal rot, uint8_t fill, std::string rubberMode
      */
     case ACTION_ADD_TEXT_MULTI: {
         /*
@@ -2188,7 +2188,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* add_text_single_action
      *
-     * QString str, EmbReal x, EmbReal y, EmbReal rot, bool fill, std::string rubberMode
+     * QString str, EmbReal x, EmbReal y, EmbReal rot, uint8_t fill, std::string rubberMode
      */
     case ACTION_ADD_TEXT_SINGLE: {
         /*
@@ -3457,7 +3457,7 @@ MainWindow::windowMenuAboutToShow()
         aAction->setCheckable(true);
         aAction->setData(i);
         menuHash[MENU_WINDOW]->addAction(aAction);
-        connect(aAction, SIGNAL(toggled(bool)), this, SLOT(windowMenuActivated(bool)));
+        connect(aAction, SIGNAL(toggled(uint8_t)), this, SLOT(windowMenuActivated(uint8_t)));
         aAction->setChecked(mdiArea->activeSubWindow() == windows.at(i));
     }
 }
@@ -3466,7 +3466,7 @@ MainWindow::windowMenuAboutToShow()
  * checked
  */
 void
-MainWindow::windowMenuActivated(bool checked)
+MainWindow::windowMenuActivated(uint8_t checked)
 {
     debug_message("MainWindow::windowMenuActivated()");
     QAction* aSender = qobject_cast<QAction*>(sender());
@@ -3503,13 +3503,13 @@ MainWindow::newFile()
  * recentFile
  */
 void
-MainWindow::openFile(bool recent, std::string recentFile)
+MainWindow::openFile(uint8_t recent, std::string recentFile)
 {
     debug_message("MainWindow::openFile()");
 
     QApplication::setOverrideCursor(Qt::ArrowCursor);
 
-    bool preview = settings[ST_OPEN_THUMBNAIL].i;
+    uint8_t preview = settings[ST_OPEN_THUMBNAIL].i;
     std::string openFilesPath(settings[ST_RECENT_DIRECTORY].s);
 
     //Check to see if this from the recent files list
@@ -3546,7 +3546,7 @@ MainWindow::openFile(bool recent, std::string recentFile)
 void
 MainWindow::openFilesSelected(QStringList filesToOpen)
 {
-    bool doOnce = true;
+    uint8_t doOnce = true;
 
     if (filesToOpen.size() == 0) {
         return;
@@ -3697,7 +3697,7 @@ MainWindow::onCloseMdiWin(MdiWindow* theMdiWin)
     debug_message("MainWindow::onCloseMdiWin()");
     numOfDocs--;
 
-    bool keepMaximized;
+    uint8_t keepMaximized;
     if (theMdiWin) { keepMaximized = theMdiWin->isMaximized(); }
 
     mdiArea->removeSubWindow(theMdiWin);
@@ -3813,7 +3813,7 @@ MainWindow::updateMenuToolbarStatusbar()
  *
  * TODO: check the file exists on the system, rename to validFile?
  */
-bool
+uint8_t
 validFileFormat(std::string fileName)
 {
     if (fileName == "") {
@@ -3914,7 +3914,7 @@ MainWindow::closeToolBar(QAction* action)
  * isFloating
  */
 void
-MainWindow::floatingChangedToolBar(bool isFloating)
+MainWindow::floatingChangedToolBar(uint8_t isFloating)
 {
     QToolBar* tb = qobject_cast<QToolBar*>(sender());
     if (!tb) {
@@ -4141,13 +4141,13 @@ bool
 UndoableCommand::mergeWith(const QUndoCommand* newest)
 {
     if (newest->id() != id()) // make sure other is also an UndoableNavCommand
-         return false;
+         return 0;
 
     const UndoableCommand* cmd = static_cast<const UndoableCommand*>(newest);
     toTransform = cmd->toTransform;
     toCenter = cmd->toCenter;
 
-    return true;
+    return 1;
 }
 
 /* . */

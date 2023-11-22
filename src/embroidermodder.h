@@ -57,8 +57,8 @@ void prompt_output(QString txt);
 void prompt_output(std::string txt);
 
 QString translate_str(const char *str);
-bool contains(std::vector<std::string>, std::string);
-bool validFileFormat(std::string fileName);
+uint8_t contains(std::vector<std::string>, std::string);
+uint8_t validFileFormat(std::string fileName);
 QString fileExtension(std::string fileName);
 
 std::string convert_args_to_type(
@@ -72,8 +72,8 @@ void add_polyline(QPainterPath p, std::string rubberMode);
 View *activeView(void);
 QGraphicsScene* activeScene();
 
-void set_enabled(QObject *parent, const char *key, bool enabled);
-void set_visibility(QObject *parent, const char *name, bool visibility);
+void set_enabled(QObject *parent, const char *key, uint8_t enabled);
+void set_visibility(QObject *parent, const char *name, uint8_t visibility);
 QPainterPath add_to_path(QPainterPath path, EmbVector scale, std::string s);
 
 const char *actuator(char string[MAX_STRING_LENGTH]);
@@ -85,7 +85,7 @@ std::string run_script(std::vector<std::string> script);
 QPointF to_QPointF(EmbVector a);
 EmbVector to_EmbVector(QPointF a);
 
-bool save_current_file(std::string fileName);
+uint8_t save_current_file(std::string fileName);
 
 /* Interface creation functions.
  */
@@ -120,7 +120,7 @@ public:
 
     QString objText;
     QString objTextFont;
-    QString objTextJustify;
+    int32_t objTextJustify;
 
     int gripIndex;
 
@@ -167,7 +167,7 @@ public:
     EmbReal objectStartAngle();
     EmbReal objectEndAngle();
     EmbReal objectIncludedAngle();
-    bool objectClockwise();
+    uint8_t objectClockwise();
     EmbReal objectAngle();
     EmbReal objectRadius();
     EmbReal objectDiameter();
@@ -230,14 +230,14 @@ public:
     void setObjectTextFont(QString font);
     void setObjectTextJustify(QString justify);
     void setObjectTextSize(EmbReal size);
-    void setObjectTextStyle(bool bold, bool italic, bool under, bool strike, bool over);
-    void setObjectTextBold(bool val);
-    void setObjectTextItalic(bool val);
-    void setObjectTextUnderline(bool val);
-    void setObjectTextStrikeOut(bool val);
-    void setObjectTextOverline(bool val);
-    void setObjectTextBackward(bool val);
-    void setObjectTextUpsideDown(bool val);
+    void setObjectTextStyle(uint8_t bold, uint8_t italic, uint8_t under, uint8_t strike, uint8_t over);
+    void setObjectTextBold(uint8_t val);
+    void setObjectTextItalic(uint8_t val);
+    void setObjectTextUnderline(uint8_t val);
+    void setObjectTextStrikeOut(uint8_t val);
+    void setObjectTextOverline(uint8_t val);
+    void setObjectTextBackward(uint8_t val);
+    void setObjectTextUpsideDown(uint8_t val);
     void setObjectRadiusMajor(EmbReal radius);
     void setObjectRadiusMinor(EmbReal radius);
     void setObjectDiameterMajor(EmbReal diameter);
@@ -258,10 +258,10 @@ public:
 
     QString lastCmd;
     QString curCmd;
-    bool cmdActive;
+    uint8_t cmdActive;
 
-    bool rapidFireEnabled;
-    bool isBlinking;
+    uint8_t rapidFireEnabled;
+    uint8_t isBlinking;
 
     void changeFormatting(std::vector<QTextLayout::FormatRange> formats);
     void clearFormatting();
@@ -332,7 +332,7 @@ public:
     QString styleHash[10];
     void updateStyle();
     QTimer* blinkTimer;
-    bool blinkState;
+    uint8_t blinkState;
 
 public slots:
     void setCurrentText(QString txt) {
@@ -357,9 +357,9 @@ public slots:
     void setPromptFontStyle(QString );
     void setPromptFontSize(int);
 
-    void floatingChanged(bool);
+    void floatingChanged(uint8_t);
 
-    void saveHistory(QString fileName, bool html);
+    void saveHistory(QString fileName, uint8_t html);
 
 signals:
     void appendTheHistory(QString txt, int prefixLength);
@@ -413,8 +413,8 @@ public:
     ImageWidget(QString filename, QWidget* parent = 0);
     ~ImageWidget();
 
-    bool load(QString fileName);
-    bool save(QString fileName);
+    uint8_t load(QString fileName);
+    uint8_t save(QString fileName);
 
 protected:
     void paintEvent(QPaintEvent* event);
@@ -433,9 +433,9 @@ public:
     LayerManager(QWidget *parent = 0);
     ~LayerManager();
 
-    void addLayer(QString name, const bool visible, const bool frozen,
+    void addLayer(QString name, const uint8_t visible, const uint8_t frozen,
         const EmbReal zValue, const QRgb color, QString lineType,
-        QString lineWeight, const bool print);
+        QString lineWeight, const uint8_t print);
 };
 
 /* The MainWindow class. */
@@ -450,11 +450,11 @@ public:
     MdiWindow* activeMdiWindow();
     QUndoStack* activeUndoStack();
 
-    void setUndoCleanIcon(bool opened);
+    void setUndoCleanIcon(uint8_t opened);
 
     virtual void updateMenuToolbarStatusbar();
 
-    bool shiftKeyPressedState;
+    uint8_t shiftKeyPressedState;
     int numOfDocs;
     int docIndex;
 
@@ -503,16 +503,16 @@ public slots:
 
     void onWindowActivated(QMdiSubWindow* w);
     void windowMenuAboutToShow();
-    void windowMenuActivated( bool checked/*int id*/ );
+    void windowMenuActivated( uint8_t checked/*int id*/ );
 
-    void updateAllViewScrollBars(bool val);
+    void updateAllViewScrollBars(uint8_t val);
     void updateAllViewCrossHairColors(QRgb color);
     void updateAllViewBackgroundColors(QRgb color);
     void updateAllViewSelectBoxColors(QRgb colorL, QRgb fillL, QRgb colorR, QRgb fillR, int alpha);
     void updateAllViewGridColors(QRgb color);
     void updateAllViewRulerColors(QRgb color);
 
-    void updatePickAddMode(bool val);
+    void updatePickAddMode(uint8_t val);
     void pickAddModeToggled();
 
     void settingsPrompt();
@@ -529,7 +529,7 @@ public slots:
     void tipOfTheDay(void);
 
     void newFile();
-    void openFile(bool recent = false, std::string recentFile = "");
+    void openFile(uint8_t recent = false, std::string recentFile = "");
     void openFilesSelected(QStringList files);
     void openrecentfile();
     void savefile();
@@ -540,7 +540,7 @@ public slots:
     void buttonTipOfTheDayClicked(int);
 
     void closeToolBar(QAction*);
-    void floatingChangedToolBar(bool);
+    void floatingChangedToolBar(uint8_t);
 
     void toggleGrid();
     void toggleRuler();
@@ -565,7 +565,7 @@ public slots:
     QString getCurrentLineType();
     QString getCurrentLineWeight();
 
-    bool isShiftPressed();
+    uint8_t isShiftPressed();
     void setShiftPressed();
     void setShiftReleased();
 
@@ -585,7 +585,7 @@ public:
     QGraphicsScene* gscene;
     View* gview;
 
-    bool fileWasLoaded;
+    uint8_t fileWasLoaded;
 
     QString promptHistory;
     std::vector<QString> promptInputList;
@@ -603,13 +603,13 @@ public:
     QString curLineType;
     QString curLineWeight;
 
-    void promptInputPrevNext(bool prev);
+    void promptInputPrevNext(uint8_t prev);
 
     virtual QSize sizeHint();
     QString getShortCurrentFile();
     void designDetails();
-    bool loadFile(std::string fileName);
-    bool saveFile(std::string fileName);
+    uint8_t loadFile(std::string fileName);
+    uint8_t saveFile(std::string fileName);
 signals:
     void sendCloseMdiWin(MdiWindow*);
 
@@ -627,9 +627,9 @@ class MdiArea : public QMdiArea
     Q_OBJECT
 
 public:
-    bool useLogo;
-    bool useTexture;
-    bool useColor;
+    uint8_t useLogo;
+    uint8_t useTexture;
+    uint8_t useColor;
 
     QPixmap bgLogo;
     QPixmap bgTexture;
@@ -688,7 +688,7 @@ class PropertyEditor : public QDockWidget
     Q_OBJECT
 
 public:
-    PropertyEditor(QString iconDirectory = QString(), bool pickAddMode = true, QWidget* widgetToFocus = 0, QWidget* parent = 0); //, Qt::WindowFlags flags = 0);
+    PropertyEditor(QString iconDirectory = QString(), uint8_t pickAddMode = true, QWidget* widgetToFocus = 0, QWidget* parent = 0); //, Qt::WindowFlags flags = 0);
     ~PropertyEditor();
 
     QWidget* focusWidget;
@@ -697,21 +697,21 @@ public:
     int iconSize;
     Qt::ToolButtonStyle propertyEditorButtonStyle;
 
-    bool pickAdd;
+    uint8_t pickAdd;
 
     std::vector<QGraphicsItem*> selectedItemList;
 
     QToolButton* createToolButton(QString iconName, QString txt);
-    QLineEdit* createLineEdit(int validatorType, bool readOnly);
+    QLineEdit* createLineEdit(int validatorType, uint8_t readOnly);
 
     int precisionAngle;
     int precisionLength;
 
     void updateLineEditStrIfVaries(QLineEdit* lineEdit, QString str);
-    void updateLineEditNumIfVaries(QLineEdit* lineEdit, EmbReal num, bool useAnglePrecision);
+    void updateLineEditNumIfVaries(QLineEdit* lineEdit, EmbReal num, uint8_t useAnglePrecision);
     void updateFontComboBoxStrIfVaries(QFontComboBox* fontComboBox, QString str);
     void updateComboBoxStrIfVaries(QComboBox* comboBox, QString str, std::vector<std::string> strList);
-    void updateComboBoxBoolIfVaries(QComboBox* comboBox, bool val, bool yesOrNoText);
+    void updateComboBoxBoolIfVaries(QComboBox* comboBox, uint8_t val, uint8_t yesOrNoText);
 
     QSignalMapper* signalMapper;
     void mapSignal(QObject* fieldObj, QString name, QVariant value);
@@ -741,7 +741,7 @@ signals:
 
 public slots:
     void setSelectedItems(std::vector<QGraphicsItem*> itemList);
-    void updatePickAddModeButton(bool pickAddMode);
+    void updatePickAddModeButton(uint8_t pickAddMode);
 
 private slots:
     void fieldEdited(QObject* fieldObj);
@@ -774,7 +774,7 @@ public:
     QPen leftPen;
     QPen rightPen;
 
-    bool boxDir;
+    uint8_t boxDir;
 
     void forceRepaint();
 
@@ -874,10 +874,10 @@ private slots:
     void rejectChanges();
 
 signals:
-    void buttonCustomFilterSelectAll(bool);
-    void buttonCustomFilterClearAll(bool);
-    void buttonQSnapSelectAll(bool);
-    void buttonQSnapClearAll(bool);
+    void buttonCustomFilterSelectAll(uint8_t);
+    void buttonCustomFilterClearAll(uint8_t);
+    void buttonQSnapSelectAll(uint8_t);
+    void buttonQSnapClearAll(uint8_t);
 };
 
 /* . */
@@ -891,7 +891,7 @@ public:
     QLabel* statusBarMouseCoord;
     void setMouseCoord(EmbReal x, EmbReal y);
     void context_menu_action(QToolButton *button, const char *icon, const char *label, QMenu *menu, std::string setting_page);
-    void toggle(int key, bool on);
+    void toggle(int key, uint8_t on);
     void context_menu_event(QContextMenuEvent *event, QToolButton *button);
 };
 
@@ -906,8 +906,8 @@ public:
 
     void addStack(QUndoStack* stack);
 
-    bool canUndo();
-    bool canRedo();
+    uint8_t canUndo();
+    uint8_t canRedo();
 
     QWidget* focusWidget;
 
@@ -925,7 +925,7 @@ public slots:
     void undo();
     void redo();
 
-    void updateCleanIcon(bool opened);
+    void updateCleanIcon(uint8_t opened);
 };
 
 typedef struct UndoData_ {
@@ -966,7 +966,7 @@ public:
     QPointF fromCenter;
     QPointF toCenter;
     QLineF mirrorLine;
-    bool done;
+    uint8_t done;
 };
 
 /* . */
@@ -1052,8 +1052,8 @@ public:
 
     std::vector<QGraphicsItem*> selected_items();
 
-    bool allowZoomIn();
-    bool allowZoomOut();
+    uint8_t allowZoomIn();
+    uint8_t allowZoomOut();
 
     void createGridRect();
     void createGridPolar();
@@ -1072,7 +1072,7 @@ public:
     void copySelected();
 
     void startGripping(Geometry* obj);
-    void stopGripping(bool accept = false);
+    void stopGripping(uint8_t accept = false);
 
     void panStart(const QPoint& point);
 
@@ -1114,7 +1114,7 @@ public slots:
 
     void cornerButtonClicked();
 
-    void showScrollBars(bool val);
+    void showScrollBars(uint8_t val);
     void setCornerButton();
     void setCrossHairColor(QRgb color);
     void setCrossHairSize(uint8_t percent);
@@ -1130,7 +1130,7 @@ public slots:
     void previewOn(uint32_t clone, uint32_t mode, EmbVector v, EmbReal data);
     void previewOff();
 
-    bool allowRubber();
+    uint8_t allowRubber();
     void addToRubberRoom(QGraphicsItem* item);
     void vulcanizeRubberRoom();
     void clearRubberRoom();

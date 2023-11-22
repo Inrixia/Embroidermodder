@@ -35,10 +35,10 @@ void toPolyline(
     QString lineWeight);
 
 
-bool save(View *view, QString f);
+uint8_t save(View *view, QString f);
 
 /* . */
-bool
+uint8_t
 save_current_file(String fileName)
 {
     View* view = activeView();
@@ -337,7 +337,7 @@ Geometry::Geometry(Geometry* obj, QGraphicsItem* parent) : QGraphicsPathItem(par
         setObjectTextFont(obj->objTextFont);
         setObjectTextSize(obj->gdata->text_size);
         EmbVector v = to_EmbVector(obj->scenePos());
-        objTextJustify = "Left";
+        objTextJustify = JUSTIFY_LEFT;
         setPos(v.x, v.y);
 
         setObjectText(obj->objText);
@@ -1810,7 +1810,7 @@ Geometry::objectIncludedAngle(void)
 }
 
 /* objectClockwise */
-bool
+uint8_t
 Geometry::objectClockwise()
 {
     switch (Type) {
@@ -2282,7 +2282,7 @@ Geometry::updatePath(const QPainterPath& p)
  * to take into account the color of the thread, as we do not want
  * to try to hide dark colored stitches beneath light colored fills.
  */
-bool
+uint8_t
 save(View* view, QString fileName)
 {
     qDebug("SaveObject save(%s)", qPrintable(fileName));
@@ -2292,7 +2292,7 @@ save(View* view, QString fileName)
         return false;
     }
 
-    bool writeSuccessful = false;
+    uint8_t writeSuccessful = false;
 
     view->formatType = formatTable[emb_identify_format(qPrintable(fileName))].type;
     if (view->formatType == EMBFORMAT_UNSUPPORTED) {
@@ -2739,50 +2739,69 @@ void Geometry::setObjectText(QString str)
 
     //Translate the path based on the justification
     QRectF jRect = textPath.boundingRect();
-    if (objTextJustify == "Left") {
+    switch (objTextJustify) {
+    case JUSTIFY_LEFT:
         textPath.translate(-jRect.left(), 0);
-    }
-    else if (objTextJustify == "Center") {
+        break;
+
+    case JUSTIFY_CENTER:
         textPath.translate(-jRect.center().x(), 0);
-    }
-    else if (objTextJustify == "Right") {
+        break;
+
+    case JUSTIFY_RIGHT:
         textPath.translate(-jRect.right(), 0);
-    }
-    else if (objTextJustify == "Aligned") {
+        break;
+
+    case JUSTIFY_ALIGNED:
         //TODO: Geometry Aligned Justification
-    }
-    else if (objTextJustify == "Middle") {
+        break;
+
+    case JUSTIFY_MIDDLE:
         textPath.translate(-jRect.center());
-    }
-    else if (objTextJustify == "Fit") {
+        break;
+
+    case JUSTIFY_FIT:
         //TODO: Geometry Fit Justification
-    }
-    else if (objTextJustify == "Top Left") {
+        break;
+
+    case JUSTIFY_TOP_LEFT:
         textPath.translate(-jRect.topLeft());
-    }
-    else if (objTextJustify == "Top Center") {
+        break;
+
+    case JUSTIFY_TOP_CENTER:
         textPath.translate(-jRect.center().x(), -jRect.top());
-    }
-    else if (objTextJustify == "Top Right") {
+        break;
+
+    case JUSTIFY_TOP_RIGHT:
         textPath.translate(-jRect.topRight());
-    }
-    else if (objTextJustify == "Middle Left") {
+        break;
+
+    case JUSTIFY_MIDDLE_LEFT:
         textPath.translate(-jRect.left(), -jRect.top()/2.0);
-    }
-    else if (objTextJustify == "Middle Center") {
+        break;
+
+    case JUSTIFY_MIDDLE_CENTER:
         textPath.translate(-jRect.center().x(), -jRect.top()/2.0);
-    }
-    else if (objTextJustify == "Middle Right") {
+        break;
+
+    case JUSTIFY_MIDDLE_RIGHT:
         textPath.translate(-jRect.right(), -jRect.top()/2.0);
-    }
-    else if (objTextJustify == "Bottom Left") {
+        break;
+
+    case JUSTIFY_BOTTOM_LEFT:
         textPath.translate(-jRect.bottomLeft());
-    }
-    else if (objTextJustify == "Bottom Center") {
+        break;
+
+    case JUSTIFY_BOTTOM_CENTER:
         textPath.translate(-jRect.center().x(), -jRect.bottom());
-    }
-    else if (objTextJustify == "Bottom Right") {
+        break;
+
+    case JUSTIFY_BOTTOM_RIGHT:
         textPath.translate(-jRect.bottomRight());
+        break;
+
+    default:
+        break;
     }
 
     /* Backward or Upside Down */
@@ -2849,11 +2868,11 @@ Geometry::setObjectTextFont(QString font)
 void
 Geometry::setObjectTextJustify(QString justify)
 {
-    objTextJustify = "Left";
+    objTextJustify = JUSTIFY_LEFT;
     String justify_ = justify.toStdString();
-    for (int i=0; strcmp(justify_options[i], "END"); i++) {
+    for (int i=0; i<TOTAL_JUSTIFY; i++) {
         if (!strcmp(justify_.c_str(), justify_options[i])) {
-            objTextJustify = justify;
+            objTextJustify = i;
         }
     }
     setObjectText(objText);
@@ -2870,7 +2889,7 @@ Geometry::setObjectTextSize(EmbReal size)
 
 /* bold, italic, under, strike, over */
 void
-Geometry::setObjectTextStyle(bool bold, bool italic, bool under, bool strike, bool over)
+Geometry::setObjectTextStyle(uint8_t bold, uint8_t italic, uint8_t under, uint8_t strike, uint8_t over)
 {
     gdata->flags |= bold * PROP_BOLD;
     gdata->flags |= italic * PROP_ITALIC;
@@ -2883,7 +2902,7 @@ Geometry::setObjectTextStyle(bool bold, bool italic, bool under, bool strike, bo
 /* val
  */
 void
-Geometry::setObjectTextBold(bool val)
+Geometry::setObjectTextBold(uint8_t val)
 {
     gdata->flags |= val * PROP_BOLD;
     setObjectText(objText);
@@ -2891,7 +2910,7 @@ Geometry::setObjectTextBold(bool val)
 
 /* . */
 void
-Geometry::setObjectTextItalic(bool val)
+Geometry::setObjectTextItalic(uint8_t val)
 {
     gdata->flags |= val * PROP_ITALIC;
     setObjectText(objText);
@@ -2899,7 +2918,7 @@ Geometry::setObjectTextItalic(bool val)
 
 /* . */
 void
-Geometry::setObjectTextUnderline(bool val)
+Geometry::setObjectTextUnderline(uint8_t val)
 {
     gdata->flags |= val * PROP_UNDERLINE;
     setObjectText(objText);
@@ -2907,7 +2926,7 @@ Geometry::setObjectTextUnderline(bool val)
 
 /* . */
 void
-Geometry::setObjectTextStrikeOut(bool val)
+Geometry::setObjectTextStrikeOut(uint8_t val)
 {
     gdata->flags |= val * PROP_STRIKEOUT;
     setObjectText(objText);
@@ -2915,7 +2934,7 @@ Geometry::setObjectTextStrikeOut(bool val)
 
 /* . */
 void
-Geometry::setObjectTextOverline(bool val)
+Geometry::setObjectTextOverline(uint8_t val)
 {
     gdata->flags |= val * PROP_OVERLINE;
     setObjectText(objText);
@@ -2923,7 +2942,7 @@ Geometry::setObjectTextOverline(bool val)
 
 /* . */
 void
-Geometry::setObjectTextBackward(bool val)
+Geometry::setObjectTextBackward(uint8_t val)
 {
     gdata->flags |= val * PROP_BACKWARD;
     setObjectText(objText);
@@ -2931,7 +2950,7 @@ Geometry::setObjectTextBackward(bool val)
 
 /* . */
 void
-Geometry::setObjectTextUpsideDown(bool val)
+Geometry::setObjectTextUpsideDown(uint8_t val)
 {
     gdata->flags |= val * PROP_UPSIDEDOWN;
     setObjectText(objText);

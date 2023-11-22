@@ -33,7 +33,7 @@
 
 #include <time.h>
 
-bool test_program = false;
+uint8_t test_program = false;
 
 // Used when checking if fields vary
 QString fieldOldText;
@@ -166,7 +166,7 @@ add_to_path(QPainterPath path, EmbVector scale, std::string command)
  * TODO: error reporting.
  */
 void
-set_enabled(QObject* parent, const char *key, bool enabled)
+set_enabled(QObject* parent, const char *key, uint8_t enabled)
 {
     if (!strncmp(key, "lineEdit", 8)) {
         QLabel* label = parent->findChild<QLabel*>(key);
@@ -199,12 +199,12 @@ set_enabled(QObject* parent, const char *key, bool enabled)
 }
 
 /* Set visibility of parent's object that has the name given by key to
- * the boolean value in visibility.
+ * the uint8_tean value in visibility.
  *
  * TODO: error reporting.
  */
 void
-set_visibility(QObject* parent, const char *key, bool visibility)
+set_visibility(QObject* parent, const char *key, uint8_t visibility)
 {
     if (!strncmp(key, "lineEdit", 8)) {
         QLabel* label = parent->findChild<QLabel*>(key);
@@ -361,7 +361,7 @@ ImageWidget::ImageWidget(QString filename, QWidget* parent) : QWidget(parent)
 }
 
 /* Load image to widget. */
-bool
+uint8_t
 ImageWidget::load(QString fileName)
 {
     img.load(fileName);
@@ -369,7 +369,7 @@ ImageWidget::load(QString fileName)
 }
 
 /* Save image from widget. */
-bool
+uint8_t
 ImageWidget::save(QString fileName)
 {
     img.save(fileName, "PNG");
@@ -459,13 +459,13 @@ make_pixmap(int size, int color)
 void
 LayerManager::addLayer(
     QString name,
-    const bool visible,
-    const bool frozen,
+    const uint8_t visible,
+    const uint8_t frozen,
     const EmbReal zValue,
     const QRgb color,
     QString lineType,
     QString lineWeight,
-    const bool print)
+    const uint8_t print)
 {
     layerModel->insertRow(0);
     layerModel->setData(layerModel->index(0, 0), name);
@@ -606,7 +606,7 @@ UndoEditor::~UndoEditor()
 
 /* . */
 void
-UndoEditor::updateCleanIcon(bool opened)
+UndoEditor::updateCleanIcon(uint8_t opened)
 {
     if (opened) {
         undoView->setEmptyLabel(tr("Open"));
@@ -626,14 +626,14 @@ UndoEditor::addStack(QUndoStack* stack)
 }
 
 /* . */
-bool
+uint8_t
 UndoEditor::canUndo()
 {
     return undoGroup->canUndo();
 }
 
 /* . */
-bool
+uint8_t
 UndoEditor::canRedo()
 {
     return undoGroup->canRedo();
@@ -682,7 +682,7 @@ StatusBar::StatusBar(QWidget *parent) : QStatusBar(parent)
         button->setAutoRaise(true);
         button->setCheckable(true);
 
-        connect(button, &QToolButton::toggled, this, [=](bool a) { toggle(i, a); } );
+        connect(button, &QToolButton::toggled, this, [=](uint8_t a) { toggle(i, a); } );
         buttons[i] = button;
     }
 
@@ -774,7 +774,7 @@ StatusBar::context_menu_event(QContextMenuEvent *event, QToolButton *button)
 }
 
 void
-StatusBar::toggle(int key, bool on)
+StatusBar::toggle(int key, uint8_t on)
 {
     debug_message("StatusBarButton toggleSnap()");
     View* gview = activeView();
@@ -885,7 +885,7 @@ CmdPrompt::CmdPrompt(QWidget* parent) : QWidget(parent)
 
 /* floatingChanged isFloating */
 void
-CmdPrompt::floatingChanged(bool isFloating)
+CmdPrompt::floatingChanged(uint8_t isFloating)
 {
     qDebug("CmdPrompt floatingChanged(%d)", isFloating);
     if (isFloating) {
@@ -898,7 +898,7 @@ CmdPrompt::floatingChanged(bool isFloating)
 
 /* saveHistory fileName html */
 void
-CmdPrompt::saveHistory(QString  fileName, bool html)
+CmdPrompt::saveHistory(QString  fileName, uint8_t html)
 {
     debug_message("CmdPrompt saveHistory");
     QFile file(fileName);
@@ -1878,14 +1878,14 @@ MdiWindow::~MdiWindow()
 }
 
 /* Save file to "fileName". */
-bool
+uint8_t
 MdiWindow::saveFile(std::string fileName)
 {
     return save_current_file(fileName);
 }
 
 /* Load file to this subwindow. */
-bool
+uint8_t
 MdiWindow::loadFile(std::string fileName)
 {
     debug_message("MdiWindow loadFile()");
@@ -1937,7 +1937,7 @@ MdiWindow::loadFile(std::string fileName)
             EmbStitch st = p->stitch_list->stitch[i];
             // int color = 0;
             QPainterPath stitchPath;
-            bool firstPoint = true;
+            uint8_t firstPoint = true;
             EmbVector pos = {0, 0};
             for (; (st.flags <= 2) && (i<stitchCount); i++) {
                 st = p->stitch_list->stitch[i];
@@ -2034,7 +2034,7 @@ MdiWindow::loadFile(std::string fileName)
             if (p->geometry->geometry[i].type == EMB_POLYGON) {
                 EmbPolygon polygon = g.object.polygon;
                 QPainterPath polygonPath;
-                bool firstPoint = false;
+                uint8_t firstPoint = false;
                 EmbReal startX = 0, startY = 0;
                 EmbReal x = 0, y = 0;
                 EmbArray* curPointList = polygon.pointList;
@@ -2062,7 +2062,7 @@ MdiWindow::loadFile(std::string fileName)
             if (p->geometry->geometry[i].type == EMB_POLYLINE) {
                 EmbPolygon polyline = g.object.polyline;
                 QPainterPath polylinePath;
-                bool firstPoint = false;
+                uint8_t firstPoint = false;
                 EmbVector start = {0, 0};
                 EmbVector pos = {0, 0};
                 EmbArray* curPointList = polyline.pointList;
@@ -2246,7 +2246,7 @@ MdiWindow::sizeHint()
 
 /* promptInputPrevNext. */
 void
-MdiWindow::promptInputPrevNext(bool prev)
+MdiWindow::promptInputPrevNext(uint8_t prev)
 {
     if (promptInputList.size() == 0) {
         if (prev) {
@@ -2284,7 +2284,7 @@ MdiWindow::promptInputPrevNext(bool prev)
 }
 
 /* Create a property editor object. */
-PropertyEditor::PropertyEditor(QString  iconDirectory, bool pickAddMode, QWidget* widgetToFocus, QWidget* parent) : QDockWidget(parent)
+PropertyEditor::PropertyEditor(QString  iconDirectory, uint8_t pickAddMode, QWidget* widgetToFocus, QWidget* parent) : QDockWidget(parent)
 {
     debug_message("Creating PropertyEditor...");
     iconDir = iconDirectory;
@@ -2402,13 +2402,13 @@ PropertyEditor::createToolButtonPickAdd()
     // \todo Set as PickAdd or PickNew based on settings
     toolButtonPickAdd = new QToolButton(this);
     updatePickAddModeButton(pickAdd);
-    connect(toolButtonPickAdd, SIGNAL(clicked(bool)), this, SLOT(togglePickAddMode()));
+    connect(toolButtonPickAdd, SIGNAL(clicked(uint8_t)), this, SLOT(togglePickAddMode()));
     return toolButtonPickAdd;
 }
 
 /* . */
 void
-PropertyEditor::updatePickAddModeButton(bool pickAddMode)
+PropertyEditor::updatePickAddModeButton(uint8_t pickAddMode)
 {
     pickAdd = pickAddMode;
     if (pickAdd) {
@@ -2677,7 +2677,7 @@ PropertyEditor::updateLineEditStrIfVaries(QLineEdit* lineEdit, QString str)
 }
 
 void
-PropertyEditor::updateLineEditNumIfVaries(QLineEdit* lineEdit, EmbReal num, bool useAnglePrecision)
+PropertyEditor::updateLineEditNumIfVaries(QLineEdit* lineEdit, EmbReal num, uint8_t useAnglePrecision)
 {
     int precision = 0;
     if (useAnglePrecision) precision = precisionAngle;
@@ -2740,7 +2740,7 @@ PropertyEditor::updateComboBoxStrIfVaries(QComboBox* comboBox, QString str, std:
 }
 
 /* . */
-void PropertyEditor::updateComboBoxBoolIfVaries(QComboBox* comboBox, bool val, bool yesOrNoText)
+void PropertyEditor::updateComboBoxBoolIfVaries(QComboBox* comboBox, uint8_t val, uint8_t yesOrNoText)
 {
     fieldOldText = comboBox->currentText();
     if (yesOrNoText) {
@@ -2897,7 +2897,7 @@ PropertyEditor::createToolButton(QString iconName, QString txt)
 
 /* . */
 QLineEdit*
-PropertyEditor::createLineEdit(int validatorType, bool readOnly)
+PropertyEditor::createLineEdit(int validatorType, uint8_t readOnly)
 {
     QLineEdit* le = new QLineEdit(this);
     switch (validatorType) {
@@ -2936,7 +2936,7 @@ PropertyEditor::mapSignal(QObject* fieldObj, QString  name, QVariant value)
 void
 PropertyEditor::fieldEdited(QObject* fieldObj)
 {
-    static bool blockSignals = false;
+    static uint8_t blockSignals = false;
     if (blockSignals) return;
 
     debug_message("==========Field was Edited==========");
@@ -3147,7 +3147,7 @@ public:
     Application(int argc, char **argv) {}
 protected:
     /* Override the standard file open event. */
-    virtual bool event(QEvent *event)
+    virtual uint8_t event(QEvent *event)
     {
         switch (event->type()) {
         case QEvent::FileOpen:
@@ -3164,7 +3164,7 @@ protected:
 };
 #endif /* MacOS */
 
-static bool exitApp = false;
+static uint8_t exitApp = false;
 
 int
 main(int argc, char* argv[])
