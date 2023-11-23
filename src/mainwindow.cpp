@@ -879,7 +879,7 @@ void
 MainWindow::textFontSelectorCurrentFontChanged(const QFont& font)
 {
     debug_message("textFontSelectorCurrentFontChanged()");
-    strcpy(settings[ST_TEXT_FONT].s, font.family().toStdString().c_str());
+    strcpy(settings[ST_TEXT_FONT].s, CSTR(font.family()));
 }
 
 /* textSizeSelectorIndexChanged index */
@@ -896,7 +896,7 @@ void
 MainWindow::setTextFont(QString str)
 {
     textFontSelector->setCurrentFont(QFont(str));
-    strcpy(settings[ST_TEXT_FONT].s, str.toStdString().c_str());
+    strcpy(settings[ST_TEXT_FONT].s, CSTR(str));
 }
 
 /* Set text size to "num". */
@@ -2669,13 +2669,13 @@ actuator(char *line)
     case ACTION_REDO: {
         QString prefix = prompt->promptInput->prefix;
         if (dockUndoEdit->canRedo()) {
-            prompt_output("Redo " + dockUndoEdit->redoText());
+            prompt_output(CSTR("Redo " + dockUndoEdit->redoText()));
             dockUndoEdit->redo();
-            prompt_output(prefix);
+            prompt_output(CSTR(prefix));
         }
         else {
             prompt->alert("Nothing to redo");
-            prompt_output(prefix);
+            prompt_output(CSTR(prefix));
         }
         return "";
     }
@@ -3029,9 +3029,9 @@ actuator(char *line)
     case ACTION_UNDO: {
         QString prefix = prompt->promptInput->prefix;
         if (dockUndoEdit->canUndo()) {
-            prompt_output("Undo " + dockUndoEdit->undoText());
+            prompt_output(CSTR("Undo " + dockUndoEdit->undoText()));
             dockUndoEdit->undo();
-            prompt_output(prefix);
+            prompt_output(CSTR(prefix));
         }
         else {
             prompt->alert("Nothing to undo");
@@ -3343,25 +3343,7 @@ void
 prompt_output(char *txt)
 {
     QString qtxt(txt);
-    prompt_output(qtxt);
-}
-
-void
-prompt_output(const char *txt)
-{
-    prompt_output((char*)txt);
-}
-
-void
-prompt_output(std::string txt)
-{
-    prompt_output(txt.c_str());
-}
-
-void
-prompt_output(QString txt)
-{
-    prompt->promptInput->appendHistory(txt, prompt->promptInput->prefix.length());
+    prompt->promptInput->appendHistory(qtxt, prompt->promptInput->prefix.length());
 }
 
 /* MainWindow::recentMenuAboutToShow
@@ -3384,7 +3366,7 @@ MainWindow::recentMenuAboutToShow()
         QString file(argv[i]);
         if (i < settings[ST_RECENT_MAX].i) {
             recentFileInfo = QFileInfo(file);
-            if (recentFileInfo.exists() && validFileFormat(recentFileInfo.fileName().toStdString())) {
+            if (recentFileInfo.exists() && validFileFormat(CSTR(recentFileInfo.fileName()))) {
                 recentValue.setNum(i+1);
                 QAction* rAction;
                 if (recentValue.toInt() >= 1 && recentValue.toInt() <= 9) {
@@ -3532,7 +3514,7 @@ MainWindow::openFilesSelected(QStringList filesToOpen)
         return;
     }
     for (int i = 0; i < (int)filesToOpen.size(); i++) {
-        if (!validFileFormat(filesToOpen[i].toStdString())) {
+        if (!validFileFormat(CSTR(filesToOpen[i]))) {
             continue;
         }
 
@@ -3621,7 +3603,7 @@ MainWindow::saveasfile()
     QString openFilesPath = QString::fromStdString(settings[ST_RECENT_DIRECTORY].s);
     QString file = QFileDialog::getSaveFileName(this, translate_str("Save As"), openFilesPath, formatFilterSave);
 
-    mdiWin->saveFile(file.toStdString());
+    save_current_file(CSTR(file));
 }
 
 /* MainWindow::findMdiWindow
@@ -3793,13 +3775,13 @@ MainWindow::updateMenuToolbarStatusbar()
  *
  * TODO: check the file exists on the system, rename to validFile?
  */
-uint8_t
-validFileFormat(std::string fileName)
+int
+validFileFormat(const char *fileName)
 {
-    if (fileName == "") {
+    if (strlen(fileName) == 0) {
         return false;
     }
-    if (emb_identify_format(fileName.c_str()) >= 0) {
+    if (emb_identify_format(fileName) >= 0) {
         return true;
     }
     return false;

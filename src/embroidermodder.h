@@ -30,7 +30,7 @@
 
 #include <QtPrintSupport>
 
-#define CSTR(str) ( (char*)(str.toStdString().c_str()) )
+#define CSTR(str) ( (char*)((str).toStdString().c_str()) )
 
 class ImageWidget;
 class MdiArea;
@@ -53,14 +53,7 @@ extern StatusBar* statusbar;
 extern QAction* actionHash[MAX_ACTIONS];
 
 /* Functions in the global namespace. */
-void prompt_output(char *txt);
-void prompt_output(const char *txt);
-void prompt_output(QString txt);
-void prompt_output(std::string txt);
-
-QString translate_str(const char *str);
 uint8_t contains(std::vector<std::string>, std::string);
-uint8_t validFileFormat(std::string fileName);
 QString fileExtension(std::string fileName);
 
 std::string convert_args_to_type(
@@ -80,8 +73,6 @@ QPainterPath add_to_path(QPainterPath path, EmbVector scale, std::string s);
 
 QPointF to_QPointF(EmbVector a);
 EmbVector to_EmbVector(QPointF a);
-
-uint8_t save_current_file(std::string fileName);
 
 /* Interface creation functions.
  */
@@ -605,7 +596,6 @@ public:
     QString getShortCurrentFile();
     void designDetails();
     uint8_t loadFile(std::string fileName);
-    uint8_t saveFile(std::string fileName);
 signals:
     void sendCloseMdiWin(MdiWindow*);
 

@@ -38,13 +38,14 @@ void toPolyline(
 uint8_t save(View *view, QString f);
 
 /* . */
-uint8_t
-save_current_file(String fileName)
+int
+save_current_file(const char *fileName)
 {
     View* view = activeView();
     QGraphicsScene* gscene = activeScene();
     view->formatType = EMBFORMAT_UNSUPPORTED;
-    return save(view, QString::fromStdString(fileName));
+    QString fname(fileName);
+    return save(view, fname);
 }
 
 /* Find closest point to "position" from the list of points given. */
@@ -2869,7 +2870,7 @@ void
 Geometry::setObjectTextJustify(QString justify)
 {
     objTextJustify = JUSTIFY_LEFT;
-    String justify_ = justify.toStdString();
+    std::string justify_ = justify.toStdString();
     for (int i=0; i<TOTAL_JUSTIFY; i++) {
         if (!strcmp(justify_.c_str(), justify_options[i])) {
             objTextJustify = i;

@@ -584,43 +584,6 @@ int opensave_props[] = {
     -1
 };
 
-/* Check that RBG values are in the range (0,255) inclusive. */
-unsigned char
-validRGB(int r, int g, int b)
-{
-    unsigned char result = (r>=0);
-    result &= (r<256);
-    result &= (g>=0);
-    result &= (g<256);
-    result &= (b>=0);
-    result &= (b<256);
-    return result;
-}
-
-/*
- * Returns the location of the first occurence of c in s if present. Otherwise
- * return -1.
- */
-int
-str_contains(char *s, char c)
-{
-    int i;
-    for (i=0; s[i]; i++) {
-        if (s[i] == c) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/* . */
-int
-string_array_length(const char *list[])
-{
-    int i = 0;
-    for (i=0; strcmp(list[i], "END"); i++) {}
-    return i;
-}
 
 /* Fourier series for parametric plotting. */
 EmbReal

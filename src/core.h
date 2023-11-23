@@ -817,11 +817,17 @@ EmbReal fourier_series(EmbReal arg, EmbReal *terms, int n_terms);
 uint8_t willUnderflowInt32(int64_t a, int64_t b);
 uint8_t willOverflowInt32(int64_t a, int64_t b);
 int roundToMultiple(uint8_t roundUp, int numToRound, int multiple);
+int string_array_length(const char *list[]);
 int tokenize(char **argv, char *str, const char delim);
+
+/* Embroidermodder C++ functions that can be declared with C linkage */
+void prompt_output(char *txt);
+const char *translate_str(const char *str);
+int validFileFormat(const char *fileName);
 void debug_message(const char *msg);
+int save_current_file(const char *fileName);
 int read_settings(void);
 void write_settings(void);
-int string_array_length(const char *list[]);
 EmbVector rotate_vector(EmbVector v, EmbReal alpha);
 
 /* Core functionality */

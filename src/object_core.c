@@ -30,18 +30,6 @@ embVector_init(EmbReal x, EmbReal y)
     return v;
 }
 
-char *
-translate_str(char *str)
-{
-    return str;
-}
-
-void
-prompt_output(char *str)
-{
-    puts(str);
-}
-
 int
 numSelected()
 {

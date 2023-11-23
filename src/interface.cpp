@@ -51,29 +51,10 @@ QDoubleSpinBox *doubleSpinBoxes[TOTAL_EDITORS];
 QComboBox *comboBoxes[TOTAL_EDITORS];
 
 /* Make the translation function global in scope. */
-QString
+const char *
 translate_str(const char *str)
 {
-    return _mainWin->tr(str);
-}
-
-/* Tokenize our command using a 1 character deliminator. */
-int
-tokenize(char **argv, char *str, const char delim)
-{
-    int argc = 0;
-    argv[argc] = 0;
-    if (strlen(str) == 0) {
-        return 0;
-    }
-    for (int i=0; str[i]; i++) {
-        if (str[i] == delim) {
-            str[i] = 0;
-            argc++;
-            argv[argc] = str+i;
-        }
-    }
-    return argc;
+    return CSTR(_mainWin->tr(str));
 }
 
 /* Convert an EmbVector to a QPointF. */
@@ -280,7 +261,8 @@ make_checkbox(
     const char *icon,
     int key)
 {
-    QCheckBox *checkBox = new QCheckBox(translate_str(label), gb);
+    QString label_(translate_str(label));
+    QCheckBox *checkBox = new QCheckBox(label_, gb);
     checkBox->setIcon(_mainWin->create_icon(icon));
     /* checkBox->setName(); */
     if (dictionary == "settings") {
@@ -924,7 +906,7 @@ void
 CmdPrompt::alert(QString txt)
 {
     QString alertTxt = "<font color=\"red\">" + txt + "</font>"; //TODO: Make the alert color customizable
-    prompt_output(alertTxt);
+    prompt_output(CSTR(alertTxt));
 }
 
 /* Start blinking the prompt cursor. */
@@ -1189,10 +1171,12 @@ void
 CmdPromptInput::checkCursorPosition(int oldpos, int newpos)
 {
     qDebug("CmdPromptInput::checkCursorPosition - %d %d", oldpos, newpos);
-    if (this->hasSelectedText())
+    if (this->hasSelectedText()) {
         this->deselect();
-    if (newpos < prefix.length())
+    }
+    if (newpos < prefix.length()) {
         this->setCursorPosition(prefix.length());
+    }
 }
 
 /* changeFormatting */
@@ -1304,15 +1288,17 @@ CmdPromptInput::updateCurrentText(QString txt)
 {
     int cursorPos = cursorPosition();
     if (!txt.startsWith(prefix)) {
-        if (txt.length() < prefix.length())
+        if (txt.length() < prefix.length()) {
             this->setText(prefix);
-        else if (txt.length() != prefix.length())
+        }
+        else if (txt.length() != prefix.length()) {
             this->setText(prefix + txt);
-        else
+        }
+        else {
             this->setText(curText);
+        }
     }
-    else
-    {
+    else {
         // input is okay so update curText
         curText = txt;
         this->setText(curText);
@@ -1496,7 +1482,8 @@ make_label(uint32_t x, QWidget *parent)
 QLabel *
 make_translated_label(char *label_str, QWidget *parent)
 {
-    return new QLabel(translate_str(label_str), parent);
+    QString label(translate_str(label_str));
+    return new QLabel(label, parent);
 }
 
 /* Create a details dialog object. */
@@ -1878,13 +1865,6 @@ MdiWindow::~MdiWindow()
     debug_message("MdiWindow Destructor()");
 }
 
-/* Save file to "fileName". */
-uint8_t
-MdiWindow::saveFile(std::string fileName)
-{
-    return save_current_file(fileName);
-}
-
 /* Load file to this subwindow. */
 uint8_t
 MdiWindow::loadFile(std::string fileName)
@@ -2192,7 +2172,7 @@ void MdiWindow::saveBMC()
 void
 MdiWindow::setCurrentFile(QString fileName)
 {
-    curFile = QFileInfo(fileName).canonicalFilePath();
+    curFile = QFileInfo(CSTR(fileName)).canonicalFilePath();
     setWindowModified(false);
     setWindowTitle(getShortCurrentFile());
 }
@@ -2378,8 +2358,9 @@ PropertyEditor::eventFilter(QObject *obj, QEvent *event)
 QComboBox*
 PropertyEditor::createComboBoxSelected()
 {
+    QString str(translate_str("No Selection"));
     comboBoxSelected = new QComboBox(this);
-    comboBoxSelected->addItem(translate_str("No Selection"));
+    comboBoxSelected->addItem(str);
     return comboBoxSelected;
 }
 
@@ -2477,7 +2458,9 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
 
     /* Populate the selection comboBox. */
     if (numTypes > 1) {
-        comboBoxSelected->addItem(translate_str("Varies") + " (" + QString().setNum(numAll) + ")");
+        QString item = translate_str("Varies");
+        item += " (" + QString().setNum(numAll) + ")";
+        comboBoxSelected->addItem(item);
         connect(comboBoxSelected, SIGNAL(currentIndexChanged(int)), this, SLOT(showOneType(int)));
     }
 
@@ -2488,7 +2471,10 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
             comboBoxStr = tr(object_names[objType - OBJ_TYPE_BASE]) + "(" + num + ")";
         }
         else {
-            comboBoxStr = translate_str("Unknown") + " (" + QString().setNum(numPerType[objType - OBJ_TYPE_UNKNOWN]) + ")";
+            QString unknown(translate_str("Unknown")); 
+            comboBoxStr = unknown + " (";
+            comboBoxStr += QString().setNum(numPerType[objType - OBJ_TYPE_UNKNOWN]);
+            comboBoxStr += ")";
         }
 
         comboBoxSelected->addItem(comboBoxStr, objType);
@@ -3195,7 +3181,7 @@ main(int argc, char* argv[])
         else if (arg == "--cov") {
             test_program = true;
         }
-        else if (QFile::exists(argv[i]) && validFileFormat(arg.toStdString())) {
+        else if (QFile::exists(argv[i]) && validFileFormat(CSTR(arg))) {
             files += arg;
         }
         else {
