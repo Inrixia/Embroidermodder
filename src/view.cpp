@@ -1589,12 +1589,12 @@ View::mouseReleaseEvent(QMouseEvent* event)
     }
     if (event->button() == Qt::XButton1) {
         debug_message("XButton1");
-        actuator_core(ACTION_UNDO, "");
+        actuator("undo");
         event->accept();
     }
     if (event->button() == Qt::XButton2) {
         debug_message("XButton2");
-        actuator_core(ACTION_REDO, "");
+        actuator("redo");
         event->accept();
     }
     gscene->update();

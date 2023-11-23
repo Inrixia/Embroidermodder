@@ -713,7 +713,8 @@ void
 StatusBar::context_menu_action(QToolButton *button, const char *icon, const char *label, QMenu *menu, std::string setting_page)
 {
     QAction* action = new QAction(_mainWin->create_icon(icon), label, menu);
-    connect(action, &QAction::triggered, button, [=](){ actuator("settingsdialog " + setting_page ); });
+    char *command = (char*)("settingsdialog " + setting_page).c_str();
+    connect(action, &QAction::triggered, button, [=](){ actuator(command); });
     menu->addAction(action);
 }
 
@@ -1164,7 +1165,7 @@ CmdPromptInput::processInput()
         }
     }
     else {
-        QString output = QString::fromStdString(actuator(cmdtxt.toStdString()));
+        QString output(actuator(CSTR(cmdtxt)));
         emit appendHistory(curText + output, prefix.length());
     }
 
@@ -1973,7 +1974,7 @@ MdiWindow::loadFile(std::string fileName)
                     c.center.x, c.center.y, c.radius, false, "OBJ_RUBBER_OFF");
                 std::string command(command_str);
                 // NOTE: With natives, the Y+ is up and libembroidery Y+ is up, so inverting the Y is NOT needed.
-                actuator(command); //TODO: fill
+                actuator((char*)command.c_str()); //TODO: fill
             }
             if (g.type == EMB_ELLIPSE) {
                 EmbEllipse e = g.object.ellipse;
@@ -1981,7 +1982,7 @@ MdiWindow::loadFile(std::string fileName)
                     embEllipse_height(e), 0, false, "OBJ_RUBBER_OFF");
                 std::string command(command_str);
                 //NOTE: With natives, the Y+ is up and libembroidery Y+ is up, so inverting the Y is NOT needed.
-                actuator(command); //TODO: rotation and fill
+                actuator((char*)command.c_str()); //TODO: rotation and fill
             }
             if (g.type == EMB_LINE) {
                 EmbLine li = g.object.line;
@@ -1995,7 +1996,7 @@ MdiWindow::loadFile(std::string fileName)
                     "OBJ_RUBBER_OFF");
                 std::string command(command_str);
                 //NOTE: With natives, the Y+ is up and libembroidery Y+ is up, so inverting the Y is NOT needed.
-                actuator(command); //TODO: rotation
+                actuator((char*)command.c_str()); //TODO: rotation
             }
             if (g.type == EMB_PATH) {
                 // TODO: This is unfinished. It needs more work
@@ -2029,7 +2030,7 @@ MdiWindow::loadFile(std::string fileName)
                     po.position.x,
                     po.position.y);
                 std::string command(command_str);
-                actuator(command);
+                actuator((char*)command.c_str());
             }
             if (p->geometry->geometry[i].type == EMB_POLYGON) {
                 EmbPolygon polygon = g.object.polygon;
@@ -2098,7 +2099,7 @@ MdiWindow::loadFile(std::string fileName)
                     false,
                     "OBJ_RUBBER_OFF");
                 std::string command(command_str);
-                actuator(command);
+                actuator((char*)command.c_str());
             }
         }
 

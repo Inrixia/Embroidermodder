@@ -15,8 +15,8 @@
  *  ------------------------------------------------------------
  */
 
-#ifndef __EMBROIDERMODDER_UTILITY_H__
-#define __EMBROIDERMODDER_UTILITY_H__
+#ifndef __EMBROIDERMODDER_H__
+#define __EMBROIDERMODDER_H__
 
 #include <vector>
 #include <string>
@@ -29,6 +29,8 @@
 #include <QApplication>
 
 #include <QtPrintSupport>
+
+#define CSTR(str) ( (char*)(str.toStdString().c_str()) )
 
 class ImageWidget;
 class MdiArea;
@@ -75,12 +77,6 @@ QGraphicsScene* activeScene();
 void set_enabled(QObject *parent, const char *key, uint8_t enabled);
 void set_visibility(QObject *parent, const char *name, uint8_t visibility);
 QPainterPath add_to_path(QPainterPath path, EmbVector scale, std::string s);
-
-const char *actuator(char string[MAX_STRING_LENGTH]);
-std::string actuator_core(int32_t action, std::string args_);
-std::string actuator(std::string line);
-std::string run_script_file(std::string fname);
-std::string run_script(std::vector<std::string> script);
 
 QPointF to_QPointF(EmbVector a);
 EmbVector to_EmbVector(QPointF a);

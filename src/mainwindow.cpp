@@ -22,6 +22,8 @@
 #include <sys/utsname.h>
 #endif
 
+#include "actions.h"
+
 #include "embroidermodder.h"
 
 int pop_command(const char *line);
@@ -43,22 +45,6 @@ QToolBar* toolbarHash[MAX_TOOLBARS];
 QMenu* menuHash[MAX_MENUS];
 QAction* actionHash[MAX_ACTIONS];
 QIcon icon_list[MAX_ICONS];
-
-std::vector<std::string> coverage_test_script = {
-    "new",
-    "icon 16",
-    "icon 32",
-    "icon 64",
-    "icon 128",
-    "icon 24",
-    "zoom in",
-    "zoom extents",
-    "pan up",
-    "pan down",
-    "pan right",
-    "pan left",
-    "quit"
-};
 
 #if defined(WIN32)
 void
@@ -1424,7 +1410,7 @@ MainWindow::MainWindow() : QMainWindow(0)
     showNormal();
 
     if (settings[ST_TIP_OF_THE_DAY].i) {
-        actuator_core(ACTION_TIP_OF_THE_DAY, "");
+        actuator("tip-of-the-day");
     }
 }
 
@@ -1492,7 +1478,7 @@ MainWindow::createAllActions()
             ACTION->setCheckable(true);
         }
 
-        connect(ACTION, &QAction::triggered, this, [=](){ actuator(a.command); });
+        connect(ACTION, &QAction::triggered, this, [=](){ actuator((char*)a.command); });
         actionHash[a.id] = ACTION;
     }
 
@@ -1527,28 +1513,18 @@ MainWindow::createAllActions()
  *     donut 20 40 20 black
  *     ------------------------------------------------------------------
  */
-std::string
-run_script(std::vector<std::string> script)
+const char *
+run_script(char **script, int length)
 {
     std::string output = "";
-    for (int i=0; i<(int)script.size(); i++) {
-        debug_message(script[i].c_str());
+    for (int i=0; i<length; i++) {
+        debug_message(script[i]);
         output += actuator(script[i]);
     }
-    return output;
+    return output.c_str();
 }
 
 #define MAX_ARGS                         10
-
-/* .
- */
-const char *
-actuator(char string[MAX_STRING_LENGTH])
-{
-    std::string s(string);
-    s = actuator(s);
-    return s.c_str();
-}
 
 /* actuator(command)
  *
@@ -1583,28 +1559,36 @@ actuator(char string[MAX_STRING_LENGTH])
  *     engine->evaluate(cmd + "_prompt('" + safeStr.toUpper() + "')", fileName);
  * }
  */
-std::string
-actuator(std::string line)
+const char *
+actuator(char *line)
 {
     char args[MAX_STRING_LENGTH];
     char *argv[100];
     char error_str[MAX_STRING_LENGTH];
+	char output[2*MAX_STRING_LENGTH];
+    std::string args_(args);
+    std::vector<Node> result;
     int i;
     int found_space = 0;
 
-    for (i=0; i<(int)line.size(); i++) {
+    for (i=0; i<strlen(line); i++) {
         if (line[i] == ' ') {
             found_space = 1;
             break;
         }
     }
 
-    strcpy(args, line.c_str());
+    strcpy(args, line);
     int argc = tokenize(argv, args, ' ');
     int action_id = -1;
 
+    /* Set output empty by default. */
+    output[0] = 0;
+
+    int n_actions = EMB_MIN(string_array_length(command_labels), N_ACTIONS);
+
     if (found_space) {
-        for (i=0; i<N_ACTIONS; i++) {
+        for (i=0; i<n_actions; i++) {
             if (!strncmp(argv[0], command_labels[i], strlen(command_labels[i]))) {
                 action_id = i;
                 break;
@@ -1612,8 +1596,8 @@ actuator(std::string line)
         }
     }
     else {
-        for (i=0; i<N_ACTIONS; i++) {
-            if (!strncmp((char*)line.c_str(), command_labels[i], MAX_STRING_LENGTH-1)) {
+        for (i=0; i<n_actions; i++) {
+            if (!strncmp(line, command_labels[i], MAX_STRING_LENGTH-1)) {
                 action_id = i;
                 break;
             }
@@ -1624,34 +1608,19 @@ actuator(std::string line)
     sprintf(error_str, "action: %d\n", action_id);
     debug_message(error_str);
 
-    if (action_id < 0) {
-        char out[2*MAX_STRING_LENGTH];
-        sprintf(out, "<br/><font color=\"red\">Unknown command \"%s\". Press F1 for help.</font>", line.c_str());
-        std::string output(out);
-        return output;
+    if ((action_id < 0) || (action_id >= n_actions)) {
+        sprintf(output,
+            "<br/><font color=\"red\">Unknown command \"%s\". Press F1 for help.</font>",
+            line);
+        prompt_output(output);
+        return "";
     }
 
-    strcpy(args, line.c_str() + strlen(command_labels[action_id]) + 1);
-    std::string args_(args);
-    return actuator_core(action_id, args_);
-}
-
-/* To speed up the majority of actuator calls, rather than using the command
- * hash, jump to the command directly with a jump table.
- *
- * Most calls should use this version directly rather than the CLI style version.
- */
-std::string
-actuator_core(int32_t action_id, std::string args_="")
-{
-    std::vector<Node> result;
-    char args[MAX_STRING_LENGTH];
-    char *argv[MAX_STRING_LENGTH];
+    strcpy(args, line + strlen(command_labels[action_id]) + 1);
     View* gview = activeView();
     std::string log = "actuator_core " + std::to_string(action_id);
     debug_message(log.c_str());
     strcpy(args, args_.c_str());
-    int argc = tokenize(argv, args, ' ');
 
     switch (action_id) {
 
@@ -1667,24 +1636,25 @@ actuator_core(int32_t action_id, std::string args_="")
      */
     case ACTION_ADD_ARC: {
         QGraphicsScene* scene = activeScene();
-        if (gview && scene) {
-            /*
-            EmbArc arc;
-            arc.start.x = startX;
-            arc.start.x = -startY;
-            arc.mid.x = midX;
-            arc.mid.x = -midY;
-            arc.end.x = endX;
-            arc.end.x = -endY;
-            ArcObject* arcObj = new ArcObject(arc,_mainWin->getCurrentColor());
-            arcObj->setObjectRubberMode(rubberMode);
-            if (rubberMode != "OBJ_RUBBER_OFF") {
-                gview->addToRubberRoom(arcObj);
-            }
-            scene->addItem(arcObj);
-            scene->update();
-            */
+        if (!(gview && scene)) {
+            break;
         }
+		EmbArc arc;
+		/*
+		arc.start.x = startX;
+		arc.start.x = -startY;
+		arc.mid.x = midX;
+		arc.mid.x = -midY;
+		arc.end.x = endX;
+		arc.end.x = -endY;
+		ArcObject* arcObj = new ArcObject(arc,_mainWin->getCurrentColor());
+		arcObj->setObjectRubberMode(rubberMode);
+		if (rubberMode != "OBJ_RUBBER_OFF") {
+			gview->addToRubberRoom(arcObj);
+		}
+		scene->addItem(arcObj);
+		scene->update();
+		*/
         return "";
     }
 
@@ -2258,7 +2228,7 @@ actuator_core(int32_t action_id, std::string args_="")
     /* AllowRubber. */
     case ACTION_ALLOW_RUBBER: {
         if (gview) {
-            return std::to_string(gview->allowRubber());
+            return std::to_string(gview->allowRubber()).c_str();
         }
         return "false";
     }
@@ -2266,7 +2236,7 @@ actuator_core(int32_t action_id, std::string args_="")
     /* Can accept no argument. */
     case ACTION_APPEND_HISTORY: {
         prompt->appendHistory(QString::fromStdString(args));
-        return "";
+        break;
     }
 
     /* . */
@@ -2275,7 +2245,9 @@ actuator_core(int32_t action_id, std::string args_="")
         EmbReal y1 = atof(argv[1]);
         EmbReal x2 = atof(argv[2]);
         EmbReal y2 = atof(argv[3]);
-        return std::to_string(QLineF(x1, -y1, x2, -y2).angle());
+        EmbReal angle = QLineF(x1, -y1, x2, -y2).angle();
+        sprintf(output, "%f", angle);
+        break;
     }
 
     /* . */
@@ -2284,14 +2256,16 @@ actuator_core(int32_t action_id, std::string args_="")
         EmbReal y1 = atof(argv[1]);
         EmbReal x2 = atof(argv[2]);
         EmbReal y2 = atof(argv[3]);
-        return std::to_string(QLineF(x1, y1, x2, y2).length());
+        EmbReal length = QLineF(x1, y1, x2, y2).length();
+        sprintf(output, "%f", length);
+        break;
     }
 
     /* Open the changelog dialog. */
     case ACTION_CHANGELOG: {
         QUrl changelogURL("help/changelog.html");
         QDesktopServices::openUrl(changelogURL);
-        return "";
+        break;
     }
 
     /* ClearRubber. */
@@ -2299,7 +2273,7 @@ actuator_core(int32_t action_id, std::string args_="")
         if (gview) {
             gview->clearRubberRoom();
         }
-        return "";
+        break;
     }
 
     /* . */
@@ -2307,7 +2281,7 @@ actuator_core(int32_t action_id, std::string args_="")
         if (gview) {
             gview->clearSelection();
         }
-        return "";
+        break;
     }
 
     /* Copy the selected objects to this activeView's clipboard. */
@@ -2352,7 +2326,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* Allows scripts to produce debug output similar to "echo". */
     case ACTION_DEBUG: {
-        return "DEBUG: " + args_;
+        return (const char*)("DEBUG: " + args_).c_str();
     }
 
     case ACTION_DELETE_SELECTED: {
@@ -2371,7 +2345,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* This action intensionally does nothing. */
     case ACTION_DO_NOTHING: {
-        return "";
+        break;
     }
 
     /* For scripts: ensure that the script is tidied up. */
@@ -2382,7 +2356,7 @@ actuator_core(int32_t action_id, std::string args_="")
             gview->vdata->rapidMoveActive = false;
         }
         prompt->promptInput->endCommand();
-        return "";
+        break;
     }
 
     /* Bring up the error messagebox. */
@@ -2391,8 +2365,8 @@ actuator_core(int32_t action_id, std::string args_="")
         _mainWin->setPromptPrefix("ERROR: (" + a[0].s + ") " + a[1].s);
         */
         prompt_output("ERROR: ");
-        actuator_core(ACTION_END);
-        return "";
+        actuator("end");
+        break;
     }
 
     /* Open the help dialog. */
@@ -2407,7 +2381,7 @@ actuator_core(int32_t action_id, std::string args_="")
         //arguments << "help/commands.html";
         //QProcess *myProcess = new QProcess(this);
         //myProcess->start(program, arguments);
-        return "";
+        break;
     }
 
     case ACTION_ICON: {
@@ -2490,7 +2464,10 @@ actuator_core(int32_t action_id, std::string args_="")
     case ACTION_MOUSE_X: {
         QGraphicsScene* scene = activeScene();
         if (scene) {
-            return std::to_string(scene->property("SCENE_MOUSE_POINT").toPointF().x());
+            EmbReal x = scene->property("SCENE_MOUSE_POINT").toPointF().x();
+            char output[MAX_STRING_LENGTH];
+            sprintf(output, "%f", x);
+            return output;
         }
         return "0.0";
     }
@@ -2499,7 +2476,10 @@ actuator_core(int32_t action_id, std::string args_="")
     case ACTION_MOUSE_Y: {
         QGraphicsScene* scene = activeScene();
         if (scene) {
-            return std::to_string(scene->property("SCENE_MOUSE_POINT").toPointF().y());
+            EmbReal y = scene->property("SCENE_MOUSE_POINT").toPointF().y();
+            char output[MAX_STRING_LENGTH];
+            sprintf(output, "%f", y);
+            return output;
         }
         return "0.0";
     }
@@ -2513,13 +2493,13 @@ actuator_core(int32_t action_id, std::string args_="")
         if (gview) {
             gview->moveSelected(delta);
         }
-        return "";
+        break;
     }
 
     /* . */
     case ACTION_NEW: {
         _mainWin->newFile();
-        return "";
+        break;
     }
 
     /* Activate night vision.
@@ -2531,7 +2511,7 @@ actuator_core(int32_t action_id, std::string args_="")
             gview->setCrossHairColor(qRgb(255,255,255));
             gview->setGridColor(qRgb(255,255,255));
         }
-        return "0";
+        break;
     }
 
     /* Return the number of objects selected currently,
@@ -2539,14 +2519,15 @@ actuator_core(int32_t action_id, std::string args_="")
      */
     case ACTION_NUM_SELECTED: {
         if (gview) {
-            return std::to_string(gview->numSelected());
+            sprintf(output, "%d", gview->numSelected());
         }
-        return "0";
+        strcpy(output, "0");
+        break;
     }
 
     case ACTION_OPEN: {
         _mainWin->openFile();
-        return "";
+        break;
     }
 
     /* Pan the current view using behaviour described by "mode". */
@@ -2615,12 +2596,12 @@ actuator_core(int32_t action_id, std::string args_="")
         norm.translate(dx, dy);
         QPointF iPoint;
         norm.intersects(line, &iPoint);
-        return std::to_string(QLineF(px, py, iPoint.x(), iPoint.y()).length());
+        return std::to_string(QLineF(px, py, iPoint.x(), iPoint.y()).length()).c_str();
     }
 
     /* Return the platform running the software (for the CLI). */
     case ACTION_PLATFORM: {
-        return platformString();
+        return platformString().c_str();
     }
 
     /* Turn preview off for this view. */
@@ -2650,8 +2631,7 @@ actuator_core(int32_t action_id, std::string args_="")
     case ACTION_PRINT_AREA: {
         // qDebug("nativeprint_area_action(%.2f, %.2f, %.2f, %.2f)", x, y, w, h);
         // TODO: Print Setup Stuff
-        actuator("print " + args_);
-        return "";
+        return actuator((char*)("print " + args_).c_str());
     }
 
     /* QSnapX
@@ -2660,7 +2640,7 @@ actuator_core(int32_t action_id, std::string args_="")
         QGraphicsScene* scene = activeScene();
         if (scene) {
             float x = scene->property("SCENE_QSNAP_POINT").toPointF().x();
-            return std::to_string(x);
+            return std::to_string(x).c_str();
         }
         return "0.0";
     }
@@ -2671,7 +2651,7 @@ actuator_core(int32_t action_id, std::string args_="")
         QGraphicsScene* scene = activeScene();
         if (scene) {
             float y = scene->property("SCENE_QSNAP_POINT").toPointF().y();
-            return std::to_string(y);
+            return std::to_string(y).c_str();
         }
         return "0.0";
     }
@@ -2941,7 +2921,7 @@ actuator_core(int32_t action_id, std::string args_="")
      * without updating all rubber objects at once
      */
     case ACTION_SET_RUBBER_FILTER: {
-        return args_;
+        return args_.c_str();
     }
 
     case ACTION_SET_RUBBER_MODE: {
@@ -3025,7 +3005,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     case ACTION_TEST: {
         if (test_program) {
-            return run_script(coverage_test_script);
+            return run_script(coverage_test_script, 13);
         }
         return "";
     }
@@ -3038,7 +3018,8 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* TODO reminders for the developers. */
     case ACTION_TODO: {
-        return "TODO: " + args_;
+        debug_message(("TODO: " + args_).c_str());
+        break;
     }
 
     /* Undo the previous action as defined on the undo stack.
@@ -3060,8 +3041,7 @@ actuator_core(int32_t action_id, std::string args_="")
 
     /* Return the version string to the user (for the CLI). */
     case ACTION_VERSION: {
-        std::string v(version);
-        return v;
+        return version;
     }
 
     case ACTION_VULCANIZE: {
