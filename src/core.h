@@ -23,18 +23,6 @@
 #ifndef __EMBROIDERMODDER_CONSTANTS__
 #define __EMBROIDERMODDER_CONSTANTS__
 
-/* Node types. */
-#define NODE_NULL                                0
-#define NODE_STRING                              1
-#define NODE_REAL                                2
-#define NODE_INT                                 3
-#define NODE_BOOL                                4
-#define NODE_FUNCTION                            5
-#define NODE_DICTIONARY                          6
-#define NODE_ARRAY                               7
-#define NODE_VECTOR                              8
-#define NODE_UNKNOWN                             9
-
 /* OBJ_LTYPE_VALUES */
 // CAD Linetypes
 #define OBJ_LTYPE_CONT                          0
@@ -650,22 +638,6 @@
 #define PREVIEW_CLONE_RUBBER                     1
 #define PREVIEW_CLONE_SELECTED                   2
 
-/* Menus */
-#define MENU_ICON                               -4
-#define MENU_SUBMENU                            -3
-#define MENU_SEPERATOR                          -2
-#define MENU_END                                -1
-#define MENU_FILE                                0
-#define MENU_EDIT                                1
-#define MENU_VIEW                                2
-#define MENU_SETTINGS                            3
-#define MENU_WINDOW                              4
-#define MENU_HELP                                5
-#define MENU_DRAW                                6
-#define MENU_RECENT                              7
-#define MENU_ZOOM                                8
-#define MENU_PAN                                 9
-#define TOTAL_MENUS                             10
 
 /* Command Prompt Style. */
 #define CONSOLE_STYLE_COLOR                      0
@@ -694,7 +666,6 @@ extern "C" {
 #include <stdio.h>
 
 #include "sizes.h"
-#include "toolbars.h"
 
 #include "../extern/libembroidery/src/embroidery.h"
 
@@ -785,15 +756,6 @@ typedef struct ViewData_ {
     uint8_t qSnapActive;
 } ViewData;
 
-/*
- */
-typedef struct MenuData_ {
-    int32_t id;
-    const char key[MAX_STRING_LENGTH];
-    int32_t entries[MAX_TOOLBAR_LENGTH];
-} MenuData;
-
-
 typedef struct RubberPoint_ {
     char key[MAX_STRING_LENGTH];
     char text[MAX_STRING_LENGTH];
@@ -880,20 +842,6 @@ extern const char *justify_options[];
 extern const char *object_names[];
 extern const char *button_list[];
 extern const char *tips[];
-
-/* Menus data */
-extern MenuData menu_data[MAX_MENUS];
-extern int32_t menubar_order[];
-extern int32_t file_menu[];
-extern int32_t edit_menu[];
-extern int32_t pan_menu[];
-extern int32_t zoom_menu[];
-extern int32_t view_menu[];
-extern int32_t settings_menu[];
-extern int32_t window_menu[];
-extern int32_t help_menu[];
-extern int32_t draw_menu[];
-extern const char *menu_labels[];
 
 /* Property editor data */
 extern const char *group_box_data[];

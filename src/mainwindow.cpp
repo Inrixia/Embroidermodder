@@ -23,6 +23,7 @@
 #endif
 
 #include "actions.h"
+#include "menus.h"
 
 #include "embroidermodder.h"
 
@@ -217,13 +218,13 @@ MainWindow::createAllToolbars()
     //NOTE: Qt4.7 wont load icons without an extension...
     colorSelector->addItem(create_icon("colorbylayer"), "ByLayer");
     colorSelector->addItem(create_icon("colorbyblock"), "ByBlock");
-    colorSelector->addItem(create_icon("colorred"), tr("Red"),     qRgb(255,  0,  0));
-    colorSelector->addItem(create_icon("coloryellow"), tr("Yellow"),  qRgb(255,255,  0));
-    colorSelector->addItem(create_icon("colorgreen"), tr("Green"),   qRgb(  0,255,  0));
-    colorSelector->addItem(create_icon("colorcyan"), tr("Cyan"),    qRgb(  0,255,255));
-    colorSelector->addItem(create_icon("colorblue"), tr("Blue"),    qRgb(  0,  0,255));
+    colorSelector->addItem(create_icon("colorred"), tr("Red"), qRgb(255,  0,  0));
+    colorSelector->addItem(create_icon("coloryellow"), tr("Yellow"), qRgb(255,255,  0));
+    colorSelector->addItem(create_icon("colorgreen"), tr("Green"), qRgb(  0,255,  0));
+    colorSelector->addItem(create_icon("colorcyan"), tr("Cyan"), qRgb(  0,255,255));
+    colorSelector->addItem(create_icon("colorblue"), tr("Blue"), qRgb(  0,  0,255));
     colorSelector->addItem(create_icon("colormagenta"), tr("Magenta"), qRgb(255,  0,255));
-    colorSelector->addItem(create_icon("colorwhite"), tr("White"),   qRgb(255,255,255));
+    colorSelector->addItem(create_icon("colorwhite"), tr("White"), qRgb(255,255,255));
     colorSelector->addItem(create_icon("colorother"), tr("Other..."));
     toolbarHash[TOOLBAR_PROPERTIES]->addWidget(colorSelector);
     connect(colorSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(colorSelectorIndexChanged(int)));

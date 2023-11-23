@@ -77,7 +77,7 @@ add_polyline(QPainterPath p, String rubberMode)
     obj->normalPath = p;
     obj->updatePath();
     obj->objRubberMode = rubberMode;
-    if (rubberMode != "OBJ_RUBBER_OFF") {
+    if (rubberMode != "RUBBER_OFF") {
         gview->addToRubberRoom(obj);
         gscene->addItem(obj);
         gscene->update();
@@ -108,6 +108,8 @@ Geometry::init(int type_, QRgb rgb, Qt::PenStyle lineType, QGraphicsItem* parent
 
     setFlag(QGraphicsItem::ItemIsSelectable, true);
 
+    gdata = geometry_init(Type);
+
     objPen.setColor(rgb);
     lwtPen.setColor(rgb);
     objPen.setStyle(lineType);
@@ -121,43 +123,8 @@ Geometry::init(int type_, QRgb rgb, Qt::PenStyle lineType, QGraphicsItem* parent
 
     setObjectLineWeight("0.35"); //TODO: pass in proper lineweight
 
-    switch (Type) {
-    case OBJ_TYPE_ARC:
-        setData(OBJ_NAME, "Arc");
-        break;
-    case OBJ_TYPE_CIRCLE:
-        setData(OBJ_NAME, "Circle");
-        break;
-    case OBJ_TYPE_ELLIPSE:
-        setData(OBJ_NAME, "Ellipse");
-        break;
-    case OBJ_TYPE_DIMLEADER:
-        setData(OBJ_NAME, "Dimension Leader");
-        break;
-    case OBJ_TYPE_LINE:
-        setData(OBJ_NAME, "Line");
-        break;
-    case OBJ_TYPE_POINT:
-        setData(OBJ_NAME, "Point");
-        break;
-    case OBJ_TYPE_POLYGON:
-        setData(OBJ_NAME, "Polygon");
-        break;
-    case OBJ_TYPE_POLYLINE:
-        setData(OBJ_NAME, "Polyline");
-        break;
-    case OBJ_TYPE_RECTANGLE:
-        setData(OBJ_NAME, "Rectangle");
-        break;
-    case OBJ_TYPE_TEXTSINGLE:
-        setData(OBJ_NAME, "Single Line Text");
-        break;
-    case OBJ_TYPE_TEXTMULTI:
-        setData(OBJ_NAME, "Multi Line Text");
-        break;
-    default:
-        setData(OBJ_NAME, "Unknown");
-        break;
+    if (Type >= OBJ_TYPE_BASE) {
+        setData(OBJ_NAME, object_names[Type-OBJ_TYPE_BASE]);
     }
 
     setPen(objPen);
@@ -208,39 +175,30 @@ Geometry::update(void)
         break;
     }
     case OBJ_TYPE_DIMLEADER: {
-        setData(OBJ_NAME, "Dimension Leader");
         break;
     }
     case OBJ_TYPE_LINE: {
-        setData(OBJ_NAME, "Line");
         break;
     }
     case OBJ_TYPE_POINT: {
-        setData(OBJ_NAME, "Point");
         break;
     }
     case OBJ_TYPE_POLYGON: {
-        setData(OBJ_NAME, "Polygon");
         break;
     }
     case OBJ_TYPE_POLYLINE: {
-        setData(OBJ_NAME, "Polyline");
         break;
     }
     case OBJ_TYPE_RECTANGLE: {
-        setData(OBJ_NAME, "Rectangle");
         break;
     }
     case OBJ_TYPE_TEXTSINGLE: {
-        setData(OBJ_NAME, "Single Line Text");
         break;
     }
     case OBJ_TYPE_TEXTMULTI: {
-        setData(OBJ_NAME, "Multi Line Text");
         break;
     }
     default: {
-        setData(OBJ_NAME, "Unknown");
         break;
     }
     }
@@ -483,7 +441,7 @@ Geometry::objectRubberText(QString key)
 QRectF
 Geometry::boundingRect()
 {
-    if (objRubberMode == "OBJ_RUBBER_GRIP") {
+    if (objRubberMode == "RUBBER_GRIP") {
         return scene()->sceneRect();
     }
     return path().boundingRect();
@@ -607,12 +565,10 @@ QPointF
 Geometry::objectEndPoint2()
 {
     EmbVector v;
-    EmbReal rot = radians(rotation());
-    v.x = objLine.x2()*scale();
-    v.y = objLine.y2()*scale();
-    QPointF rotEnd = to_QPointF(rotate_vector(v, rot));
+    v.x = objLine.x2();
+    v.y = objLine.y2();
 
-    return scenePos() + rotEnd;
+    return scenePos() + scale_and_rotate(to_QPointF(v));
 }
 
 /* Geometry::updateLeader */
@@ -709,14 +665,14 @@ Geometry::updateRubber(QPainter* painter)
 {
     switch (Type) {
     case OBJ_TYPE_DIMLEADER: {
-        if (objRubberMode == "OBJ_RUBBER_DIMLEADER_LINE") {
+        if (objRubberMode == "RUBBER_DIMLEADER_LINE") {
             QPointF sceneStartPoint = objectRubberPoint("DIMLEADER_LINE_START");
             QPointF sceneQSnapPoint = objectRubberPoint("DIMLEADER_LINE_END");
 
             setObjectEndPoint1(to_EmbVector(sceneStartPoint));
             setObjectEndPoint2(to_EmbVector(sceneQSnapPoint));
         }
-        else if (objRubberMode == "OBJ_RUBBER_GRIP") {
+        else if (objRubberMode == "RUBBER_GRIP") {
             if (painter) {
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
                 if (gripPoint == objectEndPoint1()) {
@@ -734,7 +690,7 @@ Geometry::updateRubber(QPainter* painter)
     }
 
     case OBJ_TYPE_ELLIPSE: {
-        if (objRubberMode == "OBJ_RUBBER_ELLIPSE_LINE") {
+        if (objRubberMode == "RUBBER_ELLIPSE_LINE") {
             QPointF sceneLinePoint1 = objectRubberPoint("ELLIPSE_LINE_POINT1");
             QPointF sceneLinePoint2 = objectRubberPoint("ELLIPSE_LINE_POINT2");
             QPointF itemLinePoint1 = mapFromScene(sceneLinePoint1);
@@ -743,7 +699,7 @@ Geometry::updateRubber(QPainter* painter)
             if (painter) drawRubberLine(itemLine, painter, "VIEW_COLOR_CROSSHAIR");
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_ELLIPSE_MAJORDIAMETER_MINORRADIUS") {
+        else if (objRubberMode == "RUBBER_ELLIPSE_MAJORDIAMETER_MINORRADIUS") {
             QPointF sceneAxis1Point1 = objectRubberPoint("ELLIPSE_AXIS1_POINT1");
             QPointF sceneAxis1Point2 = objectRubberPoint("ELLIPSE_AXIS1_POINT2");
             QPointF sceneCenterPoint = objectRubberPoint("ELLIPSE_CENTER");
@@ -775,7 +731,7 @@ Geometry::updateRubber(QPainter* painter)
             if (painter) drawRubberLine(itemLine, painter, "VIEW_COLOR_CROSSHAIR");
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_ELLIPSE_MAJORRADIUS_MINORRADIUS") {
+        else if (objRubberMode == "RUBBER_ELLIPSE_MAJORRADIUS_MINORRADIUS") {
             QPointF sceneAxis1Point2 = objectRubberPoint("ELLIPSE_AXIS1_POINT2");
             QPointF sceneCenterPoint = objectRubberPoint("ELLIPSE_CENTER");
             QPointF sceneAxis2Point2 = objectRubberPoint("ELLIPSE_AXIS2_POINT2");
@@ -806,7 +762,7 @@ Geometry::updateRubber(QPainter* painter)
             if (painter) drawRubberLine(itemLine, painter, "VIEW_COLOR_CROSSHAIR");
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_GRIP") {
+        else if (objRubberMode == "RUBBER_GRIP") {
             //TODO: updateRubber() gripping for Geometry
         }
 
@@ -814,7 +770,7 @@ Geometry::updateRubber(QPainter* painter)
     }
 
     case OBJ_TYPE_IMAGE: {
-        if (objRubberMode == "OBJ_RUBBER_IMAGE") {
+        if (objRubberMode == "RUBBER_IMAGE") {
             QPointF sceneStartPoint = objectRubberPoint("IMAGE_START");
             QPointF sceneEndPoint = objectRubberPoint("IMAGE_END");
             EmbReal x = sceneStartPoint.x();
@@ -824,7 +780,7 @@ Geometry::updateRubber(QPainter* painter)
             setObjectRect(x,y,w,h);
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_GRIP") {
+        else if (objRubberMode == "RUBBER_GRIP") {
             //TODO: updateRubber() gripping for ImageObject
         }
         break;
@@ -832,7 +788,7 @@ Geometry::updateRubber(QPainter* painter)
 
     case OBJ_TYPE_LINE: {
         String rubberMode = objRubberMode;
-        if (rubberMode == "OBJ_RUBBER_LINE") {
+        if (rubberMode == "RUBBER_LINE") {
             QPointF sceneStartPoint = objectRubberPoint("LINE_START");
             QPointF sceneQSnapPoint = objectRubberPoint("LINE_END");
 
@@ -841,7 +797,7 @@ Geometry::updateRubber(QPainter* painter)
 
             drawRubberLine(objLine, painter, "VIEW_COLOR_CROSSHAIR");
         }
-        else if (rubberMode == "OBJ_RUBBER_GRIP") {
+        else if (rubberMode == "RUBBER_GRIP") {
             if (painter) {
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
                 if (gripPoint == objectEndPoint1()) {
@@ -861,7 +817,7 @@ Geometry::updateRubber(QPainter* painter)
     }
 
     case OBJ_TYPE_CIRCLE: {
-        if (objRubberMode == "OBJ_RUBBER_CIRCLE_1P_RAD") {
+        if (objRubberMode == "RUBBER_CIRCLE_1P_RAD") {
             QPointF sceneCenterPoint = objectRubberPoint("CIRCLE_CENTER");
             QPointF sceneQSnapPoint = objectRubberPoint("CIRCLE_RADIUS");
             QPointF itemCenterPoint = mapFromScene(sceneCenterPoint);
@@ -874,7 +830,7 @@ Geometry::updateRubber(QPainter* painter)
             if (painter) drawRubberLine(itemLine, painter, "VIEW_COLOR_CROSSHAIR");
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_CIRCLE_1P_DIA") {
+        else if (objRubberMode == "RUBBER_CIRCLE_1P_DIA") {
             QPointF sceneCenterPoint = objectRubberPoint("CIRCLE_CENTER");
             QPointF sceneQSnapPoint = objectRubberPoint("CIRCLE_DIAMETER");
             QPointF itemCenterPoint = mapFromScene(sceneCenterPoint);
@@ -887,7 +843,7 @@ Geometry::updateRubber(QPainter* painter)
             if (painter) drawRubberLine(itemLine, painter, "VIEW_COLOR_CROSSHAIR");
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_CIRCLE_2P") {
+        else if (objRubberMode == "RUBBER_CIRCLE_2P") {
             QPointF sceneTan1Point = objectRubberPoint("CIRCLE_TAN1");
             QPointF sceneQSnapPoint = objectRubberPoint("CIRCLE_TAN2");
             QLineF sceneLine(sceneTan1Point, sceneQSnapPoint);
@@ -896,7 +852,7 @@ Geometry::updateRubber(QPainter* painter)
             setObjectDiameter(diameter);
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_CIRCLE_3P") {
+        else if (objRubberMode == "RUBBER_CIRCLE_3P") {
             QPointF sceneTan1Point = objectRubberPoint("CIRCLE_TAN1");
             QPointF sceneTan2Point = objectRubberPoint("CIRCLE_TAN2");
             QPointF sceneTan3Point = objectRubberPoint("CIRCLE_TAN3");
@@ -914,7 +870,7 @@ Geometry::updateRubber(QPainter* painter)
             setObjectRadius(radius);
             updatePath();
         }
-        else if (objRubberMode == "OBJ_RUBBER_GRIP") {
+        else if (objRubberMode == "RUBBER_GRIP") {
             if (painter) {
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
                 if (gripPoint == scenePos()) {
@@ -933,7 +889,7 @@ Geometry::updateRubber(QPainter* painter)
     }
 
     case OBJ_TYPE_POINT: {
-        if (objRubberMode == "OBJ_RUBBER_GRIP") {
+        if (objRubberMode == "RUBBER_GRIP") {
             if (painter) {
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
                 if (gripPoint == scenePos()) {
@@ -947,7 +903,7 @@ Geometry::updateRubber(QPainter* painter)
 
     case OBJ_TYPE_POLYGON: {
         String rubberMode = objRubberMode;
-        if (rubberMode == "OBJ_RUBBER_POLYGON") {
+        if (rubberMode == "RUBBER_POLYGON") {
             setObjectPos(objectRubberPoint("POLYGON_POINT_0"));
 
             bool ok = false;
@@ -970,7 +926,7 @@ Geometry::updateRubber(QPainter* painter)
             //Ensure the path isn't updated until the number of points is changed again
             objRubberTexts.insert("POLYGON_NUM_POINTS", QString());
         }
-        else if (rubberMode == "OBJ_RUBBER_POLYGON_INSCRIBE") {
+        else if (rubberMode == "RUBBER_POLYGON_INSCRIBE") {
             setObjectPos(objectRubberPoint("POLYGON_CENTER"));
 
             quint16 numSides = objectRubberPoint("POLYGON_NUM_SIDES").x();
@@ -993,7 +949,7 @@ Geometry::updateRubber(QPainter* painter)
             // \todo fix this
             //updatePath(inscribePath);
         }
-        else if (rubberMode == "OBJ_RUBBER_POLYGON_CIRCUMSCRIBE") {
+        else if (rubberMode == "RUBBER_POLYGON_CIRCUMSCRIBE") {
             setObjectPos(objectRubberPoint("POLYGON_CENTER"));
 
             quint16 numSides = objectRubberPoint("POLYGON_NUM_SIDES").x();
@@ -1027,7 +983,7 @@ Geometry::updateRubber(QPainter* painter)
             // \todo fix this
             // updatePath(circumscribePath);
         }
-        else if (rubberMode == "OBJ_RUBBER_GRIP") {
+        else if (rubberMode == "RUBBER_GRIP") {
             if (painter) {
                 int elemCount = normalPath.elementCount();
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
@@ -1056,7 +1012,7 @@ Geometry::updateRubber(QPainter* painter)
 
     case OBJ_TYPE_POLYLINE: {
         String rubberMode = objRubberMode;
-        if (rubberMode == "OBJ_RUBBER_POLYLINE") {
+        if (rubberMode == "RUBBER_POLYLINE") {
             setObjectPos(objectRubberPoint("POLYLINE_POINT_0"));
 
             QLineF rubberLine(normalPath.currentPosition(), mapFromScene(objectRubberPoint(QString())));
@@ -1081,7 +1037,7 @@ Geometry::updateRubber(QPainter* painter)
             //Ensure the path isn't updated until the number of points is changed again
             objRubberTexts.insert("POLYLINE_NUM_POINTS", QString());
         }
-        else if (rubberMode == "OBJ_RUBBER_GRIP") {
+        else if (rubberMode == "RUBBER_GRIP") {
             if (painter) {
                 int elemCount = normalPath.elementCount();
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
@@ -1117,7 +1073,7 @@ Geometry::updateRubber(QPainter* painter)
 
     case OBJ_TYPE_RECTANGLE: {
         String rubberMode = objRubberMode;
-        if (objRubberMode == "OBJ_RUBBER_RECTANGLE") {
+        if (objRubberMode == "RUBBER_RECTANGLE") {
             QPointF sceneStartPoint = objectRubberPoint("RECTANGLE_START");
             QPointF sceneEndPoint = objectRubberPoint("RECTANGLE_END");
             EmbReal x = sceneStartPoint.x();
@@ -1127,7 +1083,7 @@ Geometry::updateRubber(QPainter* painter)
             setObjectRect(x,y,w,h);
             updatePath();
         }
-        else if (rubberMode == "OBJ_RUBBER_GRIP") {
+        else if (rubberMode == "RUBBER_GRIP") {
             if (painter) {
                 //TODO: Make this work with rotation & scaling
                 /*
@@ -1157,7 +1113,7 @@ Geometry::updateRubber(QPainter* painter)
     }
 
     case OBJ_TYPE_TEXTSINGLE: {
-        if (objRubberMode == "OBJ_RUBBER_TEXTSINGLE") {
+        if (objRubberMode == "RUBBER_TEXTSINGLE") {
             setObjectTextFont(objectRubberText("TEXT_FONT"));
             setObjectTextJustify(objectRubberText("TEXT_JUSTIFY"));
             setObjectPos(objectRubberPoint("TEXT_POINT"));
@@ -1166,7 +1122,7 @@ Geometry::updateRubber(QPainter* painter)
             setRotation(hr.y());
             setObjectText(objectRubberText("TEXT_RAPID"));
         }
-        else if (objRubberMode == "OBJ_RUBBER_GRIP") {
+        else if (objRubberMode == "RUBBER_GRIP") {
             if (painter) {
                 QPointF gripPoint = objectRubberPoint("GRIP_POINT");
                 if (gripPoint == scenePos()) {
@@ -1315,7 +1271,7 @@ Geometry::vulcanize(void)
     debug_message("DimLeaderObject vulcanize()");
     updateRubber();
 
-    objRubberMode = "OBJ_RUBBER_OFF";
+    objRubberMode = "RUBBER_OFF";
 
     if (Type == OBJ_TYPE_POLYGON) {
         if (!normalPath.elementCount()) {
@@ -1924,7 +1880,7 @@ Geometry::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidg
     }
 
     case OBJ_TYPE_LINE: {
-        if (objRubberMode != "OBJ_RUBBER_LINE") {
+        if (objRubberMode != "RUBBER_LINE") {
             painter->drawLine(objLine);
         }
 

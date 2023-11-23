@@ -185,3 +185,34 @@ ToolbarData toolbar_data[MAX_TOOLBARS] = {
         .horizontal = 1
     }
 };
+
+/*  . */
+int32_t top_toolbar_layout[] = {
+    TOOLBAR_SEPERATOR,
+    TOOLBAR_FILE,
+    TOOLBAR_EDIT,
+    TOOLBAR_HELP,
+    TOOLBAR_ICON,
+    TOOLBAR_SEPERATOR,
+    TOOLBAR_ZOOM,
+    TOOLBAR_PAN,
+    TOOLBAR_VIEW,
+    TOOLBAR_SEPERATOR,
+    TOOLBAR_LAYER,
+    TOOLBAR_PROPERTIES,
+    TOOLBAR_SEPERATOR,
+    TOOLBAR_TEXT,
+    TOOLBAR_END
+};
+
+/*  . */
+int32_t bottom_toolbar_layout[] = {
+    TOOLBAR_PROMPT,
+    TOOLBAR_END
+};
+
+/*  . */
+int32_t side_toolbar_layout[] = {
+    TOOLBAR_DRAW,
+    TOOLBAR_END
+};

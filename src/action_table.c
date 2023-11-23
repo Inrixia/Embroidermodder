@@ -18,6 +18,15 @@
 #include "actions.h"
 
 /* . */
+const char *alias_table[] = {
+    "exit", "quit",
+    "u", "undo",
+    "close", "windowclose",
+    "closeall", "windowcloseall",
+    "cascade", "windowcascade"
+};
+
+/* . */
 const char *command_labels[] = {
     "about",                        /* 0 */
     "add_arc",                      /* 1 */

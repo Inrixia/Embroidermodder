@@ -23,6 +23,7 @@
 
 /* From this source code directory. */
 #include "core.h"
+#include "toolbars.h"
 
 /* Qt 6.0+ libraries. */
 #include <QAction>
