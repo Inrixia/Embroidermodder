@@ -75,6 +75,14 @@ to_EmbVector(QPointF a)
     return v;
 }
 
+QIcon
+swatch(int32_t c)
+{
+    QPixmap crosshairPix(16,16);
+    crosshairPix.fill(QColor(c));
+    return QIcon(crosshairPix);
+}
+
 /* Debug message wrapper for qDebug.
  *
  * For debugging code running on other machines append these messages to log
@@ -2827,7 +2835,7 @@ PropertyEditor::createGroupBox(int group_box_key, const char *title)
     int group_box_type = group_box_ids[group_box_key];
 
     for (int i=0; all_line_editors[i].key >= 0; i++) {
-        LineEditData gbd = all_line_editors[i];
+        WidgetData gbd = all_line_editors[i];
         if (all_line_editors[i].groupbox == group_box_key) {
             continue;
         }

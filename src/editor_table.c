@@ -85,7 +85,7 @@ const int32_t group_box_ids[] = {
 };
 
 /* . */
-const LineEditData all_line_editors[MAX_EDITORS] = {
+const WidgetData all_line_editors[MAX_EDITORS] = {
     {
         .groupbox = GB_GENERAL,
         .key = ED_GENERAL_LAYER,
@@ -969,14 +969,14 @@ const LineEditData all_line_editors[MAX_EDITORS] = {
     }
 };
 
-const SpinBoxEditData all_spinbox_editors[] = {
+const WidgetData all_spinbox_editors[] = {
     /* end symbol */
     {
-        .groupbox = "END",
-        .key = "END",
+        .groupbox = 0,
+        .key = 0,
         .icon = "END",
         .label = "END",
-        .type = "END",
+        .type = 0,
         .map_signal = "END"
     }
 };

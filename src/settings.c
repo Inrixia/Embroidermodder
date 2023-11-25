@@ -192,85 +192,165 @@ const char *load_from_file_enabled[] = {
     "END"
 };
 
-CheckBoxData snap_point_data[] = {
+WidgetData snap_point_data[] = {
     {
-        .dictionary = "dialog",
-        .name = "Endpoint",
+        .label = "Endpoint",
         .icon = "locator-snaptoendpoint",
-        .setting = ST_QSNAP_ENDPOINT
+        .setting = ST_QSNAP_ENDPOINT,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Midpoint",
+        .label = "Midpoint",
         .icon = "locator-snaptomidpoint",
-        .setting = ST_QSNAP_MIDPOINT
+        .setting = ST_QSNAP_MIDPOINT,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Center",
+        .label = "Center",
         .icon = "locator-snaptocenter",
-        .setting = ST_QSNAP_CENTER
+        .setting = ST_QSNAP_CENTER,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Node",
+        .label = "Node",
         .icon = "locator-snaptonode",
-        .setting = ST_QSNAP_NODE
+        .setting = ST_QSNAP_NODE,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Quadrant",
+        .label = "Quadrant",
         .icon = "locator-snaptoquadrant",
-        .setting = ST_QSNAP_QUADRANT
+        .setting = ST_QSNAP_QUADRANT,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Intersection",
+        .label = "Intersection",
         .icon = "locator-snaptointersection",
-        .setting = ST_QSNAP_INTERSECTION
+        .setting = ST_QSNAP_INTERSECTION,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Extension",
+        .label = "Extension",
         .icon = "locator-snaptoextension",
-        .setting = ST_QSNAP_EXTENSION
+        .setting = ST_QSNAP_EXTENSION,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Insertion",
+        .label = "Insertion",
         .icon = "locator-snaptoinsert",
-        .setting = ST_QSNAP_INSERTION
+        .setting = ST_QSNAP_INSERTION,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Perpendicular",
+        .label = "Perpendicular",
         .icon = "locator-snaptoperpendicular",
-        .setting = ST_QSNAP_PERPENDICULAR
+        .setting = ST_QSNAP_PERPENDICULAR,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Tangent",
+        .label = "Tangent",
         .icon = "locator-snaptotangent",
-        .setting = ST_QSNAP_TANGENT
+        .setting = ST_QSNAP_TANGENT,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Nearest",
+        .label = "Nearest",
         .icon = "locator-snaptonearest",
-        .setting = ST_QSNAP_NEAREST
+        .setting = ST_QSNAP_NEAREST,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Apparent Intersection",
+        .label = "Apparent Intersection",
         .icon = "locator-snaptoapparentintersection",
-        .setting = ST_QSNAP_APPARENT
+        .setting = ST_QSNAP_APPARENT,
+        .type = EDITOR_CHECKBOX
     },
     {
-        .dictionary = "dialog",
-        .name = "Parallel",
+        .label = "Parallel",
         .icon = "locator-snaptoparallel",
-        .setting = ST_QSNAP_PARALLEL
+        .setting = ST_QSNAP_PARALLEL,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .type = -1
     }
+};
+
+WidgetData render_data[] = {
+    {
+        .label = "Use OpenGL",
+        .icon = "blank",
+        .setting = ST_USE_OPENGL,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .label = "Antialias",
+        .icon = "blank",
+        .setting = ST_ANTI_ALIAS,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .label = "Antialias Text",
+        .icon = "blank",
+        .setting = ST_TEXT_ANTI_ALIAS,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .label = "Smooth Pixmap",
+        .icon = "blank",
+        .setting = ST_SMOOTH_PIXMAP,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .label = "High Quality Antialiasing (OpenGL)",
+        .icon = "blank",
+        .setting = ST_HQ_ANTI_ALIAS,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .label = "Non Cosmetic",
+        .icon = "blank",
+        .setting = ST_NON_COSMETIC,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .type = -1
+    }
+};
+
+WidgetData save_history_data[] = {
+    {
+        .label = "Save History",
+        .icon = "blank",
+        .setting = ST_SAVE_HISTORY,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .label = "Save As HTML",
+        .icon = "blank",
+        .setting = ST_HTML_OUTPUT,
+        .type = EDITOR_CHECKBOX
+    },
+    {
+        .type = -1
+    }
+};
+
+const char *tab_names[] = {
+    "General",
+    "Files/Paths",
+    "Display",
+    "Prompt",
+    "Open/Save",
+    "Printing",
+    "Snap",
+    "Grid/Ruler",
+    "Ortho/Polar",
+    "QuickSnap",
+    "QuickTrack",
+    "LineWeight",
+    "Selection",
+    "END"
 };
 
 /* This imitates an initiation file, and if none is present it is loaded

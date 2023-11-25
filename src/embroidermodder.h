@@ -74,6 +74,7 @@ QPainterPath add_to_path(QPainterPath path, EmbVector scale, std::string s);
 
 QPointF to_QPointF(EmbVector a);
 EmbVector to_EmbVector(QPointF a);
+QIcon swatch(int32_t c);
 
 /* Interface creation functions.
  */

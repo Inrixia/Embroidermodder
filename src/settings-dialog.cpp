@@ -16,7 +16,7 @@
 #include "embroidermodder.h"
 
 void update_view_selectbox(Node *d);
-void vbox_layout(QWidget *widget, std::vector<QGroupBox *> groupBoxes);
+QGroupBox *make_settings_groupbox(QWidget *widget, const char *label, WidgetData *data);
 
 void
 copy_node(Node *a, Node *b, int index)
@@ -30,22 +30,6 @@ copy_list_settings(Node *a, Node *b, int props[])
     for (int i=0; props[i] >= 0; i++) {
         memcpy(a+props[i], b+props[i], sizeof(Node));
     }
-}
-
-void
-make_editing_copy(int props[])
-{
-    copy_list_settings(dialog, settings, props);
-    copy_list_settings(preview, settings, props);
-    copy_list_settings(accept_, settings, props);
-}
-
-QIcon
-swatch(int32_t c)
-{
-    QPixmap crosshairPix(16,16);
-    crosshairPix.fill(QColor(c));
-    return QIcon(crosshairPix);
 }
 
 /* Read settings from file.
@@ -199,7 +183,7 @@ write_settings(void)
 }
 
 /* Create settings dialog object. */
-Settings_Dialog::Settings_Dialog(QString  showTab, QWidget* parent) : QDialog(parent)
+Settings_Dialog::Settings_Dialog(QString showTab, QWidget* parent) : QDialog(parent)
 {
     setMinimumSize(750,550);
 
@@ -220,19 +204,13 @@ Settings_Dialog::Settings_Dialog(QString  showTab, QWidget* parent) : QDialog(pa
     tabWidget->addTab(createTabLineWeight(), translate_str("LineWeight"));
     tabWidget->addTab(createTabSelection(), translate_str("Selection"));
 
-    if     (showTab == "General")     tabWidget->setCurrentIndex( 0);
-    else if (showTab == "Files/Path")  tabWidget->setCurrentIndex( 1);
-    else if (showTab == "Display")     tabWidget->setCurrentIndex( 2);
-    else if (showTab == "Prompt")      tabWidget->setCurrentIndex( 3);
-    else if (showTab == "Open/Save")   tabWidget->setCurrentIndex( 4);
-    else if (showTab == "Printing")    tabWidget->setCurrentIndex( 5);
-    else if (showTab == "Snap")        tabWidget->setCurrentIndex( 6);
-    else if (showTab == "Grid/Ruler")  tabWidget->setCurrentIndex( 7);
-    else if (showTab == "Ortho/Polar") tabWidget->setCurrentIndex( 8);
-    else if (showTab == "QuickSnap")   tabWidget->setCurrentIndex( 9);
-    else if (showTab == "QuickTrack")  tabWidget->setCurrentIndex(10);
-    else if (showTab == "LineWeight")  tabWidget->setCurrentIndex(11);
-    else if (showTab == "Selection")   tabWidget->setCurrentIndex(12);
+    int n_tab_names = string_array_length(tab_names);
+    for (int i=0; i<n_tab_names; i++) {
+        if (showTab == tab_names[i]) {
+            tabWidget->setCurrentIndex(i);
+            break;
+        }
+    }
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
@@ -264,7 +242,9 @@ Settings_Dialog::createTabGeneral()
     //Language
     QGroupBox* groupBoxLanguage = new QGroupBox(translate_str("Language"), widget);
 
-    make_editing_copy(general_props);
+    copy_list_settings(dialog, settings, general_props);
+    copy_list_settings(preview, settings, general_props);
+    copy_list_settings(accept_, settings, general_props);
 
     QLabel* labelLanguage = new QLabel(translate_str("Language (Requires Restart)"), groupBoxLanguage);
     QComboBox* comboBoxLanguage = new QComboBox(groupBoxLanguage);
@@ -423,39 +403,43 @@ Settings_Dialog::createTabFilesPaths()
     return set_widget_in_scrollarea(widget);
 }
 
+QGroupBox *
+make_settings_groupbox(QWidget *widget, const char *label, WidgetData *data)
+{
+    QGroupBox* gb = new QGroupBox(translate_str(label), widget);
+
+    QVBoxLayout* vboxLayoutRender = new QVBoxLayout(gb);
+    for (int i=0; data[i].type >= 0; i++) {
+        WidgetData d = data[i];
+        switch (d.type) {
+        case EDITOR_CHECKBOX: {
+            QCheckBox* checkBox = make_checkbox(gb, "dialog", d.label, d.icon,
+                d.setting);
+            vboxLayoutRender->addWidget(checkBox);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    gb->setLayout(vboxLayoutRender);
+
+    return gb;
+}
+
 /* . */
 QWidget*
 Settings_Dialog::createTabDisplay()
 {
     QWidget* widget = new QWidget(this);
 
+    copy_list_settings(dialog, settings, display_props);
+    copy_list_settings(preview, settings, display_props);
+    copy_list_settings(accept_, settings, display_props);
+
     //Rendering
     //TODO: Review OpenGL and Rendering settings for future inclusion
-    QGroupBox* groupBoxRender = new QGroupBox(translate_str("Rendering"), widget);
-
-    make_editing_copy(display_props);
-
-    QCheckBox* checkBoxUseOpenGL = make_checkbox(groupBoxRender, "dialog",
-        "Use OpenGL", "blank", ST_USE_OPENGL);
-    QCheckBox* checkBoxRenderHintAA = make_checkbox(groupBoxRender, "dialog",
-        "Antialias", "blank", ST_ANTI_ALIAS);
-    QCheckBox* checkBoxRenderHintTextAA = make_checkbox(groupBoxRender, "dialog",
-        "Antialias Text", "blank", ST_TEXT_ANTI_ALIAS);
-    QCheckBox* checkBoxRenderHintSmoothPix = make_checkbox(groupBoxRender, "dialog",
-        "Smooth Pixmap", "blank", ST_SMOOTH_PIXMAP);
-    QCheckBox* checkBoxRenderHintHighAA = make_checkbox(groupBoxRender, "dialog",
-        "High Quality Antialiasing (OpenGL)", "blank", ST_HQ_ANTI_ALIAS);
-    QCheckBox* checkBoxRenderHintNonCosmetic = make_checkbox(groupBoxRender, "dialog",
-        "Non Cosmetic", "blank", ST_NON_COSMETIC);
-
-    QVBoxLayout* vboxLayoutRender = new QVBoxLayout(groupBoxRender);
-    vboxLayoutRender->addWidget(checkBoxUseOpenGL);
-    vboxLayoutRender->addWidget(checkBoxRenderHintAA);
-    vboxLayoutRender->addWidget(checkBoxRenderHintTextAA);
-    vboxLayoutRender->addWidget(checkBoxRenderHintSmoothPix);
-    vboxLayoutRender->addWidget(checkBoxRenderHintHighAA);
-    vboxLayoutRender->addWidget(checkBoxRenderHintNonCosmetic);
-    groupBoxRender->setLayout(vboxLayoutRender);
+    QGroupBox* groupBoxRender = make_settings_groupbox(widget, "Rendering", render_data);
 
     //ScrollBars
     QGroupBox* groupBoxScrollBars = new QGroupBox(translate_str("ScrollBars"), widget);
@@ -591,20 +575,18 @@ Settings_Dialog::createTabPrompt()
     //Colors
     QGroupBox* groupBoxColor = new QGroupBox(translate_str("Colors"), widget);
 
-    make_editing_copy(prompt_props);
+    copy_list_settings(dialog, settings, prompt_props);
+    copy_list_settings(preview, settings, prompt_props);
+    copy_list_settings(accept_, settings, prompt_props);
 
     QLabel* labelTextColor = new QLabel(translate_str("Text Color"), groupBoxColor);
     QPushButton* buttonTextColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    QPixmap pix(16,16);
-    pix.fill(QColor(preview[ST_PROMPT_TEXT_COLOR].i));
-    buttonTextColor->setIcon(QIcon(pix));
+    buttonTextColor->setIcon(swatch(preview[ST_PROMPT_TEXT_COLOR].i));
     connect(buttonTextColor, SIGNAL(clicked()), this, SLOT(choosePromptTextColor()));
 
     QLabel* labelBGColor = new QLabel(translate_str("Background Color"), groupBoxColor);
     QPushButton* buttonBGColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    QPixmap pixx(16,16);
-    pixx.fill(QColor(preview[ST_PROMPT_BG_COLOR].i));
-    buttonBGColor->setIcon(QIcon(pixx));
+    buttonBGColor->setIcon(swatch(preview[ST_PROMPT_BG_COLOR].i));
     connect(buttonBGColor, SIGNAL(clicked()), this, SLOT(choosePromptBackgroundColor()));
 
     QGridLayout* gridLayoutColor = new QGridLayout(widget);
@@ -643,18 +625,7 @@ Settings_Dialog::createTabPrompt()
     gridLayoutFont->addWidget(spinBoxFontSize, 2, 1, Qt::AlignRight);
     groupBoxFont->setLayout(gridLayoutFont);
 
-    //History
-    QGroupBox* groupBoxHistory = new QGroupBox(translate_str("History"), widget);
-
-    QCheckBox* checkBoxPromptSaveHistory = make_checkbox(groupBoxHistory, "dialog",
-        "Save History", "blank", ST_SAVE_HISTORY);
-    QCheckBox* checkBoxPromptSaveHistoryAsHtml = make_checkbox(groupBoxHistory, "dialog",
-        "Save As HTML", "blank", ST_HTML_OUTPUT);
-
-    QVBoxLayout* vboxLayoutHistory = new QVBoxLayout(groupBoxHistory);
-    vboxLayoutHistory->addWidget(checkBoxPromptSaveHistory);
-    vboxLayoutHistory->addWidget(checkBoxPromptSaveHistoryAsHtml);
-    groupBoxHistory->setLayout(vboxLayoutHistory);
+    QGroupBox* groupBoxHistory = make_settings_groupbox(widget, "History", save_history_data);
 
     //Widget Layout
     QVBoxLayout *vboxLayoutMain = new QVBoxLayout(widget);
@@ -671,6 +642,7 @@ Settings_Dialog::createTabPrompt()
 QWidget*
 Settings_Dialog::createTabOpenSave()
 {
+    QCheckBox *checkBoxCustomFilter[100];
     QWidget* widget = new QWidget(this);
 
     //Custom Filter
@@ -680,8 +652,12 @@ Settings_Dialog::createTabOpenSave()
     copy_node(dialog, settings, ST_OPENSAVE_FILTER);
     copy_node(dialog, settings, ST_RECENT_MAX);
 
-    QCheckBox *checkBoxCustomFilter[100];
     int n_extensions = string_array_length(extensions);
+
+    QPushButton* buttonCustomFilterSelectAll = new QPushButton(translate_str("Select All"), groupBoxCustomFilter);
+    connect(buttonCustomFilterSelectAll, SIGNAL(clicked()), this, SLOT(buttonCustomFilterSelectAllClicked()));
+    QPushButton* buttonCustomFilterClearAll = new QPushButton("Clear All", groupBoxCustomFilter);
+    connect(buttonCustomFilterClearAll, SIGNAL(clicked()), this, SLOT(buttonCustomFilterClearAllClicked()));
 
     for (int i=0; i<n_extensions; i++) {
         char filter[MAX_STRING_LENGTH];
@@ -693,22 +669,13 @@ Settings_Dialog::createTabOpenSave()
         connect(checkbox, SIGNAL(stateChanged(int)), this,
             SLOT(checkBoxCustomFilterStateChanged(int)));
         checkBoxCustomFilter[i] = checkbox;
-    }
 
-    QPushButton* buttonCustomFilterSelectAll = new QPushButton(translate_str("Select All"), groupBoxCustomFilter);
-    connect(buttonCustomFilterSelectAll, SIGNAL(clicked()), this, SLOT(buttonCustomFilterSelectAllClicked()));
-    for (int i=0; i<n_extensions; i++) {
         connect(
             this,
             SIGNAL(buttonCustomFilterSelectAll(bool)),
             checkBoxCustomFilter[i],
             SLOT(setChecked(bool))
         );
-    }
-
-    QPushButton* buttonCustomFilterClearAll = new QPushButton("Clear All", groupBoxCustomFilter);
-    connect(buttonCustomFilterClearAll, SIGNAL(clicked()), this, SLOT(buttonCustomFilterClearAllClicked()));
-    for (int i=0; i<n_extensions; i++) {
         connect(
             this,
             SIGNAL(buttonCustomFilterClearAll(bool)),
@@ -732,8 +699,9 @@ Settings_Dialog::createTabOpenSave()
     groupBoxCustomFilter->setLayout(gridLayoutCustomFilter);
 
     QString filter(dialog[ST_OPENSAVE_FILTER].s);
-    if (filter.contains("supported", Qt::CaseInsensitive))
+    if (filter.contains("supported", Qt::CaseInsensitive)) {
         buttonCustomFilterSelectAllClicked();
+    }
 
     //Opening
     QGroupBox* groupBoxOpening = new QGroupBox(translate_str("File Open"), widget);
@@ -1048,9 +1016,7 @@ QWidget* Settings_Dialog::createTabGridRuler()
     labelRulerColor->setObjectName("labelRulerColor");
     QPushButton* buttonRulerColor = new QPushButton(translate_str("Choose"), groupBoxRulerColor);
     buttonRulerColor->setObjectName("buttonRulerColor");
-    QPixmap rulerPix(16,16);
-    rulerPix.fill(QColor(preview[ST_RULER_COLOR].i));
-    buttonRulerColor->setIcon(QIcon(rulerPix));
+    buttonRulerColor->setIcon(swatch(preview[ST_RULER_COLOR].i));
     connect(buttonRulerColor, SIGNAL(clicked()), this, SLOT(chooseRulerColor()));
 
     QGridLayout* gridLayoutRulerColor = new QGridLayout(widget);
@@ -1085,17 +1051,6 @@ QWidget* Settings_Dialog::createTabGridRuler()
     return set_widget_in_scrollarea(widget);
 }
 
-void
-vbox_layout(QWidget *widget, std::vector<QGroupBox *> groupBoxes)
-{
-    QVBoxLayout *vboxLayoutMain = new QVBoxLayout(widget);
-    for (int i=0; i<groupBoxes.size(); i++) {
-        vboxLayoutMain->addWidget(groupBoxes[i]);
-    }
-    vboxLayoutMain->addStretch(1);
-    widget->setLayout(vboxLayoutMain);
-}
-
 QWidget*
 Settings_Dialog::createTabOrthoPolar()
 {
@@ -1114,7 +1069,9 @@ Settings_Dialog::createTabQuickSnap()
     //QSnap Locators
     QGroupBox* groupBoxQSnapLoc = new QGroupBox(translate_str("Locators Used"), widget);
 
-    make_editing_copy(quick_snap_props);
+    copy_list_settings(dialog, settings, quick_snap_props);
+    copy_list_settings(preview, settings, quick_snap_props);
+    copy_list_settings(accept_, settings, quick_snap_props);
 
     QCheckBox* checkboxes[20];
     QGridLayout* gridLayoutQSnap = new QGridLayout(groupBoxQSnapLoc);
@@ -1124,9 +1081,8 @@ Settings_Dialog::createTabQuickSnap()
     connect(buttonQSnapClearAll, SIGNAL(clicked()), this, SLOT(buttonQSnapClearAllClicked()));
 
     for (int i=0; i<SNAP_POINT_TYPES; i++) {
-        CheckBoxData s = snap_point_data[i];
-        checkboxes[i] = make_checkbox(
-            groupBoxQSnapLoc, s.dictionary, s.name, s.icon, s.setting);
+        WidgetData s = snap_point_data[i];
+        checkboxes[i] = make_checkbox(groupBoxQSnapLoc, "dialog", s.label, s.icon, s.setting);
         connect(this, SIGNAL(buttonQSnapSelectAll(bool)), checkboxes[i], SLOT(setChecked(bool)));
         connect(this, SIGNAL(buttonQSnapClearAll(bool)), checkboxes[i], SLOT(setChecked(bool)));
         gridLayoutQSnap->addWidget(checkboxes[i], i%7, i/7, Qt::AlignLeft);

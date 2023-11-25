@@ -612,6 +612,9 @@
 #define EDITOR_FONT                              2
 #define EDITOR_INT                               3
 #define EDITOR_STRING                            4
+#define EDITOR_CHECKBOX                          5
+
+#define SNAP_POINT_TYPES                        13
 
 /* View state */
 #define VIEW_STATE_GRID                       0x01
@@ -668,29 +671,6 @@ extern "C" {
 #include "sizes.h"
 
 #include "../extern/libembroidery/src/embroidery.h"
-
-/*
- */
-typedef struct LineEditData_ {
-    int32_t groupbox;
-    int32_t key;
-    char icon[MAX_STRING_LENGTH];
-    char label[MAX_STRING_LENGTH];
-    int32_t type;
-    char map_signal[MAX_STRING_LENGTH];
-} LineEditData;
-
-/*
- */
-typedef struct SpinBoxEditData_ {
-    int32_t id;
-    char groupbox[MAX_STRING_LENGTH];
-    char key[MAX_STRING_LENGTH];
-    char icon[MAX_STRING_LENGTH];
-    char label[MAX_STRING_LENGTH];
-    char type[MAX_STRING_LENGTH];
-    char map_signal[MAX_STRING_LENGTH];
-} SpinBoxEditData;
 
 /*
  */
@@ -762,9 +742,6 @@ typedef struct RubberPoint_ {
     EmbVector position;
 } RubberPoint;
 
-/*
- *
- */
 typedef struct Node_ {
     char s[MAX_STRING_LENGTH];
     int32_t i;
@@ -772,14 +749,19 @@ typedef struct Node_ {
     int32_t type;
 } Node;
 
-#define SNAP_POINT_TYPES   13
-
-typedef struct CheckBoxData_ {
-    char dictionary[MAX_STRING_LENGTH];
-    char name[MAX_STRING_LENGTH];
-    char icon[MAX_STRING_LENGTH];
+typedef struct WidgetData_ {
+    int32_t id;
+    int32_t type;
+    int32_t groupbox;
     int32_t setting;
-} CheckBoxData;
+    int32_t key;
+    EmbReal lower;
+    EmbReal upper;
+    EmbReal single_step;
+    char icon[MAX_STRING_LENGTH];
+    char label[MAX_STRING_LENGTH];
+    char map_signal[MAX_STRING_LENGTH];
+} WidgetData;
 
 /* Utility Functions. */
 unsigned char validRGB(int r, int g, int b);
@@ -830,10 +812,13 @@ void geometry_unset_flag(GeometryData *g, uint64_t flag);
 extern Node settings[SETTINGS_TOTAL], dialog[SETTINGS_TOTAL],
     preview[SETTINGS_TOTAL], accept_[SETTINGS_TOTAL];
 
-extern const LineEditData all_line_editors[MAX_EDITORS];
-extern const SpinBoxEditData all_spinbox_editors[MAX_EDITORS];
+extern const WidgetData all_line_editors[MAX_EDITORS];
+extern const WidgetData all_spinbox_editors[MAX_EDITORS];
+extern WidgetData snap_point_data[];
+extern WidgetData render_data[];
+extern WidgetData save_history_data[];
+
 extern Setting settings_data[];
-extern CheckBoxData snap_point_data[];
 
 /* Properties */
 extern int general_props[];
@@ -848,6 +833,7 @@ extern int accept_accept_props[];
 extern const char *load_from_file_enabled[];
 extern const char *grid_type_visibility_lattice[];
 extern const char *grid_type_visibility_circular[];
+extern const char *tab_names[];
 
 /* Other strings and string tables. */
 extern const char *version;
