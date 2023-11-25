@@ -93,6 +93,186 @@ int opensave_props[] = {
     -1
 };
 
+int selection_props[] = {
+	ST_SELECTION_PICK_FIRST,
+	ST_SELECTION_PICK_ADD,
+	ST_SELECTION_PICK_DRAG,
+	ST_SELECTION_COOLGRIP_COLOR,
+	ST_SELECTION_HOTGRIP_COLOR,
+	ST_SELECTION_GRIP_SIZE,
+	ST_SELECTION_PICKBOX_SIZE,
+	-1
+};
+
+int grid_ruler_props[] = {
+	ST_GRID_ON_LOAD,
+	ST_SHOW_ORIGIN,
+	ST_MATCH_GRID_CROSSHAIR,
+	ST_GRID_LOAD_FROM_FILE,
+	ST_GRID_TYPE,
+	ST_GRID_CENTER_ORIGIN,
+	ST_GRID_CENTER_X,
+	ST_GRID_CENTER_Y,
+	ST_GRID_SIZE_X,
+	ST_GRID_SIZE_Y,
+	ST_GRID_SPACING_X,
+	ST_GRID_SPACING_Y,
+	-1
+};
+
+int accept_preview_props[] = {
+    ST_MDI_USE_LOGO,
+    ST_MDI_USE_TEXTURE,
+    ST_MDI_USE_COLOR,
+    ST_SHOW_SCROLLBARS,
+    ST_SELECTBOX_ALPHA,
+    ST_PROMPT_FONT_FAMILY,
+    ST_PROMPT_FONT_STYLE,
+    -1
+};
+
+int accept_accept_props[] = {
+    ST_MDI_LOGO,
+    ST_MDI_TEXTURE,
+    ST_MDI_COLOR,
+    ST_CROSSHAIR_COLOR,
+    ST_BG_COLOR,
+    ST_SELECTBOX_LEFT_COLOR,
+    ST_SELECTBOX_LEFT_FILL,
+    ST_SELECTBOX_RIGHT_COLOR,
+    ST_SELECTBOX_RIGHT_FILL,
+    ST_PROMPT_TEXT_COLOR,
+    ST_PROMPT_BG_COLOR,
+    ST_RULER_COLOR,
+    ST_LWT_SHOW,
+    ST_LWT_REAL,
+    -1
+};
+
+const char *grid_type_visibility_lattice[] = {
+	"labelGridSizeX",
+	"spinBoxGridSizeX",
+	"labelGridSizeY",
+	"spinBoxGridSizeY",
+	"labelGridSpacingX",
+	"spinBoxGridSpacingX",
+	"labelGridSpacingY",
+	"spinBoxGridSpacingY",
+	"END"
+};
+
+const char *grid_type_visibility_circular[] = {
+	"labelGridSizeRadius",
+	"spinBoxGridSizeRadius",
+	"labelGridSpacingRadius",
+	"spinBoxGridSpacingRadius",
+	"labelGridSpacingAngle",
+	"spinBoxGridSpacingAngle",
+	"END"
+};
+
+const char *load_from_file_enabled[] = {
+    "labelGridType",
+    "comboBoxGridType",
+    "checkBoxGridCenterOnOrigin",
+    "labelGridSizeX",
+    "spinBoxGridSizeX",
+    "labelGridSizeY",
+    "spinBoxGridSizeY",
+    "labelGridSpacingX",
+    "spinBoxGridSpacingX",
+    "labelGridSpacingY",
+    "spinBoxGridSpacingY",
+    "labelGridSizeRadius",
+    "spinBoxGridSizeRadius",
+    "labelGridSpacingRadius",
+    "spinBoxGridSpacingRadius",
+    "labelGridSpacingAngle",
+    "spinBoxGridSpacingAngle",
+    "END"
+};
+
+CheckBoxData snap_point_data[] = {
+    {
+        .dictionary = "dialog",
+        .name = "Endpoint",
+        .icon = "locator-snaptoendpoint",
+        .setting = ST_QSNAP_ENDPOINT
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Midpoint",
+        .icon = "locator-snaptomidpoint",
+        .setting = ST_QSNAP_MIDPOINT
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Center",
+        .icon = "locator-snaptocenter",
+        .setting = ST_QSNAP_CENTER
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Node",
+        .icon = "locator-snaptonode",
+        .setting = ST_QSNAP_NODE
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Quadrant",
+        .icon = "locator-snaptoquadrant",
+        .setting = ST_QSNAP_QUADRANT
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Intersection",
+        .icon = "locator-snaptointersection",
+        .setting = ST_QSNAP_INTERSECTION
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Extension",
+        .icon = "locator-snaptoextension",
+        .setting = ST_QSNAP_EXTENSION
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Insertion",
+        .icon = "locator-snaptoinsert",
+        .setting = ST_QSNAP_INSERTION
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Perpendicular",
+        .icon = "locator-snaptoperpendicular",
+        .setting = ST_QSNAP_PERPENDICULAR
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Tangent",
+        .icon = "locator-snaptotangent",
+        .setting = ST_QSNAP_TANGENT
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Nearest",
+        .icon = "locator-snaptonearest",
+        .setting = ST_QSNAP_NEAREST
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Apparent Intersection",
+        .icon = "locator-snaptoapparentintersection",
+        .setting = ST_QSNAP_APPARENT
+    },
+    {
+        .dictionary = "dialog",
+        .name = "Parallel",
+        .icon = "locator-snaptoparallel",
+        .setting = ST_QSNAP_PARALLEL
+    }
+};
+
 /* This imitates an initiation file, and if none is present it is loaded
  * using the same parser.
  *

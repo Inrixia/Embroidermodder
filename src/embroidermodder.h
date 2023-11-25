@@ -802,6 +802,7 @@ public:
 
     void addColorsToComboBox(QComboBox* comboBox);
 
+    QScrollArea* set_widget_in_scrollarea(QWidget *widget);
 
 private slots:
     void comboBoxIconSizeCurrentIndexChanged(int);

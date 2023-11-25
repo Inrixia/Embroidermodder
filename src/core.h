@@ -772,6 +772,15 @@ typedef struct Node_ {
     int32_t type;
 } Node;
 
+#define SNAP_POINT_TYPES   13
+
+typedef struct CheckBoxData_ {
+    char dictionary[MAX_STRING_LENGTH];
+    char name[MAX_STRING_LENGTH];
+    char icon[MAX_STRING_LENGTH];
+    int32_t setting;
+} CheckBoxData;
+
 /* Utility Functions. */
 unsigned char validRGB(int r, int g, int b);
 int str_contains(char *s, char c);
@@ -818,23 +827,32 @@ void geometry_unset_flag(GeometryData *g, uint64_t flag);
  * complete copy of the settings for the purpose of restoring them if the user
  * cancels out of the Settings Dialog.
  */
-extern const char *settings_labels[];
 extern Node settings[SETTINGS_TOTAL], dialog[SETTINGS_TOTAL],
     preview[SETTINGS_TOTAL], accept_[SETTINGS_TOTAL];
-extern char *coverage_test_script[];
 
 extern const LineEditData all_line_editors[MAX_EDITORS];
 extern const SpinBoxEditData all_spinbox_editors[MAX_EDITORS];
 extern Setting settings_data[];
+extern CheckBoxData snap_point_data[];
 
-extern const char *version;
-extern const char *usage_msg;
-extern const char *extensions[];
+/* Properties */
 extern int general_props[];
 extern int display_props[];
 extern int prompt_props[];
 extern int quick_snap_props[];
 extern int opensave_props[];
+extern int selection_props[];
+extern int grid_ruler_props[];
+extern int accept_preview_props[];
+extern int accept_accept_props[];
+extern const char *load_from_file_enabled[];
+extern const char *grid_type_visibility_lattice[];
+extern const char *grid_type_visibility_circular[];
+
+/* Other strings and string tables. */
+extern const char *version;
+extern const char *usage_msg;
+extern const char *extensions[];
 extern const char *default_prompt_style[];
 extern const char *details_labels[];
 extern const char *command_labels[];
@@ -842,6 +860,8 @@ extern const char *justify_options[];
 extern const char *object_names[];
 extern const char *button_list[];
 extern const char *tips[];
+extern const char *settings_labels[];
+extern char *coverage_test_script[];
 
 /* Property editor data */
 extern const char *group_box_data[];
