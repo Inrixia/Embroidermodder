@@ -2494,7 +2494,9 @@ PropertyEditor::setSelectedItems(std::vector<QGraphicsItem*> itemList)
     clearAllFields();
 
     foreach(QGraphicsItem* item, itemList) {
-        if (!item) continue;
+        if (!item) {
+            continue;
+        }
 
         // \todo load data into the General field
 

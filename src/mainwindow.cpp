@@ -27,6 +27,8 @@
 
 #include "embroidermodder.h"
 
+#define MAX_ARGS                         10
+
 int pop_command(const char *line);
 
 extern uint8_t test_program;
@@ -528,27 +530,6 @@ MainWindow::buttonTipOfTheDayClicked(int button)
     else if (button == QWizard::CustomButton3) {
         wizardTipOfTheDay->close();
     }
-}
-
-/* . */
-uint8_t
-MainWindow::isShiftPressed()
-{
-    return shiftKeyPressedState;
-}
-
-/* . */
-void
-MainWindow::setShiftPressed()
-{
-    shiftKeyPressedState = true;
-}
-
-/* . */
-void
-MainWindow::setShiftReleased()
-{
-    shiftKeyPressedState = false;
 }
 
 // Icons
@@ -1166,30 +1147,7 @@ add_polyline_action(std::string args)
     return "";
 }
 
-/* . */
-std::string
-delete_selected_action(std::string args)
-{
-    View* gview = activeView();
-    if (gview) {
-        gview->deleteSelected();
-    }
-    return "";
-}
-
-/* . */
-std::string
-paste_selected_action(std::string args)
-{
-    /*
-    _mainWin->nativePasteSelected(a[0].r, a[1].r);
-    */
-    return "";
-}
-
-/* disable_action
- * variable
- */
+/*
 std::string
 disable_action(std::string variable)
 {
@@ -1230,6 +1188,7 @@ disable_action(std::string variable)
     }
     return "";
 }
+*/
 
 /* MainWindow::MainWindow
  */
@@ -1372,8 +1331,8 @@ MainWindow::MainWindow() : QMainWindow(0)
     connect(prompt, SIGNAL(undoPressed()), this, SLOT(undo()));
     connect(prompt, SIGNAL(redoPressed()), this, SLOT(redo()));
 
-    connect(prompt, SIGNAL(shiftPressed()), this, SLOT(setShiftPressed()));
-    connect(prompt, SIGNAL(shiftReleased()), this, SLOT(setShiftReleased()));
+    connect(prompt, SIGNAL(shiftPressed()), this, SLOT(setShift(true)));
+    connect(prompt, SIGNAL(shiftReleased()), this, SLOT(setShift(false)));
 
     connect(prompt, SIGNAL(showSettings()), this, SLOT(settingsPrompt()));
 
@@ -1524,8 +1483,6 @@ run_script(char **script, int length)
     }
     return output.c_str();
 }
-
-#define MAX_ARGS                         10
 
 /* actuator(command)
  *
@@ -2240,6 +2197,13 @@ actuator(char *line)
         break;
     }
 
+    /*
+    case ACTION_BLINK_PROMPT: {
+        prompt->startBlinking();
+        break;
+    }
+    */
+
     /* . */
     case ACTION_CALCULATE_ANGLE: {
         EmbReal x1 = atof(argv[0]);
@@ -2331,6 +2295,9 @@ actuator(char *line)
     }
 
     case ACTION_DELETE_SELECTED: {
+		if (gview) {
+			gview->deleteSelected();
+		}
         return "";
     }
 
@@ -2580,6 +2547,7 @@ actuator(char *line)
     }
 
     case ACTION_PASTE_SELECTED: {
+        /*  _mainWin->nativePasteSelected(a[0].r, a[1].r); */
         return "";
     }
 
@@ -3011,6 +2979,137 @@ actuator(char *line)
         return "";
     }
 
+/*
+std::string
+text_action(std::string args)
+{
+    if (list.size() < 1) {
+        return "text requires an argument.";
+    }
+    command = list[0];
+    if (command == "font") {
+        return std::string(settings[ST_TEXT_FONT].s);
+    }
+    if (command == "size") {
+        return std::to_string(settings[ST_TEXT_SIZE].r);
+    }
+    if (command == "angle") {
+        return std::to_string(settings[ST_TEXT_ANGLE].r);
+    }
+    if (command == "bold") {
+        return std::to_string(settings[ST_TEXT_BOLD].i);
+    }
+    if (command == "italic") {
+        return std::to_string(settings[ST_TEXT_ITALIC].i);
+    }
+    if (command == "underline") {
+        return std::to_string(settings[ST_TEXT_UNDERLINE].i);
+    }
+    if (command == "strikeout") {
+        return std::to_string(settings[ST_TEXT_STRIKEOUT].i);
+    }
+    if (command == "overline") {
+        return std::to_string(settings[ST_TEXT_OVERLINE].i);
+    }
+    return "";
+}
+
+Create or alter variables in the script environment.
+std::string
+set_action(std::string args)
+{
+    if (list.size() < 2) {
+        return "The command 'set' requires 2 arguments.";
+    }
+    int value = list[1] == "true"
+        || list[1] == "True"
+        || list[1] == "TRUE"
+        || list[1] == "on"
+        || list[1] == "ON"
+        || list[1] == "T"
+        || list[1] == "t"
+        || list[1] == "1"
+    );
+    if (list[0] == "text_font") {
+        settings[ST_TEXT_FONT].s = list[1];
+        return "";
+    }
+    if (list[0] == "text_size") {
+        settings[ST_TEXT_SIZE].r = atof(list[1]);
+        return "";
+    }
+    if (command == "text_angle") {
+        settings["text_angle"].i = atof(list[1]);
+        return "";
+    }
+    if (command == "text_style_bold") {
+        settings["text_style_bold"] = value;
+        return "";
+    }
+    if (command == "text_style_italic") {
+        settings["text_style_italic = value;
+        return "";
+    }
+    if (command == "text_style_underline") {
+        settings["text_style_underline = value;
+        return "";
+    }
+    if (command == "text_style_strikeout") {
+        settings["text_style_strikeout = value;
+        return "";
+    }
+    if (command == "text_style_overline") {
+        settings["text_style_overline = value;
+        return "";
+    }
+    return "";
+}
+
+std::string
+enable_action(std::string args)
+{
+    if (list.size() < 1) {
+        return "The command 'enable' requires an argument.";
+    }
+    if (command == "text-angle") {
+        settings[ST_TEXT_ANGLE] = 1;
+        return "";
+    }
+    if (command == "text-bold") {
+        settings[ST_TEXT_BOLD] = 1;
+        return "";
+    }
+    if (command == "text-italic") {
+        settings[ST_TEXT_ITALIC] = 1;
+        return "";
+    }
+    if (command == "text-underline") {
+        settings[ST_TEXT_UNDERLINE] = 1;
+        return "";
+    }
+    if (command == "text-strikeout") {
+        settings[ST_TEXT_STRIKEOUT] = 1;
+        return "";
+    }
+    if (command == "text-overline") {
+        settings[ST_TEXT_OVERLINE] = 1;
+        return "";
+    }
+    if (command == "prompt-rapid-fire") {
+        prompt->promptInput->rapidFireEnabled = true;
+        return "";
+    }
+    if (command == "move-rapid-fire") {
+        View* gview = activeView();
+        if (gview) {
+            gview->vdata->rapidMoveActive = true;
+        }
+        return "";
+    }
+    return "";
+}
+*/
+
     /* Open the Tip of the Day dialog. */
     case ACTION_TIP_OF_THE_DAY: {
         _mainWin->tipOfTheDay();
@@ -3112,151 +3211,6 @@ actuator(char *line)
 
     }
 
-    return "";
-}
-
-/* . */
-std::string
-text_action(std::string args)
-{
-    /*
-    if (list.size() < 1) {
-        return "text requires an argument.";
-    }
-    command = list[0];
-    if (command == "font") {
-        return std::string(settings[ST_TEXT_FONT].s);
-    }
-    if (command == "size") {
-        return std::to_string(settings[ST_TEXT_SIZE].r);
-    }
-    if (command == "angle") {
-        return std::to_string(settings[ST_TEXT_ANGLE].r);
-    }
-    if (command == "bold") {
-        return std::to_string(settings[ST_TEXT_BOLD].i);
-    }
-    if (command == "italic") {
-        return std::to_string(settings[ST_TEXT_ITALIC].i);
-    }
-    if (command == "underline") {
-        return std::to_string(settings[ST_TEXT_UNDERLINE].i);
-    }
-    if (command == "strikeout") {
-        return std::to_string(settings[ST_TEXT_STRIKEOUT].i);
-    }
-    if (command == "overline") {
-        return std::to_string(settings[ST_TEXT_OVERLINE].i);
-    }
-    */
-    return "";
-}
-
-/* Create or alter variables in the script environment. */
-std::string
-set_action(std::string args)
-{
-    /*
-    if (list.size() < 2) {
-        return "The command 'set' requires 2 arguments.";
-    }
-    int value = list[1] == "true"
-        || list[1] == "True"
-        || list[1] == "TRUE"
-        || list[1] == "on"
-        || list[1] == "ON"
-        || list[1] == "T"
-        || list[1] == "t"
-        || list[1] == "1"
-    );
-    if (list[0] == "text_font") {
-        settings[ST_TEXT_FONT].s = list[1];
-        return "";
-    }
-    if (list[0] == "text_size") {
-        settings[ST_TEXT_SIZE].r = atof(list[1]);
-        return "";
-    }
-    if (command == "text_angle") {
-        settings["text_angle"].i = atof(list[1]);
-        return "";
-    }
-    if (command == "text_style_bold") {
-        settings["text_style_bold"] = value;
-        return "";
-    }
-    if (command == "text_style_italic") {
-        settings["text_style_italic = value;
-        return "";
-    }
-    if (command == "text_style_underline") {
-        settings["text_style_underline = value;
-        return "";
-    }
-    if (command == "text_style_strikeout") {
-        settings["text_style_strikeout = value;
-        return "";
-    }
-    if (command == "text_style_overline") {
-        settings["text_style_overline = value;
-        return "";
-    }
-    */
-    return "";
-}
-
-/* . */
-std::string
-enable_action(std::string args)
-{
-    /*
-    if (list.size() < 1) {
-        return "The command 'enable' requires an argument.";
-    }
-    if (command == "text-angle") {
-        settings[ST_TEXT_ANGLE] = 1;
-        return "";
-    }
-    if (command == "text-bold") {
-        settings[ST_TEXT_BOLD] = 1;
-        return "";
-    }
-    if (command == "text-italic") {
-        settings[ST_TEXT_ITALIC] = 1;
-        return "";
-    }
-    if (command == "text-underline") {
-        settings[ST_TEXT_UNDERLINE] = 1;
-        return "";
-    }
-    if (command == "text-strikeout") {
-        settings[ST_TEXT_STRIKEOUT] = 1;
-        return "";
-    }
-    if (command == "text-overline") {
-        settings[ST_TEXT_OVERLINE] = 1;
-        return "";
-    }
-    if (command == "prompt-rapid-fire") {
-        prompt->promptInput->rapidFireEnabled = true;
-        return "";
-    }
-    if (command == "move-rapid-fire") {
-        View* gview = activeView();
-        if (gview) {
-            gview->vdata->rapidMoveActive = true;
-        }
-        return "";
-    }
-    */
-    return "";
-}
-
-/* . */
-std::string
-blink_prompt_action(std::string args)
-{
-    prompt->startBlinking();
     return "";
 }
 

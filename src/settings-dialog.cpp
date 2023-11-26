@@ -13,6 +13,16 @@
  *      https://peps.python.org/pep-0007/
  */
 
+#define COLOR_CHOOSER(A, B, C) \
+    QPushButton* A = new QPushButton(translate_str("Choose"), C); \
+    A->setIcon(swatch(preview[B].i)); \
+    connect(A, &QPushButton::clicked, this, [=]() { chooseColor(B); })
+
+#define INDEX_CHANGED(A, B, C) \
+    QPushButton* A = new QPushButton(translate_str("Choose"), C); \
+    A->setIcon(swatch(preview[B].i)); \
+    connect(A, &QPushButton::clicked, this, [=]() { chooseColor(B); })
+
 #include "embroidermodder.h"
 
 void update_view_selectbox(Node *d);
@@ -30,6 +40,113 @@ copy_list_settings(Node *a, Node *b, int props[])
     for (int i=0; props[i] >= 0; i++) {
         memcpy(a+props[i], b+props[i], sizeof(Node));
     }
+}
+
+void update_setting(Node *d, int id);
+
+void
+Settings_Dialog::chooseColor(int32_t id)
+{
+    QPushButton* button = qobject_cast<QPushButton*>(sender());
+    if (!button) {
+        return;
+    }
+    QColorDialog* colorDialog = new QColorDialog(QColor(accept_[id].i), this);
+    connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this,
+        SLOT([=](const QColor &color) {
+            preview[id].i = color.rgb();
+            update_setting(preview, id);
+        })
+    );
+    colorDialog->exec();
+
+    if (colorDialog->result() == QDialog::Accepted) {
+        accept_[id].i = colorDialog->selectedColor().rgb();
+        button->setIcon(swatch(accept_[id].i));
+        update_setting(accept_, id);
+    }
+    else {
+        update_setting(dialog, id);
+    }
+}
+
+/* Make sure the user sees the changes applied immediately. */
+void
+update_setting(Node *d, int id)
+{
+    switch (id) {
+    case ST_BG_COLOR:
+       _mainWin->updateAllViewBackgroundColors(d[ST_BG_COLOR].i);
+        break;
+    case ST_CROSSHAIR_COLOR:
+	   _mainWin->updateAllViewCrossHairColors(d[ST_CROSSHAIR_COLOR].i);
+        break;
+    case ST_SELECTBOX_LEFT_COLOR:
+    case ST_SELECTBOX_LEFT_FILL:
+    case ST_SELECTBOX_RIGHT_COLOR:
+    case ST_SELECTBOX_RIGHT_FILL:
+        _mainWin->updateAllViewSelectBoxColors(
+			d[ST_SELECTBOX_LEFT_COLOR].i,
+			d[ST_SELECTBOX_LEFT_FILL].i,
+			d[ST_SELECTBOX_RIGHT_COLOR].i,
+			d[ST_SELECTBOX_RIGHT_FILL].i,
+			preview[ST_SELECTBOX_ALPHA].i);
+        break;
+    case ST_GRID_COLOR:
+        _mainWin->updateAllViewGridColors(d[ST_GRID_COLOR].i);
+        break;
+    case ST_MDI_COLOR:
+        mdiArea->bgColor = d[ST_MDI_COLOR].i;
+        break;
+    case ST_RULER_COLOR:
+		_mainWin->updateAllViewRulerColors(d[ST_RULER_COLOR].i);
+        break;
+    case ST_PROMPT_TEXT_COLOR:
+	    prompt->setPromptTextColor(QColor(d[ST_PROMPT_TEXT_COLOR].i));
+        break;
+    case ST_PROMPT_BG_COLOR:
+	    prompt->setPromptBackgroundColor(QColor(d[ST_PROMPT_BG_COLOR].i));
+        break;
+    case ST_MDI_USE_COLOR:
+        mdiArea->useColor = d[ST_MDI_USE_COLOR].i;
+        break;
+    case ST_MDI_USE_TEXTURE:
+        mdiArea->useTexture = d[ST_MDI_USE_TEXTURE].i;
+        break;
+    case ST_MDI_USE_LOGO:
+        mdiArea->useLogo = d[ST_MDI_USE_LOGO].i;
+        break;
+    default:
+        break;
+    }
+/*
+    mdiArea->useTexture = dialog[ST_MDI_USE_TEXTURE].i;
+    mdiArea->useColor = dialog[ST_MDI_USE_COLOR].i;
+    mdiArea->bgLogo.load(dialog[ST_MDI_LOGO].s);
+    mdiArea->bgTexture.load(dialog[ST_MDI_TEXTURE].s);
+    mdiArea->bgColor = dialog[ST_MDI_COLOR].i;
+    _mainWin->iconResize(dialog[ST_ICON_SIZE].i);
+    _mainWin->updateAllViewScrollBars(dialog[ST_SHOW_SCROLLBARS].i);
+    _mainWin->updateAllViewCrossHairColors(dialog[ST_CROSSHAIR_COLOR].i);
+    _mainWin->updateAllViewBackgroundColors(dialog[ST_BG_COLOR].i);
+    _mainWin->updateAllViewSelectBoxColors(
+        dialog[ST_SELECTBOX_LEFT_COLOR].i,
+        dialog[ST_SELECTBOX_LEFT_FILL].i,
+        dialog[ST_SELECTBOX_RIGHT_COLOR].i,
+        dialog[ST_SELECTBOX_RIGHT_FILL].i,
+        dialog[ST_SELECTBOX_ALPHA].i);
+    prompt->setPromptTextColor(QColor(dialog[ST_PROMPT_TEXT_COLOR].i));
+    prompt->setPromptBackgroundColor(QColor(dialog[ST_PROMPT_BG_COLOR].i));
+    prompt->setPromptFontFamily(dialog[ST_PROMPT_FONT_FAMILY].s);
+    prompt->setPromptFontStyle(dialog[ST_PROMPT_FONT_STYLE].s);
+    prompt->setPromptFontSize(dialog[ST_PROMPT_FONT_SIZE].i);
+    _mainWin->updateAllViewGridColors(dialog[ST_GRID_COLOR].i);
+    _mainWin->updateAllViewRulerColors(dialog[ST_RULER_COLOR].i);
+    statusbar->toggle(STATUSBAR_LWT, dialog[ST_LWT_SHOW].i);
+    statusbar->toggle(STATUSBAR_REAL, dialog[ST_LWT_REAL].i); ?
+    _mainWin->updatePickAddMode(dialog[ST_SELECTION_PICK_ADD].i);
+*/
+    mdiArea->forceRepaint();
 }
 
 /* Read settings from file.
@@ -161,7 +278,7 @@ write_settings(void)
     }
 
     for (int i=0; i<SETTINGS_TOTAL; i++) {
-        char line[MAX_STRING_LENGTH];
+        char line[2*MAX_STRING_LENGTH];
         Setting s = settings_data[i];
         switch (s.type) {
         case 'i':
@@ -342,10 +459,8 @@ Settings_Dialog::createTabGeneral()
     QCheckBox* checkBoxMdiBGUseColor = make_checkbox(groupBoxMdiBG, "dialog",
         "Use Color", "blank", ST_MDI_USE_COLOR);
 
-    QPushButton* buttonMdiBGColor = new QPushButton(translate_str("Choose"), groupBoxMdiBG);
+    COLOR_CHOOSER(buttonMdiBGColor, ST_MDI_COLOR, groupBoxMdiBG);
     buttonMdiBGColor->setEnabled(dialog[ST_MDI_USE_COLOR].i);
-    buttonMdiBGColor->setIcon(swatch(preview[ST_MDI_COLOR].i));
-    connect(buttonMdiBGColor, SIGNAL(clicked()), this, SLOT(chooseGeneralMdiBackgroundColor()));
     connect(checkBoxMdiBGUseColor, SIGNAL(toggled(bool)), buttonMdiBGColor, SLOT(setEnabled(bool)));
 
     QGridLayout* gridLayoutMdiBG = new QGridLayout(widget);
@@ -468,34 +583,22 @@ Settings_Dialog::createTabDisplay()
     QGroupBox* groupBoxColor = new QGroupBox(translate_str("Colors"), widget);
 
     QLabel* labelCrossHairColor = new QLabel(translate_str("Crosshair Color"), groupBoxColor);
-    QPushButton* buttonCrossHairColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonCrossHairColor->setIcon(swatch(preview[ST_CROSSHAIR_COLOR].i));
-    connect(buttonCrossHairColor, SIGNAL(clicked()), this, SLOT(chooseDisplayCrossHairColor()));
+    COLOR_CHOOSER(buttonCrossHairColor, ST_CROSSHAIR_COLOR, groupBoxColor);
 
     QLabel* labelBGColor = new QLabel(translate_str("Background Color"), groupBoxColor);
-    QPushButton* buttonBGColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonBGColor->setIcon(swatch(preview[ST_BG_COLOR].i));
-    connect(buttonBGColor, SIGNAL(clicked()), this, SLOT(chooseDisplayBackgroundColor()));
+    COLOR_CHOOSER(buttonBGColor, ST_BG_COLOR, groupBoxColor);
 
     QLabel* labelSelectBoxLeftColor = new QLabel(translate_str("Selection Box Color (Crossing)"), groupBoxColor);
-    QPushButton* buttonSelectBoxLeftColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonSelectBoxLeftColor->setIcon(swatch(preview[ST_SELECTBOX_LEFT_COLOR].i));
-    connect(buttonSelectBoxLeftColor, SIGNAL(clicked()), this, SLOT(chooseDisplaySelectBoxLeftColor()));
+    COLOR_CHOOSER(buttonSelectBoxLeftColor, ST_SELECTBOX_LEFT_COLOR, groupBoxColor);
 
     QLabel* labelSelectBoxLeftFill = new QLabel(translate_str("Selection Box Fill (Crossing)"), groupBoxColor);
-    QPushButton* buttonSelectBoxLeftFill = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonSelectBoxLeftFill->setIcon(swatch(preview[ST_SELECTBOX_LEFT_FILL].i));
-    connect(buttonSelectBoxLeftFill, SIGNAL(clicked()), this, SLOT(chooseDisplaySelectBoxLeftFill()));
+    COLOR_CHOOSER(buttonSelectBoxLeftFill, ST_SELECTBOX_LEFT_FILL, groupBoxColor);
 
     QLabel* labelSelectBoxRightColor = new QLabel(translate_str("Selection Box Color (Window)"), groupBoxColor);
-    QPushButton* buttonSelectBoxRightColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonSelectBoxRightColor->setIcon(swatch(preview[ST_SELECTBOX_RIGHT_COLOR].i));
-    connect(buttonSelectBoxRightColor, SIGNAL(clicked()), this, SLOT(chooseDisplaySelectBoxRightColor()));
+    COLOR_CHOOSER(buttonSelectBoxRightColor, ST_SELECTBOX_RIGHT_COLOR, groupBoxColor);
 
     QLabel* labelSelectBoxRightFill = new QLabel(translate_str("Selection Box Fill (Window)"), groupBoxColor);
-    QPushButton* buttonSelectBoxRightFill = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonSelectBoxRightFill->setIcon(swatch(preview[ST_SELECTBOX_RIGHT_FILL].i));
-    connect(buttonSelectBoxRightFill, SIGNAL(clicked()), this, SLOT(chooseDisplaySelectBoxRightFill()));
+    COLOR_CHOOSER(buttonSelectBoxRightFill, ST_SELECTBOX_RIGHT_FILL, groupBoxColor);
 
     QLabel* labelSelectBoxAlpha = new QLabel(translate_str("Selection Box Fill Alpha"), groupBoxColor);
     QSpinBox* spinBoxSelectBoxAlpha = new QSpinBox(groupBoxColor);
@@ -580,14 +683,10 @@ Settings_Dialog::createTabPrompt()
     copy_list_settings(accept_, settings, prompt_props);
 
     QLabel* labelTextColor = new QLabel(translate_str("Text Color"), groupBoxColor);
-    QPushButton* buttonTextColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonTextColor->setIcon(swatch(preview[ST_PROMPT_TEXT_COLOR].i));
-    connect(buttonTextColor, SIGNAL(clicked()), this, SLOT(choosePromptTextColor()));
+    COLOR_CHOOSER(buttonTextColor, ST_PROMPT_TEXT_COLOR, groupBoxColor);
 
     QLabel* labelBGColor = new QLabel(translate_str("Background Color"), groupBoxColor);
-    QPushButton* buttonBGColor = new QPushButton(translate_str("Choose"), groupBoxColor);
-    buttonBGColor->setIcon(swatch(preview[ST_PROMPT_BG_COLOR].i));
-    connect(buttonBGColor, SIGNAL(clicked()), this, SLOT(choosePromptBackgroundColor()));
+    COLOR_CHOOSER(buttonBGColor, ST_PROMPT_BG_COLOR, groupBoxColor);
 
     QGridLayout* gridLayoutColor = new QGridLayout(widget);
     gridLayoutColor->addWidget(labelTextColor, 0, 0, Qt::AlignLeft);
@@ -923,10 +1022,8 @@ QWidget* Settings_Dialog::createTabGridRuler()
 
     QLabel* labelGridColor = new QLabel(translate_str("Grid Color"), groupBoxGridColor);
     labelGridColor->setObjectName("labelGridColor");
-    QPushButton* buttonGridColor = new QPushButton(translate_str("Choose"), groupBoxGridColor);
+    COLOR_CHOOSER(buttonGridColor, ST_GRID_COLOR, groupBoxGridColor);
     buttonGridColor->setObjectName("buttonGridColor");
-    buttonGridColor->setIcon(swatch(preview[ST_GRID_COLOR].i));
-    connect(buttonGridColor, SIGNAL(clicked()), this, SLOT(chooseGridColor()));
 
     labelGridColor->setEnabled(!dialog[ST_MATCH_GRID_CROSSHAIR].i);
     buttonGridColor->setEnabled(!dialog[ST_MATCH_GRID_CROSSHAIR].i);
@@ -1014,10 +1111,8 @@ QWidget* Settings_Dialog::createTabGridRuler()
 
     QLabel* labelRulerColor = new QLabel(translate_str("Ruler Color"), groupBoxRulerColor);
     labelRulerColor->setObjectName("labelRulerColor");
-    QPushButton* buttonRulerColor = new QPushButton(translate_str("Choose"), groupBoxRulerColor);
+    COLOR_CHOOSER(buttonRulerColor, ST_RULER_COLOR, groupBoxRulerColor);
     buttonRulerColor->setObjectName("buttonRulerColor");
-    buttonRulerColor->setIcon(swatch(preview[ST_RULER_COLOR].i));
-    connect(buttonRulerColor, SIGNAL(clicked()), this, SLOT(chooseRulerColor()));
 
     QGridLayout* gridLayoutRulerColor = new QGridLayout(widget);
     gridLayoutRulerColor->addWidget(labelRulerColor, 1, 0, Qt::AlignLeft);
@@ -1409,33 +1504,6 @@ void Settings_Dialog::checkBoxGeneralMdiBGUseColorStateChanged(int checked)
     mdiArea->forceRepaint();
 }
 
-void Settings_Dialog::chooseGeneralMdiBackgroundColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_MDI_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentGeneralMdiBackgroundColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_MDI_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_MDI_COLOR].i));
-            mdiArea->bgColor = QColor(accept_[ST_MDI_COLOR].i);
-        }
-        else {
-            mdiArea->bgColor = QColor(dialog[ST_MDI_COLOR].i);
-        }
-        mdiArea->forceRepaint();
-    }
-}
-
-void Settings_Dialog::currentGeneralMdiBackgroundColorChanged(const QColor& color)
-{
-    preview[ST_MDI_COLOR].i = color.rgb();
-    mdiArea->bgColor = color;
-    mdiArea->forceRepaint();
-}
-
 void Settings_Dialog::checkBoxShowScrollBarsStateChanged(int checked)
 {
     preview[ST_SHOW_SCROLLBARS].i = checked;
@@ -1445,56 +1513,6 @@ void Settings_Dialog::checkBoxShowScrollBarsStateChanged(int checked)
 void Settings_Dialog::comboBoxScrollBarWidgetCurrentIndexChanged(int index)
 {
     dialog[ST_SCROLLBAR_WIDGET_NUM].i = index;
-}
-
-void Settings_Dialog::chooseDisplayCrossHairColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_CROSSHAIR_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentDisplayCrossHairColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_CROSSHAIR_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_CROSSHAIR_COLOR].i));
-            _mainWin->updateAllViewCrossHairColors(accept_[ST_CROSSHAIR_COLOR].i);
-        }
-        else {
-            _mainWin->updateAllViewCrossHairColors(dialog[ST_CROSSHAIR_COLOR].i);
-        }
-    }
-}
-
-void Settings_Dialog::currentDisplayCrossHairColorChanged(const QColor& color)
-{
-    preview[ST_CROSSHAIR_COLOR].i = (color.rgb());
-    _mainWin->updateAllViewCrossHairColors(color.rgb());
-}
-
-void Settings_Dialog::chooseDisplayBackgroundColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_BG_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentDisplayBackgroundColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_BG_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_BG_COLOR].i));
-            _mainWin->updateAllViewBackgroundColors(accept_[ST_BG_COLOR].i);
-        }
-        else {
-            _mainWin->updateAllViewBackgroundColors(dialog[ST_BG_COLOR].i);
-        }
-    }
-}
-
-void Settings_Dialog::currentDisplayBackgroundColorChanged(const QColor& color)
-{
-    preview[ST_BG_COLOR].i = (color.rgb());
-    _mainWin->updateAllViewBackgroundColors(color.rgb());
 }
 
 void
@@ -1508,160 +1526,10 @@ update_view_selectbox(Node *d)
         preview[ST_SELECTBOX_ALPHA].i);
 }
 
-void Settings_Dialog::chooseDisplaySelectBoxLeftColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_SELECTBOX_LEFT_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentDisplaySelectBoxLeftColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_SELECTBOX_LEFT_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_SELECTBOX_LEFT_COLOR].i));
-            update_view_selectbox(accept_);
-        }
-        else {
-            update_view_selectbox(dialog);
-        }
-    }
-}
-
-void Settings_Dialog::currentDisplaySelectBoxLeftColorChanged(const QColor& color)
-{
-    preview[ST_SELECTBOX_LEFT_COLOR].i = color.rgb();
-    update_view_selectbox(preview);
-}
-
-void Settings_Dialog::chooseDisplaySelectBoxLeftFill()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_SELECTBOX_LEFT_FILL].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentDisplaySelectBoxLeftFillChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_SELECTBOX_LEFT_FILL].i = (colorDialog->selectedColor().rgb());
-            button->setIcon(swatch(accept_[ST_SELECTBOX_LEFT_FILL].i));
-            update_view_selectbox(accept_);
-        }
-        else {
-            update_view_selectbox(dialog);
-        }
-    }
-}
-
-void Settings_Dialog::currentDisplaySelectBoxLeftFillChanged(const QColor& color)
-{
-    preview[ST_SELECTBOX_LEFT_FILL].i = color.rgb();
-    update_view_selectbox(preview);
-}
-
-void Settings_Dialog::chooseDisplaySelectBoxRightColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_SELECTBOX_RIGHT_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentDisplaySelectBoxRightColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_SELECTBOX_RIGHT_COLOR].i = (colorDialog->selectedColor().rgb());
-            button->setIcon(swatch(accept_[ST_SELECTBOX_RIGHT_COLOR].i));
-            update_view_selectbox(accept_);
-        }
-        else {
-            update_view_selectbox(dialog);
-        }
-    }
-}
-
-void Settings_Dialog::currentDisplaySelectBoxRightColorChanged(const QColor& color)
-{
-    preview[ST_SELECTBOX_RIGHT_COLOR].i = color.rgb();
-    update_view_selectbox(preview);
-}
-
-void Settings_Dialog::chooseDisplaySelectBoxRightFill()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_SELECTBOX_RIGHT_FILL].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentDisplaySelectBoxRightFillChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_SELECTBOX_RIGHT_FILL].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_SELECTBOX_RIGHT_FILL].i));
-            update_view_selectbox(accept_);
-        }
-        else {
-            update_view_selectbox(dialog);
-        }
-    }
-}
-
-void Settings_Dialog::currentDisplaySelectBoxRightFillChanged(const QColor& color)
-{
-    preview[ST_SELECTBOX_RIGHT_FILL].i = color.rgb();
-    update_view_selectbox(preview);
-}
-
 void Settings_Dialog::spinBoxDisplaySelectBoxAlphaValueChanged(int value)
 {
     preview[ST_SELECTBOX_ALPHA].i = value;
     update_view_selectbox(accept_);
-}
-
-void Settings_Dialog::choosePromptTextColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_PROMPT_TEXT_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(currentPromptTextColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_PROMPT_TEXT_COLOR].i = (colorDialog->selectedColor().rgb());
-            button->setIcon(swatch(accept_[ST_PROMPT_TEXT_COLOR].i));
-            prompt->setPromptTextColor(QColor(accept_[ST_PROMPT_TEXT_COLOR].i));
-        }
-        else {
-            prompt->setPromptTextColor(QColor(dialog[ST_PROMPT_TEXT_COLOR].i));
-        }
-    }
-}
-
-void Settings_Dialog::currentPromptTextColorChanged(const QColor& color)
-{
-    preview[ST_PROMPT_TEXT_COLOR].i = color.rgb();
-    prompt->setPromptTextColor(QColor(preview[ST_PROMPT_TEXT_COLOR].i));
-}
-
-void Settings_Dialog::choosePromptBackgroundColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_PROMPT_BG_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(currentPromptBackgroundColorChanged(QColor)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_PROMPT_BG_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_PROMPT_BG_COLOR].i));
-            prompt->setPromptBackgroundColor(QColor(accept_[ST_PROMPT_BG_COLOR].i));
-        }
-        else {
-            prompt->setPromptBackgroundColor(QColor(dialog[ST_PROMPT_BG_COLOR].i));
-        }
-    }
-}
-
-void Settings_Dialog::currentPromptBackgroundColorChanged(const QColor& color)
-{
-    preview[ST_BG_COLOR].i = color.rgb();
-    prompt->setPromptBackgroundColor(color);
 }
 
 void Settings_Dialog::comboBoxPromptFontFamilyCurrentIndexChanged(QString family)
@@ -1735,32 +1603,6 @@ void Settings_Dialog::checkBoxGridColorMatchCrossHairStateChanged(int checked)
             set_enabled(parent, "buttonGridColor", !checked);
         }
     }
-}
-
-void Settings_Dialog::chooseGridColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_GRID_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(const QColor&)),
-            this, SLOT(currentGridColorChanged(const QColor&)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_GRID_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_GRID_COLOR].i));
-            _mainWin->updateAllViewGridColors(accept_[ST_GRID_COLOR].i);
-        }
-        else {
-            _mainWin->updateAllViewGridColors(dialog[ST_GRID_COLOR].i);
-        }
-    }
-}
-
-void Settings_Dialog::currentGridColorChanged(const QColor& color)
-{
-    preview[ST_GRID_COLOR].i = color.rgb();
-    _mainWin->updateAllViewGridColors(color.rgb());
 }
 
 void Settings_Dialog::checkBoxGridLoadFromFileStateChanged(int checked)
@@ -1849,31 +1691,6 @@ void Settings_Dialog::comboBoxRulerMetricCurrentIndexChanged(int index)
     else {
         dialog[ST_RULER_METRIC].i = 1;
     }
-}
-
-void Settings_Dialog::chooseRulerColor()
-{
-    QPushButton* button = qobject_cast<QPushButton*>(sender());
-    if (button) {
-        QColorDialog* colorDialog = new QColorDialog(QColor(accept_[ST_RULER_COLOR].i), this);
-        connect(colorDialog, SIGNAL(currentColorChanged(QColor)), this, SLOT(currentRulerColorChanged(QColor)));
-        colorDialog->exec();
-
-        if (colorDialog->result() == QDialog::Accepted) {
-            accept_[ST_RULER_COLOR].i = colorDialog->selectedColor().rgb();
-            button->setIcon(swatch(accept_[ST_RULER_COLOR].i));
-            _mainWin->updateAllViewRulerColors(accept_[ST_RULER_COLOR].i);
-        }
-        else {
-            _mainWin->updateAllViewRulerColors(dialog[ST_RULER_COLOR].i);
-        }
-    }
-}
-
-void Settings_Dialog::currentRulerColorChanged(const QColor& color)
-{
-    preview[ST_RULER_COLOR].i = color.rgb();
-    _mainWin->updateAllViewRulerColors(preview[ST_RULER_COLOR].i);
 }
 
 void Settings_Dialog::spinBoxRulerPixelSizeValueChanged(double value)
@@ -1969,42 +1786,6 @@ Settings_Dialog::comboBoxSelectionHotGripColorCurrentIndexChanged(int index)
     }
 }
 
-void
-set_to_dialog_dictionary()
-{
-    // Make sure the user sees the changes applied immediately
-    mdiArea->useLogo = dialog[ST_MDI_USE_LOGO].i;
-    mdiArea->useTexture = dialog[ST_MDI_USE_TEXTURE].i;
-    mdiArea->useColor = dialog[ST_MDI_USE_COLOR].i;
-    mdiArea->bgLogo.load(dialog[ST_MDI_LOGO].s);
-    mdiArea->bgTexture.load(dialog[ST_MDI_TEXTURE].s);
-    mdiArea->bgColor = dialog[ST_MDI_COLOR].i;
-    _mainWin->iconResize(dialog[ST_ICON_SIZE].i);
-    _mainWin->updateAllViewScrollBars(dialog[ST_SHOW_SCROLLBARS].i);
-    _mainWin->updateAllViewCrossHairColors(dialog[ST_CROSSHAIR_COLOR].i);
-    _mainWin->updateAllViewBackgroundColors(dialog[ST_BG_COLOR].i);
-    _mainWin->updateAllViewSelectBoxColors(
-        dialog[ST_SELECTBOX_LEFT_COLOR].i,
-        dialog[ST_SELECTBOX_LEFT_FILL].i,
-        dialog[ST_SELECTBOX_RIGHT_COLOR].i,
-        dialog[ST_SELECTBOX_RIGHT_FILL].i,
-        dialog[ST_SELECTBOX_ALPHA].i);
-    prompt->setPromptTextColor(QColor(dialog[ST_PROMPT_TEXT_COLOR].i));
-    prompt->setPromptBackgroundColor(QColor(dialog[ST_PROMPT_BG_COLOR].i));
-    prompt->setPromptFontFamily(dialog[ST_PROMPT_FONT_FAMILY].s);
-    prompt->setPromptFontStyle(dialog[ST_PROMPT_FONT_STYLE].s);
-    prompt->setPromptFontSize(dialog[ST_PROMPT_FONT_SIZE].i);
-    _mainWin->updateAllViewGridColors(dialog[ST_GRID_COLOR].i);
-    _mainWin->updateAllViewRulerColors(dialog[ST_RULER_COLOR].i);
-    statusbar->toggle(STATUSBAR_LWT, dialog[ST_LWT_SHOW].i);
-    /*
-    statusbar->toggle(STATUSBAR_REAL, dialog[ST_LWT_REAL].i); ?
-    */
-    _mainWin->updatePickAddMode(dialog[ST_SELECTION_PICK_ADD].i);
-
-    mdiArea->forceRepaint();
-}
-
 /* . */
 void Settings_Dialog::acceptChanges()
 {
@@ -2025,19 +1806,24 @@ void Settings_Dialog::acceptChanges()
 
     memcpy(settings, dialog, SETTINGS_TOTAL * sizeof settings[0]);
 
-    set_to_dialog_dictionary();
+    for (int i=0; i<SETTINGS_TOTAL; i++) {
+        update_setting(settings, i);
+    }
 
     write_settings();
     accept();
 }
 
-/* Reject changes from this Settings Dialog interaction. */
+/* Reject changes from this Settings Dialog interaction.
+ *
+ * TODO: inform the user if they have changed settings.
+ */
 void
 Settings_Dialog::rejectChanges()
 {
-    //TODO: inform the user if they have changed settings
-
-    set_to_dialog_dictionary();
+    for (int i=0; i<SETTINGS_TOTAL; i++) {
+        update_setting(settings, i);
+    }
     reject();
 }
 

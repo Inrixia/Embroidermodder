@@ -1298,7 +1298,7 @@ View::mousePressEvent(QMouseEvent* event)
             path.addPolygon(mapToScene(selectBox->geometry()));
             if (sceneReleasePoint.x() > scenePressPoint.x()) {
                 if (settings[ST_SELECTION_PICK_ADD].i) {
-                    if (_mainWin->isShiftPressed()) {
+                    if (_mainWin->shiftKeyPressedState) {
                         std::vector<QGraphicsItem*> itemList = to_vector(gscene->items(path, Qt::ContainsItemShape));
                         for (int i=0; i<(int)itemList.size(); i++) {
                             itemList[i]->setSelected(false);
@@ -1312,7 +1312,7 @@ View::mousePressEvent(QMouseEvent* event)
                     }
                 }
                 else {
-                    if (_mainWin->isShiftPressed()) {
+                    if (_mainWin->shiftKeyPressedState) {
                         std::vector<QGraphicsItem*> itemList = to_vector(gscene->items(path, Qt::ContainsItemShape));
                         if (!itemList.size())
                             clearSelection();
@@ -1333,7 +1333,7 @@ View::mousePressEvent(QMouseEvent* event)
             }
             else {
                 if (settings[ST_SELECTION_PICK_ADD].i) {
-                    if (_mainWin->isShiftPressed()) {
+                    if (_mainWin->shiftKeyPressedState) {
                         std::vector<QGraphicsItem*> itemList = to_vector(gscene->items(path, Qt::IntersectsItemShape));
                         for (int i=0; i<(int)itemList.size(); i++) {
                             itemList[i]->setSelected(false);
@@ -1347,7 +1347,7 @@ View::mousePressEvent(QMouseEvent* event)
                     }
                 }
                 else {
-                    if (_mainWin->isShiftPressed()) {
+                    if (_mainWin->shiftKeyPressedState) {
                         std::vector<QGraphicsItem*> itemList = to_vector(gscene->items(path, Qt::IntersectsItemShape));
                         if (!itemList.size()) {
                             clearSelection();
