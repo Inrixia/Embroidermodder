@@ -6,7 +6,7 @@ project(embroidermodder VERSION 2.0.0 LANGUAGES C CXX)
 
 #include(config.cmake)
 
-find_package(Qt6 REQUIRED COMPONENTS Core OpenGL Widgets PrintSupport)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets PrintSupport OpenGLWidgets)
 
 qt_standard_project_setup()
 
@@ -47,6 +47,7 @@ qt_add_executable(embroidermodder2 WIN32 MACOSX_BUNDLE
     ${CMAKE_SOURCE_DIR}/src/view.cpp
 
     ${CMAKE_SOURCE_DIR}/src/embroidermodder.h
+    ${CMAKE_SOURCE_DIR}/src/render.h
     ${CMAKE_SOURCE_DIR}/src/core.h
     ${CMAKE_SOURCE_DIR}/src/actions.h
     ${CMAKE_SOURCE_DIR}/src/menus.h
@@ -61,6 +62,7 @@ qt_add_executable(embroidermodder2 WIN32 MACOSX_BUNDLE
     ${CMAKE_SOURCE_DIR}/src/action_table.c
     ${CMAKE_SOURCE_DIR}/src/editor_table.c
     ${CMAKE_SOURCE_DIR}/src/tips.c
+    ${CMAKE_SOURCE_DIR}/src/render.c
 
     ${CMAKE_SOURCE_DIR}/assets/assets.qrc
 )
@@ -69,6 +71,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/extern/libembroidery/src
     ${CMAKE_SOURCE_DIR}/extern/libembroidery/src/stb
     ${CMAKE_SOURCE_DIR}/extern/libembroidery/src/nanosvg
+    ${CMAKE_SOURCE_DIR}/extern/freeglut-3.4.0/include
     ${CMAKE_SOURCE_DIR}/src
 )
 
@@ -76,7 +79,7 @@ target_link_libraries(embroidermodder2 PRIVATE
     Qt6::Core
     Qt6::Widgets
     Qt6::PrintSupport
-    Qt6::OpenGL
+    Qt6::OpenGLWidgets
     embroidery_static)
 
 if (WIN32)

@@ -13,7 +13,6 @@
  *      https://peps.python.org/pep-0007/
  */
 
-
 /* We assume here that all free systems and MacOS are POSIX compliant. */
 #if defined(WIN32)
 #include <windows.h>
@@ -27,7 +26,32 @@
 
 #include "embroidermodder.h"
 
+#include "render.h"
+
 #define MAX_ARGS                         10
+
+#include <QOpenGLWidget>
+
+class OpenGLView : public QOpenGLWidget
+{
+public:
+    OpenGLView(QWidget *parent) : QOpenGLWidget(parent) { }
+    ~OpenGLView() { }
+
+protected:
+    void initializeGL() override { init_render(100, 100); }
+    void resizeGL(int w, int h) override { resize_render(w, h); }
+    void paintGL() override {
+        main_render();
+
+        QPainter painter(this);
+        painter.setPen(Qt::black);
+        painter.setFont(QFont("Arial", 16));
+        painter.drawText(0, 0, width(), height(), Qt::AlignLeft, "Hello, World!");
+        painter.end();
+    }
+
+};
 
 int pop_command(const char *line);
 
@@ -1196,6 +1220,18 @@ MainWindow::MainWindow() : QMainWindow(0)
 {
     QString appDir = qApp->applicationDirPath();
     read_settings();
+
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+
+    QWidget *opengl_ = new QWidget(this, Qt::Window);
+    OpenGLView *opengl = new OpenGLView(opengl_);
+    opengl->setMinimumSize(550, 400);
+    opengl->show();
+    opengl_->show();
 
     QString icon_theme(settings[ST_ICON_THEME].s);
     //Verify that files/directories needed are actually present.
