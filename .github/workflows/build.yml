@@ -18,7 +18,12 @@ jobs:
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3.3.0
-            
+      with:
+        qt-version: '6' # Specify the version of Qt you want to use
+
+    - name: Set up environment variables
+      run: |
+        echo "CMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt/6/windows_x86_64" >> $GITHUB_ENV           
 
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@v2.2.0
