@@ -11,19 +11,32 @@ on:
 jobs:
   build_windows:
     runs-on: windows-latest
+
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install aqtinstall
+      run: pip install aqtinstall
+
+    - name: Install Qt6
+      run: |
+        python -m aqt install-qt windows desktop 6.2.4 win64_mingw81 --outputdir C:\Qt
+        echo "CMAKE_PREFIX_PATH=C:\Qt\6.2.4\mingw81_64" >> $GITHUB_ENV
 
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@v2.2.0
       with:
         platform: x64
-        version: 12.2.0 
+        version: 12.2.0
 
     - name: package
-      run: |
-        bash build.sh --package-msi
+      run: bash build.sh --package-msi
 
     - name: archive production artifacts
       uses: actions/upload-artifact@v3
