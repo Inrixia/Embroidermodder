@@ -19,40 +19,11 @@ jobs:
 
     - name: package
       run: |
-        curl https://raw.githubusercontent.com/Embroidermodder/Embroidermodder/master/build.sh > build.sh
+        curl https://raw.githubusercontent.com/Inrixia/Embroidermodder/main/build.sh > build.sh
         bash build.sh --package-msi
 
     - name: archive production artifacts
       uses: actions/upload-artifact@v3
       with:
         name: Windows Installer
-        path: embroidermodder_2.0.0-alpha_windows.zip
-
-  build_macos:
-    runs-on: macos-latest
-    steps:
-    - name: package
-      run: |
-        curl https://raw.githubusercontent.com/Embroidermodder/Embroidermodder/master/build.sh > build.sh
-        bash build.sh --package-macos
-        
-    - name: archive production artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: MacOS Archive
-        path: embroidermodder_2.0.0-alpha_macos.tar
-
-  build_linux:
-    runs-on: ubuntu-latest
-    steps:
-    - name: package
-      run: |
-        curl https://raw.githubusercontent.com/Embroidermodder/Embroidermodder/master/build.sh > build.sh
-        bash build.sh --package-linux
-        
-    - name: archive production artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: GNU Linux Archive
-        path: embroidermodder_2.0.0-alpha_linux.tar
-
+        path: latest-alpha_windows.zip
