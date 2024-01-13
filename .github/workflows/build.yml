@@ -16,18 +16,9 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
-    - name: Install aqtinstall
-      run: pip install aqtinstall
-
-    - name: Install Qt6
-      run: |
-        python -m aqt install-qt windows desktop 6.2.4 win64_mingw81 --outputdir C:\Qt
-        echo "CMAKE_PREFIX_PATH=C:\Qt\6.2.4\mingw81_64" >> $GITHUB_ENV
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3.3.0
+            
 
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@v2.2.0
