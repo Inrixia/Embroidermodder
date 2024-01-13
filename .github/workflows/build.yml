@@ -17,10 +17,10 @@ jobs:
       uses: actions/checkout@v3
 
     - name: package
-      run: bash build.sh --package-msi
-
+      bash build.sh --package-linux
+        
     - name: archive production artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: Windows Installer
-        path: latest-alpha_windows.zip
+        name: GNU Linux Archive
+        path: embroidermodder_2.0.0-alpha_linux.tar
