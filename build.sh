@@ -54,7 +54,7 @@ fi
 
 mkdir -p "$BUILD_DIR" && cd "$BUILD_DIR" || exit 1
 cp -r "$SRC_DIR/assets/"* . || exit 1
-cp "$SRC_DIR/LICENSE.txt" . || exit 1
+cp "$SRC_DIR/LICENSE.md" . || exit 1
 
 cmake -S "$SRC_DIR" -B "$BUILD_DIR" -G "$GENERATOR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE"  || exit 1
 cmake --build . &> build.log || exit 1
